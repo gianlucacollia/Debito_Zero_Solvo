@@ -1,0 +1,110 @@
+═══════════════════════════════════════════════════════════════════════
+   🚀 COME CARICARE "DEBITO ZERO - SOLVO" SU GITHUB
+   Guida SEMPLICE passo-passo
+═══════════════════════════════════════════════════════════════════════
+
+✅ FILE PREPARATI: Tutti i file sono già nella cartella!
+
+═══════════════════════════════════════════════════════════════════════
+📋 METODO RAPIDISSIMO: GitHub Web (5 minuti) ⭐ CONSIGLIATO
+═══════════════════════════════════════════════════════════════════════
+
+🔹 PASSO 1: REGISTRATI SU GITHUB (se non hai account)
+   → Vai: https://github.com
+   → Clicca "Sign up"
+   → Registrati con email/password
+   → Conferma email
+
+🔹 PASSO 2: CREA NUOVO REPOSITORY
+   → Login su GitHub
+   → Clicca "+" in alto a destra → "New repository"
+   → Nome: debito-zero-solvo
+   → Descrizione: Piattaforma gestione debiti
+   → ✅ Public
+   → ✅ Add README
+   → "Create repository"
+
+🔹 PASSO 3: CARICA I FILE
+   → Nella pagina repository clicca "Add file" → "Upload files"
+   → Apri Explorer: C:\Users\gianl\OneDrive\Desktop\Debito Zero
+   → Trascina questi file nel browser:
+     ☑ index.html
+     ☑ styles.css
+     ☑ app.js
+     ☑ README.md
+     ☑ CONFIG-EMAIL.txt
+   
+   → Commit message: "Initial commit - Debito Zero Solvo"
+   → "Commit changes"
+
+✅ FATTO! File su GitHub!
+
+═══════════════════════════════════════════════════════════════════════
+🌐 RENDI IL SITO ONLINE (GitHub Pages) - GRATIS!
+═══════════════════════════════════════════════════════════════════════
+
+🔹 VAI IN: Settings → Pages
+🔹 Source: main branch
+🔹 Folder: / (root)
+🔹 Save
+
+⏱️ Aspetta 1-2 minuti → Ricevi link:
+   https://tuo-username.github.io/debito-zero-solvo
+
+🎉 SITO ONLINE E CONDIVISIBILE!
+
+═══════════════════════════════════════════════════════════════════════
+💻 ALTERNATIVA: GitHub Desktop
+═══════════════════════════════════════════════════════════════════════
+
+Se preferisci un'app desktop:
+
+1. SCARICA: https://desktop.github.com
+2. INSTALLA e fai login
+3. FILE → "Add Local Repository"
+4. Scegli: C:\Users\gianl\OneDrive\Desktop\Debito Zero
+5. PUBLISH branch (pubblica su GitHub)
+6. DONE!
+
+═══════════════════════════════════════════════════════════════════════
+🌍 ALTERNATIVA RAPIDA: Netlify (2 minuti)
+═══════════════════════════════════════════════════════════════════════
+
+1. Vai: https://app.netlify.com/drop
+2. Trascina la cartella "Debito Zero"
+3. Aspetta 10 secondi
+4. Copia il link!
+
+✅ Sito online subito!
+
+═══════════════════════════════════════════════════════════════════════
+📝 FILE DA CARICARE (Checklist)
+═══════════════════════════════════════════════════════════════════════
+
+☑ index.html          - Pagina principale
+☑ styles.css          - Stili e design
+☑ app.js              - Funzionalità JavaScript
+☑ README.md           - Descrizione progetto
+☑ CONFIG-EMAIL.txt    - Guida configurazione
+
+✗ NON caricare index-standalone.html (è una copia)
+
+═══════════════════════════════════════════════════════════════════════
+✨ RISULTATO
+═══════════════════════════════════════════════════════════════════════
+
+Avrai un link pubblico GRATIS tipo:
+  https://tuo-username.github.io/debito-zero-solvo
+
+Il sito è:
+  ✅ Accessibile da tutto il mondo
+  ✅ Gratis per sempre
+  ✅ Mobile-friendly
+  ✅ Pronto all'uso!
+
+═══════════════════════════════════════════════════════════════════════
+❓ BISOGNO DI AIUTO?
+═══════════════════════════════════════════════════════════════════════
+
+Chiedi pure! Sono qui per aiutarti! 🚀
+

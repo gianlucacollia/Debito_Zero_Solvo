@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Debito Zero - Solvo - Trova soluzioni professionali per gestire i tuoi debiti">
+  <title>Debito Zero - Solvo – Wizard + Professionisti</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav" role="navigation" aria-label="Navigazione principale">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="28" height="28" fill="currentColor">
+        <!-- Orecchio sinistro -->
+        <ellipse cx="10" cy="8" rx="2.5" ry="7" transform="rotate(-20 10 8)"/>
+        <!-- Orecchio destro -->
+        <ellipse cx="22" cy="8" rx="2.5" ry="7" transform="rotate(20 22 8)"/>
+        <!-- Testa -->
+        <circle cx="16" cy="16" r="8"/>
+        <!-- Occhio sinistro -->
+        <circle cx="13" cy="15" r="1.5" fill="white"/>
+        <!-- Occhio destro -->
+        <circle cx="19" cy="15" r="1.5" fill="white"/>
+        <!-- Nasino -->
+        <circle cx="16" cy="19" r="1" fill="white" opacity="0.8"/>
+        <!-- Corpo stilizzato -->
+        <ellipse cx="16" cy="27" rx="6" ry="4"/>
+      </svg>
+    </div>
+    <strong>Debito Zero - Solvo</strong>
+    <div class="spacer"></div>
+    <span class="nav-subtitle">Il tuo percorso verso la libertà finanziaria</span>
+  </nav>
+
+  <!-- WIZARD -->
+  <section class="page active" id="page-wizard" aria-labelledby="wizard-title">
+    <div class="container">
+      <h1 id="wizard-title">Ciao, benvenuto in Debito Zero - Solvo – da qui riparte la tua vita senza debiti.</h1>
+      <p class="lead">Completa il percorso in 3 semplici step.</p>
+
+      <!-- Progress Bar -->
+      <div class="prog" role="progressbar" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso wizard">
+        <span id="bar"></span>
+      </div>
+      
+      <!-- Steps Indicator -->
+      <div class="steps">
+        <div class="step active" data-step="1">
+          <span class="num" aria-hidden="true">1</span>
+          <span>Tipi di debito</span>
+        </div>
+        <div class="step" data-step="2">
+          <span class="num" aria-hidden="true">2</span>
+          <span>Dati personali</span>
+        </div>
+        <div class="step" data-step="3">
+          <span class="num" aria-hidden="true">3</span>
+          <span>Riepilogo</span>
+        </div>
+      </div>
+
+      <!-- Step 1: Debt Type Selection -->
+      <section id="step1" class="card">
+        <h2 class="question">Per quale tipo di debito posso aiutarti?</h2>
+        <p class="subtle">(puoi selezionare una o più opzioni e inserire l'importo)</p>
+
+        <div class="options" role="group" aria-label="Selezione tipo di debito">
+          <div class="opt-wrapper">
+            <button type="button" class="opt" data-value="banche_finanziarie" aria-pressed="false">
+              <span class="check" aria-hidden="true">✓</span>
+              <span class="label">Debiti con banche e/o finanziaria</span>
+            </button>
+            <div class="amount-input" id="amount-banche_finanziarie" style="display:none;">
+              <input type="number" min="0" step="0.01" placeholder="Importo in €" aria-label="Importo debiti banche">
+            </div>
+          </div>
+          
+          <div class="opt-wrapper">
+            <button type="button" class="opt" data-value="tributari" aria-pressed="false">
+              <span class="check" aria-hidden="true">✓</span>
+              <span class="label">Debiti tributari</span>
+            </button>
+            <div class="amount-input" id="amount-tributari" style="display:none;">
+              <input type="number" min="0" step="0.01" placeholder="Importo in €" aria-label="Importo debiti tributari">
+            </div>
+          </div>
+          
+          <div class="opt-wrapper">
+            <button type="button" class="opt" data-value="erario" aria-pressed="false">
+              <span class="check" aria-hidden="true">✓</span>
+              <span class="label">Debiti con erario</span>
+            </button>
+            <div class="amount-input" id="amount-erario" style="display:none;">
+              <input type="number" min="0" step="0.01" placeholder="Importo in €" aria-label="Importo debiti erario">
+            </div>
+          </div>
+        </div>
+
+        <div id="total-amount" style="display:none; margin-top:24px; padding:20px; background:#e6f4ff; border-radius:12px;">
+          <div style="font-size:0.875rem; color:var(--text-muted); margin-bottom:8px;">Totale debiti:</div>
+          <div style="font-size:2rem; font-weight:800; color:var(--accent);" id="total-display">€ 0,00</div>
+        </div>
+
+        <div class="actions">
+          <span class="subtle" aria-live="polite">Seleziona almeno un'opzione.</span>
+          <button type="button" id="to2" class="btn" disabled>Avanti</button>
+        </div>
+      </section>
+
+      <!-- Step 2: Personal Data -->
+      <section id="step2" class="card" hidden>
+        <h2 class="question">I tuoi dati</h2>
+        <p class="subtle">Tipi selezionati: <span id="chips"></span></p>
+
+        <form id="form" novalidate>
+          <div class="row">
+            <div class="field">
+              <label for="nome">Nome</label>
+              <input type="text" id="nome" name="nome" autocomplete="given-name" required>
+              <div class="error-text" id="err-nome" role="alert">Inserisci il nome.</div>
+            </div>
+            <div class="field">
+              <label for="cognome">Cognome</label>
+              <input type="text" id="cognome" name="cognome" autocomplete="family-name" required>
+              <div class="error-text" id="err-cognome" role="alert">Inserisci il cognome.</div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="telefono">Numero di cellulare</label>
+              <input type="tel" id="telefono" name="telefono" inputmode="tel" placeholder="+39 333 1234567" autocomplete="tel" required>
+              <div class="error-text" id="err-telefono" role="alert">Numero non valido (min 9 cifre).</div>
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" autocomplete="email" required>
+              <div class="error-text" id="err-email" role="alert">Email non valida.</div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="creditore">Con chi (nome creditore principale)</label>
+              <input type="text" id="creditore" name="creditore" placeholder="Es. Banca X / AE-R / Servicer Y" required>
+              <div class="error-text" id="err-creditore" role="alert">Inserisci il creditore.</div>
+            </div>
+          </div>
+        </form>
+
+        <div class="actions">
+          <button type="button" id="back1" class="btn ghost">Indietro</button>
+          <button type="button" id="to3" class="btn">Avanti</button>
+        </div>
+      </section>
+
+      <!-- Step 3: Review -->
+      <section id="step3" class="card" hidden>
+        <h2 class="question">Riepilogo</h2>
+        <div class="review" id="review"></div>
+        <div class="actions">
+          <button type="button" id="back2" class="btn ghost">Indietro</button>
+          <button type="button" id="submit" class="btn">Invia</button>
+        </div>
+        <div id="ok" class="success" role="status" aria-live="polite">
+          ✅ Dati confermati! Stiamo indirizzandoti ai professionisti adatti…
+        </div>
+        <div id="sending" class="sending" role="status" aria-live="polite">
+          ⏳ Invio email in corso...
+        </div>
+        <div id="email-error" class="email-error" role="alert">
+          ❌ Errore nell'invio email. Riprova o contattaci direttamente.
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- PROFESSIONISTI -->
+  <section class="page" id="page-pro" aria-labelledby="pro-title">
+    <div class="container">
+      <h1 id="pro-title">Professionisti Debito Zero - Solvo</h1>
+      <p class="lead">Trova il professionista giusto per risolvere la tua situazione debitoria</p>
+
+      <!-- Toolbar: Search & Filters -->
+      <div class="toolbar">
+        <div class="search">
+          <input type="search" id="search" placeholder="Cerca (es. 'fiscale', 'saldo e stralcio')" aria-label="Cerca professionisti">
+        </div>
+        <button type="button" class="chip active" data-filter="all">Tutti</button>
+        <button type="button" class="chip" data-filter="bancari">Bancari</button>
+        <button type="button" class="chip" data-filter="fiscali">Fiscali/Tributari</button>
+        <button type="button" class="chip" data-filter="aziende">Aziende</button>
+        <button type="button" class="chip" data-filter="privati">Privati</button>
+      </div>
+
+      <!-- Professionals Grid -->
+      <div class="grid" id="pro-grid"></div>
+    </div>
+  </section>
+
+  <!-- GDPR Modal -->
+  <div id="gdprModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="gdprTitle">
+    <div class="modal">
+      <h3 id="gdprTitle">Informativa sul trattamento dei dati</h3>
+      <div class="body">
+        <p>Ai sensi del GDPR, Debito Zero - Solvo utilizza i dati per prendere in carico la tua richiesta e, se necessario, condividerli con professionisti abilitati (avvocati, OCC, consulenti) per lo svolgimento dell'incarico.</p>
+        <p>Base giuridica: misure precontrattuali e legittimo interesse. Conservazione: tempo necessario alla gestione della pratica e obblighi di legge.</p>
+      </div>
+      <div class="actions">
+        <label class="consent-label">
+          <input type="checkbox" id="consentChk">
+          Acconsento alla comunicazione dei dati ai professionisti
+        </label>
+        <button type="button" id="closeModal" class="m-btn m-ghost">Annulla</button>
+        <button type="button" id="confirmSend" class="m-btn m-primary" disabled>Conferma</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+

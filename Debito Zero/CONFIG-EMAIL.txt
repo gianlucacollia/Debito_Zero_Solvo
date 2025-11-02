@@ -1,0 +1,210 @@
+════════════════════════════════════════════════════════════
+   CONFIGURAZIONE INVIO EMAIL - Debito Zero - Solvo
+════════════════════════════════════════════════════════════
+
+📧 Questa guida ti spiega come configurare l'invio automatico delle 
+   richieste via email usando EmailJS (servizio GRATUITO).
+
+════════════════════════════════════════════════════════════
+🚀 PASSO 1: Crea un account EmailJS (2 minuti)
+════════════════════════════════════════════════════════════
+
+1. Vai su: https://www.emailjs.com/
+
+2. Clicca su "Sign Up" (in alto a destra)
+
+3. Registrati con:
+   - Email
+   - Google
+   - oppure GitHub
+
+4. Conferma la tua email
+
+✅ Piano GRATUITO: 200 email/mese (più che sufficienti!)
+
+
+════════════════════════════════════════════════════════════
+📨 PASSO 2: Configura il servizio email
+════════════════════════════════════════════════════════════
+
+1. Dopo il login, vai su "Email Services"
+
+2. Clicca "Add New Service"
+
+3. Scegli il tuo provider email (es: Gmail, Outlook, ecc.)
+   📌 CONSIGLIO: Usa Gmail perché è il più semplice
+
+4. Per Gmail:
+   - Clicca su "Connect Account"
+   - Autorizza EmailJS ad accedere a Gmail
+   - FATTO!
+
+5. Copia il "Service ID" (es: service_abc123)
+   ⚠️ Lo userai al PASSO 4!
+
+
+════════════════════════════════════════════════════════════
+📝 PASSO 3: Crea il template email
+════════════════════════════════════════════════════════════
+
+1. Vai su "Email Templates"
+
+2. Clicca "Create New Template"
+
+3. Usa questo template (copia e incolla):
+
+   ──────────────────────────────────────────────
+   OGGETTO EMAIL:
+   ──────────────────────────────────────────────
+   Nuova richiesta NoDebiti.it - {{from_name}}
+
+   ──────────────────────────────────────────────
+   CORPO EMAIL:
+   ──────────────────────────────────────────────
+   Hai ricevuto una nuova richiesta da NoDebiti.it!
+
+   📋 DATI CLIENTE:
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   • Nome: {{from_name}}
+   • Email: {{from_email}}
+   • Telefono: {{phone}}
+
+   💰 INFORMAZIONI DEBITO:
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   • Tipo di debito: {{debt_types}}
+   • Importo: {{debt_amount}}
+   • Creditore: {{creditor}}
+
+   🕐 Data richiesta: {{submission_date}}
+
+   ──────────────────────────────────────────────
+   Questo messaggio è stato inviato automaticamente 
+   dal form di NoDebiti.it
+   ──────────────────────────────────────────────
+
+4. Clicca "Save"
+
+5. Copia il "Template ID" (es: template_xyz789)
+   ⚠️ Lo userai al PASSO 4!
+
+
+════════════════════════════════════════════════════════════
+🔑 PASSO 4: Inserisci le credenziali nel codice
+════════════════════════════════════════════════════════════
+
+1. Apri il file: app.js
+
+2. Cerca questa sezione all'inizio del file:
+
+   const EMAIL_CONFIG = {
+     serviceId: 'YOUR_SERVICE_ID',
+     templateId: 'YOUR_TEMPLATE_ID',
+     publicKey: 'YOUR_PUBLIC_KEY',
+     recipientEmail: 'tuaemail@example.com'
+   };
+
+3. Sostituisci i valori:
+
+   • serviceId → Inserisci il Service ID del PASSO 2
+   • templateId → Inserisci il Template ID del PASSO 3
+   • publicKey → Vai su Account > General, copia "Public Key"
+   • recipientEmail → La TUA email dove vuoi ricevere le richieste
+
+4. ESEMPIO COMPILATO:
+
+   const EMAIL_CONFIG = {
+     serviceId: 'service_abc123',
+     templateId: 'template_xyz789',
+     publicKey: 'AbCdEfGhIjKlMnOp',
+     recipientEmail: 'info@nodebiti.it'
+   };
+
+5. SALVA il file app.js
+
+
+════════════════════════════════════════════════════════════
+✅ PASSO 5: Testa il funzionamento
+════════════════════════════════════════════════════════════
+
+1. Apri index.html nel browser
+
+2. Compila il wizard con dati di test
+
+3. Clicca "Invia" e accetta il GDPR
+
+4. Controlla la tua email!
+   - Se configurato correttamente: riceverai l'email in 1-2 minuti
+   - Se c'è un errore: apri la Console del browser (F12)
+
+
+════════════════════════════════════════════════════════════
+🔧 TROUBLESHOOTING
+════════════════════════════════════════════════════════════
+
+❌ "EmailJS non configurato"
+   → Hai dimenticato di inserire le credenziali in app.js
+
+❌ "Service ID not found"
+   → Il Service ID è sbagliato, ricontrolla al PASSO 2
+
+❌ "Template ID not found"
+   → Il Template ID è sbagliato, ricontrolla al PASSO 3
+
+❌ "Public Key invalid"
+   → Vai su EmailJS > Account > General e copia la Public Key corretta
+
+❌ Non ricevo email
+   → Controlla la cartella SPAM
+   → Verifica che recipientEmail sia corretta
+   → Ricontrolla di aver autorizzato Gmail
+
+
+════════════════════════════════════════════════════════════
+💡 ALTERNATIVE A EMAILJS
+════════════════════════════════════════════════════════════
+
+Se preferisci altri servizi:
+
+• FormSubmit (https://formsubmit.co)
+  - Ancora più semplice
+  - Non richiede registrazione
+  - Basta un endpoint
+
+• Formspree (https://formspree.io)
+  - 50 email/mese gratis
+  - Molto affidabile
+
+• SendGrid (https://sendgrid.com)
+  - 100 email/giorno gratis
+  - Più professionale
+
+
+════════════════════════════════════════════════════════════
+❓ DOMANDE FREQUENTI
+════════════════════════════════════════════════════════════
+
+Q: È davvero gratis?
+A: Sì! 200 email/mese sono completamente gratuite.
+
+Q: Serve un backend?
+A: No! Tutto funziona dal browser, nessun server necessario.
+
+Q: È sicuro?
+A: Sì, EmailJS usa HTTPS e non espone le tue credenziali.
+
+Q: Posso personalizzare l'email?
+A: Sì! Modifica il template al PASSO 3 come preferisci.
+
+Q: Cosa succede se supero 200 email/mese?
+A: Puoi passare al piano a pagamento oppure le email
+   successive non verranno inviate fino al mese successivo.
+
+
+════════════════════════════════════════════════════════════
+📞 BISOGNO DI AIUTO?
+════════════════════════════════════════════════════════════
+
+Se hai problemi con la configurazione, contattami!
+
+Buon lavoro! 🚀
+
