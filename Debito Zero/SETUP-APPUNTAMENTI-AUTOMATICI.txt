@@ -1,0 +1,200 @@
+════════════════════════════════════════════════════════════
+   SETUP APPUNTAMENTI AUTOMATICI - Debito Zero - Solvo
+════════════════════════════════════════════════════════════
+
+📅 Come far arrivare gli appuntamenti DIRETTAMENTE sul calendario
+   del professionista senza interventi manuali
+
+════════════════════════════════════════════════════════════
+🎯 SOLUZIONE 1: Email con link (ATTUALE - Funziona subito)
+════════════════════════════════════════════════════════════
+
+✅ COME FUNZIONA:
+   - Quando un cliente prenota, il professionista riceve un'email
+   - L'email contiene tutti i dettagli (data, ora, cliente)
+   - Include un link per aggiungere l'evento con un click
+
+✅ VANTAGGI:
+   - Funziona immediatamente senza configurazione
+   - Non richiede backend o API complesse
+   - Il professionista può rivedere i dettagli prima di confermare
+
+⚠️ REQUISITI:
+   - EmailJS configurato (vedi CONFIG-EMAIL.txt)
+   - Il professionista deve avere email configurata in app.js
+
+
+════════════════════════════════════════════════════════════
+🚀 SOLUZIONE 2: Google Calendar API (ADD DIRETTAMENTE)
+════════════════════════════════════════════════════════════
+
+✅ COME FUNZIONA:
+   - Gli appuntamenti vengono aggiunti AUTOMATICAMENTE al calendario
+   - Il professionista riceve una notifica
+   - Nessun intervento manuale necessario
+
+⚠️ REQUISITI:
+   - Backend server (Node.js, Python, PHP, ecc.)
+   - Google Cloud Project
+   - OAuth 2.0 configurato
+   - Permessi al calendario del professionista
+
+📋 SETUP PASSO-PASSO:
+
+1. Crea un progetto Google Cloud:
+   - Vai su: https://console.cloud.google.com/
+   - Crea nuovo progetto "Debito Zero - Solvo"
+
+2. Abilita Google Calendar API:
+   - Cerca "Google Calendar API"
+   - Clicca "Enable"
+
+3. Crea credenziali OAuth 2.0:
+   - Vai su "Credentials" > "Create Credentials" > "OAuth 2.0 Client ID"
+   - Tipo: "Web application"
+   - Aggiungi URL autorizzati (es: https://tuodominio.com)
+
+4. Configura backend:
+   - Installa Google Calendar API library
+   - Autentica con il calendario del professionista
+   - Quando arriva una prenotazione, chiama l'API per aggiungere l'evento
+
+5. Integra nel frontend:
+   - Invece di aprire Google Calendar direttamente
+   - Invia richiesta al backend
+   - Backend aggiunge l'evento al calendario del professionista
+
+💡 ESEMPIO (Node.js):
+
+   const { google } = require('googleapis');
+   
+   async function addAppointment(calendarId, startTime, endTime, title) {
+     const auth = new google.auth.GoogleAuth({
+       keyFile: 'credentials.json',
+       scopes: ['https://www.googleapis.com/auth/calendar']
+     });
+     
+     const calendar = google.calendar({ version: 'v3', auth });
+     
+     const event = {
+       summary: title,
+       start: { dateTime: startTime },
+       end: { dateTime: endTime }
+     };
+     
+     await calendar.events.insert({
+       calendarId: calendarId,
+       resource: event
+     });
+   }
+
+
+════════════════════════════════════════════════════════════
+🎨 SOLUZIONE 3: Cal.com / Calendly (CONSIGLIATA)
+════════════════════════════════════════════════════════════
+
+✅ COME FUNZIONA:
+   - Servizio esterno che gestisce tutto automaticamente
+   - Gli appuntamenti vengono aggiunti direttamente al calendario
+   - Link personalizzato per ogni professionista
+   - Gestione automatica di disponibilità, conferme, reminder
+
+✅ VANTAGGI:
+   - Zero configurazione tecnica
+   - Gestisce conflitti e doppi appuntamenti
+   - Invia reminder automatici
+   - Sincronizza con Google Calendar, Outlook, Apple Calendar
+
+📋 SETUP:
+
+1. Crea account su Cal.com (gratuito fino a 20 eventi/mese):
+   - Vai su: https://cal.com
+   - Registrati con Google Calendar
+
+2. Crea un "Event Type":
+   - Durata: 1 ora
+   - Disponibilità: scegli i tuoi orari
+   - Calendari collegati: seleziona il tuo Google Calendar
+
+3. Ottieni il link:
+   - Copia il link personale (es: https://cal.com/gianluca-collia/30min)
+
+4. Aggiorna app.js:
+   - In PROFESSIONALS_DATA, per Gianluca Collia:
+     calendarLink: 'https://cal.com/gianluca-collia/1h'
+
+✅ FATTO! Ora quando un cliente prenota:
+   - Cal.com gestisce tutto automaticamente
+   - L'appuntamento viene aggiunto al tuo calendario Google
+   - Il cliente può scegliere tra gli slot disponibili
+   - Tu ricevi notifiche e conferme
+
+
+════════════════════════════════════════════════════════════
+📊 CONFRONTO SOLUZIONI
+════════════════════════════════════════════════════════════
+
+┌─────────────────┬──────────┬──────────────┬────────────┐
+│ Soluzione       │ Setup    │ Automatico   │ Costo      │
+├─────────────────┼──────────┼──────────────┼────────────┤
+│ Email + Link    │ Facile   │ No (click)   │ Gratis     │
+│ Google API      │ Difficile│ Sì           │ Gratis     │
+│ Cal.com         │ Facile   │ Sì           │ Gratis/Pag │
+└─────────────────┴──────────┴──────────────┴────────────┘
+
+
+════════════════════════════════════════════════════════════
+💡 RACCOMANDAZIONE
+════════════════════════════════════════════════════════════
+
+Per iniziare: SOLUZIONE 1 (Email + Link)
+   - Funziona subito
+   - Zero configurazione
+
+Per automazione completa: SOLUZIONE 3 (Cal.com)
+   - Setup veloce (10 minuti)
+   - Gestisce tutto automaticamente
+   - Professionale e affidabile
+
+Per controllo totale: SOLUZIONE 2 (Google Calendar API)
+   - Richiede sviluppo backend
+   - Massima personalizzazione
+
+
+════════════════════════════════════════════════════════════
+❓ DOMANDE FREQUENTI
+════════════════════════════════════════════════════════════
+
+Q: Posso aggiungere eventi direttamente senza backend?
+A: Solo con servizi esterni come Cal.com. Google Calendar API 
+   richiede autenticazione OAuth che non può essere fatta solo 
+   dal browser per motivi di sicurezza.
+
+Q: Cal.com è sicuro?
+A: Sì, è uno dei servizi più usati al mondo per appuntamenti.
+   Usato da migliaia di professionisti e aziende.
+
+Q: Quanto costa Cal.com?
+A: Piano gratuito: 20 eventi/mese
+   Piano base: €9/mese per eventi illimitati
+
+Q: Posso usare più calendari (lavoro + personale)?
+A: Sì, Cal.com può sincronizzare con più calendari Google.
+
+Q: Funziona con altri calendari oltre Google?
+A: Sì, supporta Outlook, Apple Calendar, Yahoo Calendar.
+
+
+════════════════════════════════════════════════════════════
+📞 BISOGNO DI AIUTO?
+════════════════════════════════════════════════════════════
+
+Se vuoi implementare la SOLUZIONE 2 (Google Calendar API), 
+posso aiutarti con il codice backend.
+
+Per la SOLUZIONE 3 (Cal.com), il setup è molto semplice 
+e la loro documentazione è ottima:
+https://cal.com/docs
+
+Buon lavoro! 🚀
+

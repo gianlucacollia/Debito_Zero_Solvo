@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Debito Zero - Solvo - Trova soluzioni professionali per gestire i tuoi debiti">
   <title>Debito Zero - Solvo – Wizard + Professionisti</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -12,7 +15,7 @@
 <body>
   <!-- Navigation -->
   <nav class="nav" role="navigation" aria-label="Navigazione principale">
-    <div class="logo" aria-hidden="true">
+    <button class="logo-btn" onclick="Navigation.goToHome()" aria-label="Torna alla home">
       <svg viewBox="0 0 32 32" width="28" height="28" fill="currentColor">
         <!-- Orecchio sinistro -->
         <ellipse cx="10" cy="8" rx="2.5" ry="7" transform="rotate(-20 10 8)"/>
@@ -29,17 +32,21 @@
         <!-- Corpo stilizzato -->
         <ellipse cx="16" cy="27" rx="6" ry="4"/>
       </svg>
-    </div>
+    </button>
     <strong>Debito Zero - Solvo</strong>
     <div class="spacer"></div>
-    <span class="nav-subtitle">Il tuo percorso verso la libertà finanziaria</span>
+    <span class="nav-subtitle">Professionisti qualificati, soluzioni sostenibili</span>
+    <div class="nav-actions">
+      <button class="nav-btn" onclick="Navigation.scrollToClient()">Richiedi aiuto</button>
+      <button class="nav-btn nav-btn-secondary" onclick="Navigation.showProfessionalLogin()">Area Professionisti</button>
+    </div>
   </nav>
 
   <!-- WIZARD -->
   <section class="page active" id="page-wizard" aria-labelledby="wizard-title">
     <div class="container">
-      <h1 id="wizard-title">Ciao, benvenuto in Debito Zero - Solvo – da qui riparte la tua vita senza debiti.</h1>
-      <p class="lead">Completa il percorso in 3 semplici step.</p>
+      <h1 id="wizard-title">Risolvi i tuoi debiti in modo semplice</h1>
+      <p class="lead">In 3 passi ti colleghiamo con i professionisti giusti per la tua situazione</p>
 
       <!-- Progress Bar -->
       <div class="prog" role="progressbar" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso wizard">
@@ -64,8 +71,8 @@
 
       <!-- Step 1: Debt Type Selection -->
       <section id="step1" class="card">
-        <h2 class="question">Per quale tipo di debito posso aiutarti?</h2>
-        <p class="subtle">(puoi selezionare una o più opzioni e inserire l'importo)</p>
+        <h2 class="question">Quali debiti vuoi risolvere?</h2>
+        <p class="subtle">Seleziona tutte le tipologie che ti riguardano e indica gli importi</p>
 
         <div class="options" role="group" aria-label="Selezione tipo di debito">
           <div class="opt-wrapper">
@@ -73,8 +80,14 @@
               <span class="check" aria-hidden="true">✓</span>
               <span class="label">Debiti con banche e/o finanziaria</span>
             </button>
-            <div class="amount-input" id="amount-banche_finanziarie" style="display:none;">
-              <input type="number" min="0" step="0.01" placeholder="Importo in €" aria-label="Importo debiti banche">
+            <div class="debt-details" id="details-banche_finanziarie" style="display:none;">
+              <div class="debt-item">
+                <div class="debt-row">
+                  <input type="text" class="creditor-input" placeholder="Nome creditore (es. Banca X)" aria-label="Nome creditore">
+                  <input type="number" min="0" step="0.01" class="amount-input-field" placeholder="Importo in €" aria-label="Importo">
+                </div>
+              </div>
+              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('banche_finanziarie')">+ Aggiungi un altro</button>
             </div>
           </div>
           
@@ -83,8 +96,14 @@
               <span class="check" aria-hidden="true">✓</span>
               <span class="label">Debiti tributari</span>
             </button>
-            <div class="amount-input" id="amount-tributari" style="display:none;">
-              <input type="number" min="0" step="0.01" placeholder="Importo in €" aria-label="Importo debiti tributari">
+            <div class="debt-details" id="details-tributari" style="display:none;">
+              <div class="debt-item">
+                <div class="debt-row">
+                  <input type="text" class="creditor-input" placeholder="Nome creditore (es. Agenzia Entrate)" aria-label="Nome creditore">
+                  <input type="number" min="0" step="0.01" class="amount-input-field" placeholder="Importo in €" aria-label="Importo">
+                </div>
+              </div>
+              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('tributari')">+ Aggiungi un altro</button>
             </div>
           </div>
           
@@ -93,8 +112,14 @@
               <span class="check" aria-hidden="true">✓</span>
               <span class="label">Debiti con erario</span>
             </button>
-            <div class="amount-input" id="amount-erario" style="display:none;">
-              <input type="number" min="0" step="0.01" placeholder="Importo in €" aria-label="Importo debiti erario">
+            <div class="debt-details" id="details-erario" style="display:none;">
+              <div class="debt-item">
+                <div class="debt-row">
+                  <input type="text" class="creditor-input" placeholder="Nome creditore (es. AE-R / INPS)" aria-label="Nome creditore">
+                  <input type="number" min="0" step="0.01" class="amount-input-field" placeholder="Importo in €" aria-label="Importo">
+                </div>
+              </div>
+              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('erario')">+ Aggiungi un altro</button>
             </div>
           </div>
         </div>
@@ -112,40 +137,47 @@
 
       <!-- Step 2: Personal Data -->
       <section id="step2" class="card" hidden>
-        <h2 class="question">I tuoi dati</h2>
-        <p class="subtle">Tipi selezionati: <span id="chips"></span></p>
+        <h2 class="question">Come possiamo contattarti?</h2>
+        <p class="subtle">Per collegarti ai professionisti abbiamo bisogno di alcuni dati: <span id="chips"></span></p>
 
         <form id="form" novalidate>
           <div class="row">
             <div class="field">
               <label for="nome">Nome</label>
-              <input type="text" id="nome" name="nome" autocomplete="given-name" required>
-              <div class="error-text" id="err-nome" role="alert">Inserisci il nome.</div>
+              <div class="input-wrapper">
+                <input type="text" id="nome" name="nome" autocomplete="given-name" required>
+                <span class="field-icon" id="icon-nome" aria-hidden="true"></span>
+              </div>
+              <div class="error-text" id="err-nome" role="alert">Inserisci almeno 3 caratteri.</div>
             </div>
             <div class="field">
               <label for="cognome">Cognome</label>
-              <input type="text" id="cognome" name="cognome" autocomplete="family-name" required>
-              <div class="error-text" id="err-cognome" role="alert">Inserisci il cognome.</div>
+              <div class="input-wrapper">
+                <input type="text" id="cognome" name="cognome" autocomplete="family-name" required>
+                <span class="field-icon" id="icon-cognome" aria-hidden="true"></span>
+              </div>
+              <div class="error-text" id="err-cognome" role="alert">Inserisci almeno 3 caratteri.</div>
             </div>
           </div>
           <div class="row">
             <div class="field">
               <label for="telefono">Numero di cellulare</label>
-              <input type="tel" id="telefono" name="telefono" inputmode="tel" placeholder="+39 333 1234567" autocomplete="tel" required>
-              <div class="error-text" id="err-telefono" role="alert">Numero non valido (min 9 cifre).</div>
+              <div class="input-wrapper">
+                <input type="tel" id="telefono" name="telefono" inputmode="tel" placeholder="+39 333 1234567" autocomplete="tel" required>
+                <span class="field-icon" id="icon-telefono" aria-hidden="true"></span>
+              </div>
+              <div class="error-text" id="err-telefono" role="alert">Inserisci almeno 9 cifre (es. +39 333 1234567).</div>
             </div>
             <div class="field">
               <label for="email">Email</label>
-              <input type="email" id="email" name="email" autocomplete="email" required>
-              <div class="error-text" id="err-email" role="alert">Email non valida.</div>
+              <div class="input-wrapper">
+                <input type="email" id="email" name="email" autocomplete="email" required>
+                <span class="field-icon" id="icon-email" aria-hidden="true"></span>
+              </div>
+              <div class="error-text" id="err-email" role="alert">Inserisci un'email valida (es. nome@example.com).</div>
             </div>
           </div>
           <div class="row">
-            <div class="field">
-              <label for="creditore">Con chi (nome creditore principale)</label>
-              <input type="text" id="creditore" name="creditore" placeholder="Es. Banca X / AE-R / Servicer Y" required>
-              <div class="error-text" id="err-creditore" role="alert">Inserisci il creditore.</div>
-            </div>
           </div>
         </form>
 
@@ -157,7 +189,8 @@
 
       <!-- Step 3: Review -->
       <section id="step3" class="card" hidden>
-        <h2 class="question">Riepilogo</h2>
+        <h2 class="question">Verifica i tuoi dati</h2>
+        <p class="subtle">Controlla che tutto sia corretto prima di inviare</p>
         <div class="review" id="review"></div>
         <div class="actions">
           <button type="button" id="back2" class="btn ghost">Indietro</button>
@@ -179,8 +212,8 @@
   <!-- PROFESSIONISTI -->
   <section class="page" id="page-pro" aria-labelledby="pro-title">
     <div class="container">
-      <h1 id="pro-title">Professionisti Debito Zero - Solvo</h1>
-      <p class="lead">Trova il professionista giusto per risolvere la tua situazione debitoria</p>
+      <h1 id="pro-title">Trova il professionista ideale</h1>
+      <p class="lead">Avvocati, commercialisti e consulenti esperti per risolvere la tua situazione debitoria</p>
 
       <!-- Toolbar: Search & Filters -->
       <div class="toolbar">
@@ -196,6 +229,131 @@
 
       <!-- Professionals Grid -->
       <div class="grid" id="pro-grid"></div>
+    </div>
+  </section>
+
+  <!-- Global Back Button (except first page) -->
+  <button id="global-back-btn" class="global-back-btn" onclick="Navigation.goBack()" aria-label="Torna indietro" style="display: none;">
+    ← Indietro
+  </button>
+
+  <!-- Professional Login Modal -->
+  <div id="professionalLoginModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <div class="modal">
+      <h3 id="loginTitle">Accesso Area Professionisti</h3>
+      <div class="body">
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autocomplete="username">
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+          </div>
+          <div id="login-error" class="error-text" role="alert" style="display: none;"></div>
+        </form>
+      </div>
+      <div class="actions">
+        <button type="button" id="closeLoginModal" class="m-btn m-ghost">Annulla</button>
+        <button type="button" id="submitLogin" class="m-btn m-primary">Accedi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Professional Dashboard (hidden by default) -->
+  <section class="page" id="page-professional" aria-labelledby="professional-title" hidden>
+    <div class="container">
+      <h1 id="professional-title">Dashboard Professionista</h1>
+      <div class="professional-dashboard">
+        <div class="dashboard-section">
+          <h2>Dati Anagrafici</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Nome Completo</label>
+              <input type="text" id="pro-name" value="Gianluca Collia" readonly>
+            </div>
+            <div class="info-item">
+              <label>Email</label>
+              <input type="email" id="pro-email" value="gianluca.collia@gmail.com" readonly>
+            </div>
+            <div class="info-item">
+              <label>Telefono</label>
+              <input type="tel" id="pro-phone" placeholder="Inserisci telefono">
+            </div>
+            <div class="info-item">
+              <label>Indirizzo</label>
+              <input type="text" id="pro-address" placeholder="Inserisci indirizzo">
+            </div>
+            <div class="info-item">
+              <label>Codice Fiscale</label>
+              <input type="text" id="pro-cf" placeholder="Inserisci CF">
+            </div>
+            <div class="info-item">
+              <label>Partita IVA</label>
+              <input type="text" id="pro-piva" placeholder="Inserisci P.IVA">
+            </div>
+          </div>
+        </div>
+        
+        <div class="dashboard-section">
+          <h2>Dati Professionali</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Specialità</label>
+              <input type="text" id="pro-specialty" value="Consulente Gestione Crisi Debitoria">
+            </div>
+            <div class="info-item">
+              <label>Servizi Offerti</label>
+              <textarea id="pro-services" rows="3">Analisi debito • Piani personalizzati • Mediazione crediti</textarea>
+            </div>
+            <div class="info-item">
+              <label>Tariffa Base (€)</label>
+              <input type="number" id="pro-price" value="400" min="0">
+            </div>
+            <div class="info-item">
+              <label>Descrizione</label>
+              <textarea id="pro-desc" rows="4">Consulente esperto in analisi situazioni debitorie e progettazione soluzioni personalizzate per famiglie e imprese.</textarea>
+            </div>
+            <div class="info-item">
+              <label>Carriera</label>
+              <textarea id="pro-career" rows="4">Consulente specializzato nella gestione delle crisi debitorie, con anni di esperienza nel supporto a famiglie e aziende. Approccio personalizzato per trovare soluzioni sostenibili.</textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="dashboard-actions">
+          <button class="btn" onclick="ProfessionalDashboard.saveData()">Salva Modifiche</button>
+          <button class="btn ghost" onclick="ProfessionalDashboard.logout()">Esci</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Admin Dashboard (hidden by default) -->
+  <section class="page" id="page-admin" aria-labelledby="admin-title" hidden>
+    <div class="container">
+      <h1 id="admin-title">Dashboard Amministrazione</h1>
+      <div class="admin-dashboard">
+        <div class="dashboard-tabs">
+          <button class="tab-btn active" onclick="AdminDashboard.showTab('requests')">Richieste Clienti</button>
+          <button class="tab-btn" onclick="AdminDashboard.showTab('professionals')">Professionisti</button>
+        </div>
+        
+        <div id="admin-requests" class="tab-content active">
+          <h2>Richieste dai Clienti</h2>
+          <div id="requests-list" class="data-list"></div>
+        </div>
+        
+        <div id="admin-professionals" class="tab-content">
+          <h2>Professionisti Iscritti</h2>
+          <div id="professionals-list" class="data-list"></div>
+        </div>
+        
+        <div class="dashboard-actions">
+          <button class="btn ghost" onclick="AdminDashboard.logout()">Esci</button>
+        </div>
+      </div>
     </div>
   </section>
 
