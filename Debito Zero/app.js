@@ -98,6 +98,9 @@ const generateCareerData = (name, specialty, desc, services) => {
   return data;
 };
 
+// Make PROFESSIONALS_DATA available globally for structured data
+window.PROFESSIONALS_DATA = null;
+
 // ==================== PROFESSIONALS DATA ====================
 const PROFESSIONALS_DATA = [
   { 
@@ -173,6 +176,9 @@ const PROFESSIONALS_DATA = [
   { name: "Avv. Michela Caputo", specialty: "Diritto fallimentare", services: "Procedure minori", price: 650, desc: "Liquidazione semplificata per piccoli debitori.", tags: ["aziende", "privati", "fiscali"] },
   { name: "Dott.ssa Roberta Piras", specialty: "Commercialista", services: "Rottamazione cartelle", price: 450, desc: "Definizioni agevolate debiti con Agenzia Riscossione.", tags: ["fiscali", "privati", "aziende"] }
 ];
+
+// Make available globally for structured data
+window.PROFESSIONALS_DATA = PROFESSIONALS_DATA;
 
 // ==================== DOM REFERENCES ====================
 const DOM = {
@@ -262,7 +268,13 @@ const Navigation = {
    * Show professionals page
    */
   showProfessionals: () => {
-    DOM.pageWizard.classList.remove('active');
+    // Hide all pages first
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.remove('active');
+      page.hidden = true;
+    });
+    // Show professionals page
+    DOM.pagePro.hidden = false;
     DOM.pagePro.classList.add('active');
     Navigation.updateGlobalBackButton();
     Utils.scrollToTop();
@@ -272,7 +284,13 @@ const Navigation = {
    * Go to home (wizard page)
    */
   goToHome: () => {
-    DOM.pagePro.classList.remove('active');
+    // Hide all pages first
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.remove('active');
+      page.hidden = true;
+    });
+    // Show wizard page
+    DOM.pageWizard.hidden = false;
     DOM.pageWizard.classList.add('active');
     Wizard.showStep(1);
     Navigation.updateGlobalBackButton();
@@ -283,9 +301,35 @@ const Navigation = {
    * Go back (previous step or home)
    */
   goBack: () => {
+    const privacyPage = document.getElementById('privacy-policy');
+    const professionalPage = document.getElementById('page-professional');
+    const adminPage = document.getElementById('page-admin');
+    
+    // Handle privacy policy
+    if (privacyPage && privacyPage.classList.contains('active')) {
+      privacyPage.classList.remove('active');
+      privacyPage.hidden = true;
+      Navigation.goToHome();
+      return;
+    }
+    
+    // Handle professional dashboard - go to home
+    if (professionalPage && professionalPage.classList.contains('active')) {
+      Navigation.goToHome();
+      return;
+    }
+    
+    // Handle admin dashboard - go to home
+    if (adminPage && adminPage.classList.contains('active')) {
+      Navigation.goToHome();
+      return;
+    }
+    
+    // Handle professionals page - go to home
     if (DOM.pagePro.classList.contains('active')) {
       Navigation.goToHome();
     } else if (state.currentStep > 1) {
+      // Handle wizard steps
       Wizard.showStep(state.currentStep - 1);
       Navigation.updateGlobalBackButton();
     }
@@ -294,13 +338,20 @@ const Navigation = {
   /**
    * Update global back button visibility
    */
-  updateGlobalBackButton: () => {
+  updateGlobalBackButton: (forceShow = false) => {
     const globalBackBtn = document.getElementById('global-back-btn');
     if (!globalBackBtn) return;
     
-    // Show if not on step 1 of wizard or if on professionals page
+    if (forceShow) {
+      globalBackBtn.style.display = 'flex';
+      return;
+    }
+    
+    // Show if not on step 1 of wizard or if on professionals page or privacy page
     const isProfessionalsPage = DOM.pagePro.classList.contains('active');
-    const isStep1 = state.currentStep === 1 && !isProfessionalsPage;
+    const privacyPage = document.getElementById('privacy-policy');
+    const isPrivacyPage = privacyPage && privacyPage.classList.contains('active');
+    const isStep1 = state.currentStep === 1 && !isProfessionalsPage && !isPrivacyPage;
     
     globalBackBtn.style.display = isStep1 ? 'none' : 'flex';
   },
@@ -343,6 +394,25 @@ const Navigation = {
       document.getElementById('loginForm')?.reset();
       const errorEl = document.getElementById('login-error');
       if (errorEl) errorEl.style.display = 'none';
+    }
+  },
+
+  /**
+   * Show privacy policy page
+   */
+  showPrivacyPolicy: () => {
+    DOM.pageWizard.classList.remove('active');
+    DOM.pagePro.classList.remove('active');
+    const privacyPage = document.getElementById('privacy-policy');
+    const professionalPage = document.getElementById('page-professional');
+    const adminPage = document.getElementById('page-admin');
+    if (professionalPage) professionalPage.hidden = true;
+    if (adminPage) adminPage.hidden = true;
+    if (privacyPage) {
+      privacyPage.hidden = false;
+      privacyPage.classList.add('active');
+      Navigation.updateGlobalBackButton(true);
+      Utils.scrollToTop();
     }
   }
 };
@@ -1035,6 +1105,52 @@ const EmailService = {
         console.error('Errore salvataggio richiesta:', e);
       }
       
+      // Send confirmation email to client
+      if (state.formData.email && EMAIL_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
+        try {
+          const confirmationEmailData = {
+            to_email: state.formData.email,
+            from_name: 'Debito Zero - Solvo',
+            subject: '✅ Richiesta ricevuta - Debito Zero Solvo',
+            client_name: `${state.formData.nome} ${state.formData.cognome}`,
+            debt_types: state.selections.map(s => DEBT_LABELS[s] || s).join(', '),
+            debt_amount: `€ ${state.formData.totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2})}`,
+            submission_date: new Date().toLocaleString('it-IT'),
+            message: `Gentile ${state.formData.nome},
+
+La tua richiesta è stata ricevuta con successo.
+
+Un nostro operatore ti contatterà a breve per valutare la tua situazione e metterti in contatto con i professionisti più adatti.
+
+Nel frattempo, puoi esplorare i professionisti disponibili sulla piattaforma.
+
+Dettagli della richiesta:
+- Tipologie debiti: ${state.selections.map(s => DEBT_LABELS[s] || s).join(', ')}
+- Importo totale: € ${state.formData.totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2})}
+- Data richiesta: ${new Date().toLocaleString('it-IT')}
+
+Cordiali saluti,
+Il team di Debito Zero - Solvo`
+          };
+          
+          // Use same service but different template (or same template with different data)
+          // Note: You may need to create a separate template for client confirmation
+          // For now, we'll use the same template but you should create a confirmation template
+          emailjs.send(
+            EMAIL_CONFIG.serviceId,
+            EMAIL_CONFIG.templateId, // Consider creating a separate templateId for confirmations
+            confirmationEmailData
+          ).then(() => {
+            console.log('✅ Email di conferma inviata al cliente');
+          }).catch(err => {
+            console.error('⚠️ Errore invio email conferma (non critico):', err);
+            // Don't fail the whole process if confirmation email fails
+          });
+        } catch (e) {
+          console.error('⚠️ Errore preparazione email conferma (non critico):', e);
+        }
+      }
+      
       // Clear saved state after successful submission
       Wizard.clearSavedState();
       
@@ -1489,6 +1605,7 @@ const ProfessionalDashboard = {
    * Show professional dashboard
    */
   show: () => {
+    // Hide all pages first (including wizard and professionals)
     document.querySelectorAll('.page').forEach(page => {
       page.classList.remove('active');
       page.hidden = true;
@@ -1497,7 +1614,7 @@ const ProfessionalDashboard = {
     if (proPage) {
       proPage.hidden = false;
       proPage.classList.add('active');
-      Navigation.updateGlobalBackButton();
+      Navigation.updateGlobalBackButton(true);
       Utils.scrollToTop();
     }
   },
@@ -1609,8 +1726,10 @@ const AdminDashboard = {
   loadData: () => {
     if (AdminDashboard.currentTab === 'requests') {
       AdminDashboard.loadRequests();
-    } else {
+    } else if (AdminDashboard.currentTab === 'professionals') {
       AdminDashboard.loadProfessionals();
+    } else if (AdminDashboard.currentTab === 'statistics') {
+      AdminDashboard.loadStatistics();
     }
   },
   
@@ -1711,6 +1830,257 @@ const AdminDashboard = {
     } catch (e) {
       console.error('Errore caricamento professionisti:', e);
       container.innerHTML = '<p style="color: #f56565;">Errore nel caricamento dei professionisti.</p>';
+    }
+  },
+  
+  /**
+   * Export client requests to CSV
+   */
+  exportRequestsCSV: () => {
+    try {
+      const requests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+      
+      if (requests.length === 0) {
+        alert('Nessuna richiesta da esportare.');
+        return;
+      }
+      
+      // CSV headers
+      const headers = ['Nome', 'Cognome', 'Email', 'Telefono', 'Tipologie Debiti', 'Importo Totale', 'Dettagli Debiti', 'Data Richiesta'];
+      
+      // CSV rows
+      const rows = requests.map(req => [
+        req.name || '',
+        req.surname || '',
+        req.email || '',
+        req.phone || '',
+        req.debtTypes || '',
+        req.totalAmount || '',
+        (req.debtDetails || '').replace(/"/g, '""'), // Escape quotes
+        req.date || ''
+      ]);
+      
+      // Create CSV content
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+      
+      // Add BOM for Excel UTF-8 support
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `richieste-clienti_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log('✅ CSV esportato:', requests.length, 'richieste');
+    } catch (e) {
+      console.error('Errore esportazione CSV:', e);
+      alert('Errore durante l\'esportazione. Riprova.');
+    }
+  },
+  
+  /**
+   * Export professionals to CSV
+   */
+  exportProfessionalsCSV: () => {
+    try {
+      const professionals = [];
+      
+      // Add Gianluca Collia (default)
+      professionals.push({
+        name: 'Gianluca Collia',
+        email: 'gianluca.collia@gmail.com',
+        specialty: 'Consulente Gestione Crisi Debitoria',
+        price: 400
+      });
+      
+      // Load saved professional data
+      const saved = localStorage.getItem('professionalData');
+      if (saved) {
+        const data = JSON.parse(saved);
+        professionals[0] = { ...professionals[0], ...data };
+      }
+      
+      if (professionals.length === 0) {
+        alert('Nessun professionista da esportare.');
+        return;
+      }
+      
+      // CSV headers
+      const headers = ['Nome', 'Email', 'Telefono', 'Indirizzo', 'Codice Fiscale', 'Partita IVA', 'Specialità', 'Servizi', 'Tariffa (€)', 'Descrizione', 'Carriera'];
+      
+      // CSV rows
+      const rows = professionals.map(pro => [
+        pro.name || '',
+        pro.email || '',
+        pro.phone || '',
+        pro.address || '',
+        pro.cf || '',
+        pro.piva || '',
+        pro.specialty || '',
+        (pro.services || '').replace(/"/g, '""'),
+        pro.price || '',
+        (pro.desc || '').replace(/"/g, '""'),
+        (pro.career || '').replace(/"/g, '""')
+      ]);
+      
+      // Create CSV content
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+      
+      // Add BOM for Excel UTF-8 support
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `professionisti_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log('✅ CSV esportato:', professionals.length, 'professionisti');
+    } catch (e) {
+      console.error('Errore esportazione CSV:', e);
+      alert('Errore durante l\'esportazione. Riprova.');
+    }
+  },
+  
+  /**
+   * Load and display statistics
+   */
+  loadStatistics: () => {
+    const container = document.getElementById('statistics-content');
+    if (!container) return;
+    
+    try {
+      const requests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+      
+      // Calculate statistics
+      const totalRequests = requests.length;
+      const totalDebtAmount = requests.reduce((sum, req) => {
+        const amount = parseFloat(req.totalAmount?.replace(/[€\s,]/g, '').replace('.', '') || '0');
+        return sum + amount;
+      }, 0);
+      
+      // Debt types distribution
+      const debtTypesCount = {};
+      requests.forEach(req => {
+        const types = req.debtTypes?.split(', ') || [];
+        types.forEach(type => {
+          debtTypesCount[type] = (debtTypesCount[type] || 0) + 1;
+        });
+      });
+      
+      // Monthly trend (last 6 months)
+      const monthlyData = {};
+      const now = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(now);
+        date.setMonth(date.getMonth() - i);
+        const monthKey = date.toLocaleDateString('it-IT', { year: 'numeric', month: 'long' });
+        monthlyData[monthKey] = 0;
+      }
+      
+      requests.forEach(req => {
+        try {
+          const reqDate = new Date(req.date);
+          const monthKey = reqDate.toLocaleDateString('it-IT', { year: 'numeric', month: 'long' });
+          if (monthlyData.hasOwnProperty(monthKey)) {
+            monthlyData[monthKey]++;
+          }
+        } catch (e) {
+          // Ignore invalid dates
+        }
+      });
+      
+      // Calculate average debt amount
+      const avgDebtAmount = totalRequests > 0 ? totalDebtAmount / totalRequests : 0;
+      
+      // Top debt types
+      const sortedDebtTypes = Object.entries(debtTypesCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+      
+      // Generate HTML
+      const statsHTML = `
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-value">${totalRequests}</div>
+          <div class="stat-label">Richieste Totali</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-value">€ ${totalDebtAmount.toLocaleString('it-IT', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+          <div class="stat-label">Debito Totale Gestito</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">📈</div>
+          <div class="stat-value">€ ${avgDebtAmount.toLocaleString('it-IT', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+          <div class="stat-label">Debito Medio per Cliente</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value">${Object.keys(debtTypesCount).length}</div>
+          <div class="stat-label">Tipologie Debiti Diverse</div>
+        </div>
+        
+        <div class="stat-card-wide">
+          <h3 style="margin-top: 0; margin-bottom: var(--spacing-lg);">Distribuzione Tipologie Debiti</h3>
+          ${sortedDebtTypes.length > 0 ? sortedDebtTypes.map(([type, count]) => {
+            const percentage = totalRequests > 0 ? (count / totalRequests) * 100 : 0;
+            return `
+              <div class="stat-bar-item">
+                <div class="stat-bar-label">
+                  <span>${type}</span>
+                  <span class="stat-bar-count">${count} (${percentage.toFixed(1)}%)</span>
+                </div>
+                <div class="stat-bar-container">
+                  <div class="stat-bar-fill" style="width: ${percentage}%"></div>
+                </div>
+              </div>
+            `;
+          }).join('') : '<p style="color: var(--text-muted);">Nessun dato disponibile</p>'}
+        </div>
+        
+        <div class="stat-card-wide">
+          <h3 style="margin-top: 0; margin-bottom: var(--spacing-lg);">Andamento Mensile (Ultimi 6 Mesi)</h3>
+          ${Object.keys(monthlyData).length > 0 ? Object.entries(monthlyData).map(([month, count]) => {
+            const maxCount = Math.max(...Object.values(monthlyData), 1);
+            const percentage = (count / maxCount) * 100;
+            return `
+              <div class="stat-bar-item">
+                <div class="stat-bar-label">
+                  <span>${month}</span>
+                  <span class="stat-bar-count">${count} richieste</span>
+                </div>
+                <div class="stat-bar-container">
+                  <div class="stat-bar-fill stat-bar-fill-secondary" style="width: ${percentage}%"></div>
+                </div>
+              </div>
+            `;
+          }).join('') : '<p style="color: var(--text-muted);">Nessun dato disponibile</p>'}
+        </div>
+      `;
+      
+      container.innerHTML = statsHTML;
+    } catch (e) {
+      console.error('Errore caricamento statistiche:', e);
+      container.innerHTML = '<p style="color: #f56565;">Errore nel caricamento delle statistiche.</p>';
     }
   },
   
