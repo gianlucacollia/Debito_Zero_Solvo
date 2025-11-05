@@ -1,11 +1,30 @@
 // ==================== CONFIGURAZIONE EMAIL ====================
-// 🔧 ISTRUZIONI: Segui la guida in CONFIG-EMAIL.txt per configurare EmailJS
+// 🔧 ISTRUZIONI: Segui la guida in CONFIGURAZIONE-COMPLETA.txt per configurare EmailJS
 const EMAIL_CONFIG = {
-  serviceId: 'YOUR_SERVICE_ID',      // ← Inserisci qui il tuo Service ID
-  templateId: 'YOUR_TEMPLATE_ID',    // ← Inserisci qui il tuo Template ID
-  publicKey: 'YOUR_PUBLIC_KEY',      // ← Inserisci qui la tua Public Key
-  recipientEmail: 'tuaemail@example.com'  // ← Email dove ricevere le richieste
+  serviceId: 'service_ok3g5iy',      // ← Service ID da EmailJS
+  templateId: 'template_1p0r597',    // ← Template ID da EmailJS per richieste clienti
+  templateIdConfirmation: 'template_1p0r597',  // ← Template ID per email conferma cliente (usa lo stesso o crea uno separato)
+  templateIdAppointment: 'template_1p0r597',    // ← Template ID per prenotazioni (usa lo stesso o crea uno separato)
+  publicKey: 'wrPtIJWjgaySCJWjZ',      // ← Public Key da EmailJS
+  recipientEmail: 'gianluca.collia@gmail.com'  // ← Email dove ricevere le richieste
 };
+
+// ==================== CONFIGURAZIONE SUPABASE ====================
+// 🔧 ISTRUZIONI: Segui la guida in CONFIGURAZIONE-COMPLETA.txt per configurare Supabase
+let supabase = null;
+if (window.supabase && window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url && window.SUPABASE_CONFIG.url !== 'https://xxxxx.supabase.co') {
+  try {
+    supabase = window.supabase.createClient(
+      window.SUPABASE_CONFIG.url,
+      window.SUPABASE_CONFIG.anonKey
+    );
+    console.log('✅ Supabase inizializzato');
+  } catch (e) {
+    console.error('❌ Errore inizializzazione Supabase:', e);
+  }
+} else {
+  console.warn('⚠️ Supabase non configurato. I documenti verranno salvati in localStorage.');
+}
 
 // ==================== APP STATE ====================
 const state = {
@@ -1578,9 +1597,39 @@ const Professionals = {
   },
   
   /**
+   * Load and apply saved professional data to PROFESSIONALS_DATA
+   */
+  loadSavedProfessionalData: () => {
+    try {
+      const saved = localStorage.getItem('professionalData');
+      if (saved) {
+        const data = JSON.parse(saved);
+        const gianlucaIndex = PROFESSIONALS_DATA.findIndex(pro => pro.name === 'Gianluca Collia');
+        if (gianlucaIndex !== -1 && data) {
+          // Update Gianluca's data with saved values, preserving defaults for missing fields
+          PROFESSIONALS_DATA[gianlucaIndex] = {
+            ...PROFESSIONALS_DATA[gianlucaIndex],
+            specialty: data.specialty || PROFESSIONALS_DATA[gianlucaIndex].specialty,
+            services: data.services || PROFESSIONALS_DATA[gianlucaIndex].services,
+            price: data.price || PROFESSIONALS_DATA[gianlucaIndex].price,
+            desc: data.desc || PROFESSIONALS_DATA[gianlucaIndex].desc,
+            career: data.career || PROFESSIONALS_DATA[gianlucaIndex].career,
+            email: data.email || PROFESSIONALS_DATA[gianlucaIndex].email
+          };
+        }
+      }
+    } catch (e) {
+      console.error('Errore caricamento dati professionista salvati:', e);
+    }
+  },
+  
+  /**
    * Initialize professionals section
    */
   init: () => {
+    // Load saved professional data first
+    Professionals.loadSavedProfessionalData();
+    
     // Render professionals
     Professionals.render();
     
@@ -1632,7 +1681,7 @@ const ProfessionalDashboard = {
       piva: document.getElementById('pro-piva')?.value || '',
       specialty: document.getElementById('pro-specialty')?.value || '',
       services: document.getElementById('pro-services')?.value || '',
-      price: document.getElementById('pro-price')?.value || '',
+      price: parseInt(document.getElementById('pro-price')?.value || '400', 10),
       desc: document.getElementById('pro-desc')?.value || '',
       career: document.getElementById('pro-career')?.value || '',
       lastUpdate: new Date().toISOString()
@@ -1640,10 +1689,278 @@ const ProfessionalDashboard = {
     
     try {
       localStorage.setItem('professionalData', JSON.stringify(data));
-      alert('✅ Dati salvati con successo!');
+      
+      // Update PROFESSIONALS_DATA with new data
+      const gianlucaIndex = PROFESSIONALS_DATA.findIndex(pro => pro.name === 'Gianluca Collia');
+      if (gianlucaIndex !== -1) {
+        // Update existing professional data
+        PROFESSIONALS_DATA[gianlucaIndex] = {
+          ...PROFESSIONALS_DATA[gianlucaIndex],
+          specialty: data.specialty || PROFESSIONALS_DATA[gianlucaIndex].specialty,
+          services: data.services || PROFESSIONALS_DATA[gianlucaIndex].services,
+          price: data.price || PROFESSIONALS_DATA[gianlucaIndex].price,
+          desc: data.desc || PROFESSIONALS_DATA[gianlucaIndex].desc,
+          career: data.career || PROFESSIONALS_DATA[gianlucaIndex].career,
+          email: data.email || PROFESSIONALS_DATA[gianlucaIndex].email
+        };
+        
+        // Re-render professionals list to show updated data
+        Professionals.render();
+      }
+      
+      alert('✅ Dati salvati con successo! Le modifiche sono visibili anche nella lista professionisti.');
     } catch (e) {
       console.error('Errore salvataggio:', e);
       alert('❌ Errore nel salvataggio dei dati');
+    }
+  },
+  
+  /**
+   * Handle file upload
+   */
+  handleFileUpload: async (event) => {
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
+    
+    const maxSize = 5 * 1024 * 1024; // 5MB per file
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/jpg', 'image/png'];
+    
+    for (const file of files) {
+      // Check file size
+      if (file.size > maxSize) {
+        alert(`⚠️ Il file "${file.name}" è troppo grande (max 5MB).`);
+        continue;
+      }
+      
+      // Check file type
+      if (!allowedTypes.includes(file.type)) {
+        alert(`⚠️ Il tipo di file "${file.name}" non è supportato. Usa PDF, DOC, DOCX, JPG o PNG.`);
+        continue;
+      }
+      
+      try {
+        // Try to upload to Supabase first
+        if (supabase) {
+          const fileName = `professional-${Date.now()}-${file.name}`;
+          const filePath = `gianluca-collia/${fileName}`;
+          
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('professional-documents')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+          
+          if (uploadError) {
+            throw uploadError;
+          }
+          
+          // Get public URL
+          const { data: urlData } = supabase.storage
+            .from('professional-documents')
+            .getPublicUrl(filePath);
+          
+          // Save document metadata
+          const documentData = {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            path: filePath,
+            url: urlData.publicUrl,
+            uploadedAt: new Date().toISOString(),
+            storage: 'supabase'
+          };
+          
+          // Save to localStorage for quick access
+          const documents = JSON.parse(localStorage.getItem('professionalDocuments') || '[]');
+          const existingIndex = documents.findIndex(doc => doc.name === file.name && doc.storage === 'supabase');
+          
+          if (existingIndex !== -1) {
+            documents[existingIndex] = documentData;
+          } else {
+            documents.push(documentData);
+          }
+          
+          localStorage.setItem('professionalDocuments', JSON.stringify(documents));
+          ProfessionalDashboard.renderDocuments();
+          
+          alert(`✅ Documento "${file.name}" caricato su Supabase con successo!`);
+        } else {
+          // Fallback to localStorage if Supabase not configured
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const documents = JSON.parse(localStorage.getItem('professionalDocuments') || '[]');
+              const existingIndex = documents.findIndex(doc => doc.name === file.name);
+              
+              const documentData = {
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                data: e.target.result, // Base64 data
+                uploadedAt: new Date().toISOString(),
+                storage: 'localStorage'
+              };
+              
+              if (existingIndex !== -1) {
+                documents[existingIndex] = documentData;
+              } else {
+                documents.push(documentData);
+              }
+              
+              localStorage.setItem('professionalDocuments', JSON.stringify(documents));
+              ProfessionalDashboard.renderDocuments();
+              
+              alert(`✅ Documento "${file.name}" caricato con successo! (salvato localmente)`);
+            } catch (err) {
+              console.error('Errore caricamento documento:', err);
+              alert(`❌ Errore nel caricamento del documento "${file.name}"`);
+            }
+          };
+          
+          reader.onerror = () => {
+            alert(`❌ Errore nella lettura del file "${file.name}"`);
+          };
+          
+          reader.readAsDataURL(file);
+        }
+      } catch (err) {
+        console.error('Errore upload Supabase:', err);
+        alert(`❌ Errore nel caricamento del documento "${file.name}". Verifica la configurazione Supabase.`);
+      }
+    }
+    
+    // Reset input
+    event.target.value = '';
+  },
+  
+  /**
+   * Render documents list
+   */
+  renderDocuments: () => {
+    const container = document.getElementById('documents-list');
+    if (!container) return;
+    
+    try {
+      const documents = JSON.parse(localStorage.getItem('professionalDocuments') || '[]');
+      
+      if (documents.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); font-style: italic; text-align: center; padding: var(--spacing-xl);">Nessun documento caricato</p>';
+        return;
+      }
+      
+      container.innerHTML = documents.map((doc, index) => {
+        const fileSize = (doc.size / 1024).toFixed(2); // KB
+        const uploadDate = new Date(doc.uploadedAt).toLocaleDateString('it-IT');
+        const fileIcon = doc.type.includes('pdf') ? '📄' : doc.type.includes('image') ? '🖼️' : '📝';
+        
+        return `
+          <div class="document-item">
+            <div class="document-info">
+              <span class="document-icon">${fileIcon}</span>
+              <div class="document-details">
+                <div class="document-name">${doc.name}</div>
+                <div class="document-meta">${fileSize} KB • ${uploadDate}</div>
+              </div>
+            </div>
+            <div class="document-actions">
+              <button type="button" class="btn-icon" onclick="ProfessionalDashboard.downloadDocument(${index})" title="Scarica">
+                ⬇️
+              </button>
+              <button type="button" class="btn-icon btn-icon-danger" onclick="ProfessionalDashboard.deleteDocument(${index})" title="Elimina">
+                🗑️
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      console.error('Errore rendering documenti:', e);
+      container.innerHTML = '<p style="color: #f56565;">Errore nel caricamento dei documenti.</p>';
+    }
+  },
+  
+  /**
+   * Download document
+   */
+  downloadDocument: async (index) => {
+    try {
+      const documents = JSON.parse(localStorage.getItem('professionalDocuments') || '[]');
+      const doc = documents[index];
+      
+      if (!doc) {
+        alert('Documento non trovato.');
+        return;
+      }
+      
+      // If stored in Supabase, download from URL
+      if (doc.storage === 'supabase' && doc.url) {
+        window.open(doc.url, '_blank');
+        return;
+      }
+      
+      // If stored in localStorage, convert base64 to blob
+      if (doc.data) {
+        const byteCharacters = atob(doc.data.split(',')[1]);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: doc.type });
+        
+        // Create download link
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+    } catch (e) {
+      console.error('Errore download documento:', e);
+      alert('❌ Errore nel download del documento');
+    }
+  },
+  
+  /**
+   * Delete document
+   */
+  deleteDocument: async (index) => {
+    if (!confirm('Sei sicuro di voler eliminare questo documento?')) {
+      return;
+    }
+    
+    try {
+      const documents = JSON.parse(localStorage.getItem('professionalDocuments') || '[]');
+      const doc = documents[index];
+      
+      if (!doc) {
+        alert('Documento non trovato.');
+        return;
+      }
+      
+      // If stored in Supabase, delete from storage
+      if (doc.storage === 'supabase' && doc.path && supabase) {
+        const { error } = await supabase.storage
+          .from('professional-documents')
+          .remove([doc.path]);
+        
+        if (error) {
+          throw error;
+        }
+      }
+      
+      // Remove from localStorage
+      documents.splice(index, 1);
+      localStorage.setItem('professionalDocuments', JSON.stringify(documents));
+      ProfessionalDashboard.renderDocuments();
+      alert('✅ Documento eliminato con successo!');
+    } catch (e) {
+      console.error('Errore eliminazione documento:', e);
+      alert('❌ Errore nell\'eliminazione del documento');
     }
   },
   
@@ -1665,6 +1982,9 @@ const ProfessionalDashboard = {
         if (document.getElementById('pro-desc')) document.getElementById('pro-desc').value = data.desc || '';
         if (document.getElementById('pro-career')) document.getElementById('pro-career').value = data.career || '';
       }
+      
+      // Load and render documents
+      ProfessionalDashboard.renderDocuments();
     } catch (e) {
       console.error('Errore caricamento dati:', e);
     }

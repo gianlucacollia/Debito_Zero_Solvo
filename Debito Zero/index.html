@@ -82,6 +82,18 @@
   
   <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Configurazione Supabase (AGGIORNA CON LE TUE CHIAVI) -->
+  <script>
+    // ⚠️ SOSTITUISCI CON I TUOI VALORI DA SUPABASE
+    window.SUPABASE_CONFIG = {
+      url: 'https://xxxxx.supabase.co',  // ← Project URL da Supabase Settings > API
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'  // ← anon public key da Supabase
+    };
+  </script>
 </head>
 <body>
   <!-- Navigation -->
@@ -389,6 +401,26 @@
             <div class="info-item">
               <label>Carriera</label>
               <textarea id="pro-career" rows="4">Consulente specializzato nella gestione delle crisi debitorie, con anni di esperienza nel supporto a famiglie e aziende. Approccio personalizzato per trovare soluzioni sostenibili.</textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="dashboard-section">
+          <h2>Documenti Professionalità e Onorabilità</h2>
+          <p style="color: var(--text-muted); margin-bottom: var(--spacing-lg); font-size: 0.875rem;">
+            Carica documenti che attestano la tua professionalità (es. CV, certificazioni, attestati, iscrizioni ad albi, ecc.)
+          </p>
+          
+          <div class="documents-upload-area">
+            <input type="file" id="document-upload" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display: none;" onchange="ProfessionalDashboard.handleFileUpload(event)">
+            <button type="button" class="btn" onclick="document.getElementById('document-upload').click()" style="width: auto; margin-bottom: var(--spacing-lg);">
+              📄 Carica Documento
+            </button>
+            
+            <div id="documents-list" class="documents-list">
+              <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: var(--spacing-xl);">
+                Nessun documento caricato
+              </p>
             </div>
           </div>
         </div>

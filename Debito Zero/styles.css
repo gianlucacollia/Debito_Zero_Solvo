@@ -1798,6 +1798,113 @@ input.invalid:focus {
   }
 }
 
+/* Documents Upload Styles */
+.documents-upload-area {
+  margin-top: var(--spacing-lg);
+}
+
+.documents-list {
+  margin-top: var(--spacing-lg);
+}
+
+.document-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 249, 250, 0.95));
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: var(--spacing-md);
+  transition: all var(--transition-fast);
+}
+
+.document-item:hover {
+  box-shadow: 0 2px 8px rgba(93, 173, 226, 0.15);
+  transform: translateY(-1px);
+}
+
+.document-item:last-child {
+  margin-bottom: 0;
+}
+
+.document-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex: 1;
+}
+
+.document-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.document-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.document-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+  word-break: break-word;
+}
+
+.document-meta {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.document-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.btn-icon {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: var(--spacing-sm);
+  font-size: 1.125rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+}
+
+.btn-icon:hover {
+  background: rgba(93, 173, 226, 0.1);
+  transform: scale(1.1);
+}
+
+.btn-icon-danger:hover {
+  background: rgba(245, 101, 101, 0.1);
+}
+
+.btn-icon:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+  .document-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+  
+  .document-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
 .data-row pre {
   background: rgba(0, 0, 0, 0.03);
   padding: var(--spacing-md);

@@ -1,0 +1,232 @@
+════════════════════════════════════════════════════════════
+   CONFIGURAZIONE COMPLETA - EmailJS + Supabase
+   Debito Zero - Solvo
+════════════════════════════════════════════════════════════
+
+📋 PASSI PER CONFIGURARE LA PIATTAFORMA
+
+════════════════════════════════════════════════════════════
+PARTE 1: CONFIGURARE EMAILJS
+════════════════════════════════════════════════════════════
+
+1. VAI SU EMAILJS:
+   https://www.emailjs.com/
+   → Accedi al tuo account
+
+2. CREA UN SERVICE:
+   - Vai su "Email Services"
+   - Clicca "Add New Service"
+   - Scegli il provider (Gmail, Outlook, ecc.)
+   - Connetti il tuo account email
+   - Copia il "Service ID" (es. service_xxxxx)
+
+3. CREA UN TEMPLATE EMAIL:
+   - Vai su "Email Templates"
+   - Clicca "Create New Template"
+   
+   TEMPLATE 1: Richiesta Cliente
+   ─────────────────────────────────
+   Subject: Nuova richiesta da Debito Zero - Solvo
+   
+   Body:
+   Nuova richiesta ricevuta:
+   
+   Nome: {{from_name}}
+   Email: {{from_email}}
+   Telefono: {{phone}}
+   
+   Tipologie debiti: {{debt_types}}
+   Importo totale: {{debt_amount}}
+   
+   Dettagli debiti:
+   {{debt_details}}
+   
+   Data richiesta: {{submission_date}}
+   
+   ─────────────────────────────────
+   - Salva e copia il "Template ID" (es. template_xxxxx)
+
+   TEMPLATE 2: Conferma Cliente (opzionale)
+   ─────────────────────────────────
+   Subject: ✅ Richiesta ricevuta - Debito Zero Solvo
+   
+   Body:
+   Gentile {{client_name}},
+   
+   La tua richiesta è stata ricevuta con successo.
+   
+   Un nostro operatore ti contatterà a breve.
+   
+   Dettagli:
+   - Tipologie: {{debt_types}}
+   - Importo: {{debt_amount}}
+   - Data: {{submission_date}}
+   
+   Cordiali saluti,
+   Debito Zero - Solvo
+   
+   ─────────────────────────────────
+   - Salva e copia il "Template ID"
+
+   TEMPLATE 3: Prenotazione Professionista
+   ─────────────────────────────────
+   Subject: 📅 Nuova prenotazione: {{appointment_date}} alle {{appointment_time}}
+   
+   Body:
+   Ciao {{appointment_professional}},
+   
+   Nuova prenotazione ricevuta:
+   
+   Cliente: {{client_name}}
+   Telefono: {{client_phone}}
+   Email: {{client_email}}
+   
+   Appuntamento:
+   Data: {{appointment_date}}
+   Orario: {{appointment_time}}
+   Durata: {{appointment_duration}}
+   
+   Dettagli: {{appointment_details}}
+   
+   Aggiungi al calendario: {{calendar_link}}
+   
+   Data prenotazione: {{booking_date}}
+   
+   ─────────────────────────────────
+   - Salva e copia il "Template ID"
+
+4. OTTIENI LA PUBLIC KEY:
+   - Vai su "Account" → "General"
+   - Copia la "Public Key" (es. xxxxxxxx)
+
+5. AGGIORNA app.js:
+   - Apri il file app.js
+   - Trova la sezione EMAIL_CONFIG (inizio file)
+   - Sostituisci con i tuoi valori:
+   
+   const EMAIL_CONFIG = {
+     serviceId: 'service_xxxxx',      // ← Service ID
+     templateId: 'template_xxxxx',    // ← Template ID richiesta cliente
+     templateIdConfirmation: 'template_yyyyy', // ← Template ID conferma (opzionale)
+     templateIdAppointment: 'template_zzzzz',  // ← Template ID prenotazione
+     publicKey: 'xxxxxxxx',          // ← Public Key
+     recipientEmail: 'tuaemail@example.com'    // ← Email dove ricevere richieste
+   };
+
+════════════════════════════════════════════════════════════
+PARTE 2: CONFIGURARE SUPABASE
+════════════════════════════════════════════════════════════
+
+1. VAI SU SUPABASE:
+   https://supabase.com/
+   → Accedi al tuo account
+
+2. CREA UN NUOVO PROGETTO:
+   - Clicca "New Project"
+   - Nome: "Debito Zero Solvo"
+   - Database Password: (crea una password sicura)
+   - Regione: scegli più vicina (Europe West per Italia)
+   - Clicca "Create new project"
+   - Attendi 2-3 minuti per il setup
+
+3. OTTIENI LE CHIAVI API:
+   - Vai su "Settings" (icona ingranaggio in basso a sinistra)
+   - Clicca "API"
+   - Copia:
+     * Project URL (es. https://xxxxx.supabase.co)
+     * anon public key (es. eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...)
+     * service_role key (es. eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...) 
+     ⚠️ ATTENZIONE: service_role key è SEGRETA, non esporla nel frontend!
+
+4. CREA BUCKET STORAGE:
+   - Vai su "Storage" nel menu sinistro
+   - Clicca "New bucket"
+   - Nome: "professional-documents"
+   - Public: NO (privato)
+   - Clicca "Create bucket"
+   
+   - Clicca sul bucket appena creato
+   - Vai su "Policies" → "New Policy"
+   - Nome: "Allow professionals upload"
+   - Policy:
+     SELECT: Authenticated users
+     INSERT: Authenticated users
+     UPDATE: Authenticated users
+     DELETE: Authenticated users
+   - Salva
+
+5. CREA TABELLA DATABASE (opzionale):
+   - Vai su "Table Editor"
+   - Clicca "New Table"
+   - Nome: "professionals"
+   - Aggiungi colonne:
+     * id (uuid, primary key, default: uuid_generate_v4())
+     * name (text)
+     * email (text, unique)
+     * specialty (text)
+     * created_at (timestamp, default: now())
+   - Salva
+
+6. AGGIORNA index.html:
+   - Aggiungi script Supabase prima di app.js:
+   
+   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+   
+   - Aggiungi configurazione Supabase:
+   
+   <script>
+     const SUPABASE_CONFIG = {
+       url: 'https://xxxxx.supabase.co',
+       anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+     };
+   </script>
+
+7. AGGIORNA app.js:
+   - Aggiungi inizializzazione Supabase:
+   
+   const supabase = window.supabase ? 
+     window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey) : 
+     null;
+
+════════════════════════════════════════════════════════════
+PARTE 3: TESTARE LA CONFIGURAZIONE
+════════════════════════════════════════════════════════════
+
+1. TEST EMAILJS:
+   - Apri il sito
+   - Compila il wizard
+   - Invia una richiesta
+   - Controlla se ricevi l'email
+
+2. TEST SUPABASE:
+   - Vai alla dashboard professionale
+   - Carica un documento
+   - Vai su Supabase → Storage → professional-documents
+   - Verifica che il file sia stato caricato
+
+════════════════════════════════════════════════════════════
+⚠️ IMPORTANTE - SICUREZZA
+════════════════════════════════════════════════════════════
+
+✅ SICURO:
+   - Public Key EmailJS (va nel frontend)
+   - anon Key Supabase (va nel frontend)
+   - Service ID e Template ID (vanno nel frontend)
+
+❌ NON ESPORRE:
+   - service_role Key Supabase (SOLO backend)
+   - Password database Supabase
+   - Email personali
+
+════════════════════════════════════════════════════════════
+📝 NOTE FINALI
+════════════════════════════════════════════════════════════
+
+- Salva le chiavi in un file separato (non committare su GitHub)
+- Usa variabili d'ambiente per produzione
+- Testa sempre prima di andare in produzione
+
+════════════════════════════════════════════════════════════
+
+Vuoi che integri tutto nel codice ora? Dimmi quando hai le chiavi pronte!
+
