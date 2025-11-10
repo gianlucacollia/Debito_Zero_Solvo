@@ -40,7 +40,7 @@
   <!-- Preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
   
   <!-- Stylesheet -->
   <link rel="stylesheet" href="styles.css">
@@ -86,6 +86,10 @@
   <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
+  <!-- Libraries per Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
   <!-- Configurazione Supabase (AGGIORNA CON LE TUE CHIAVI) -->
   <script>
     // ⚠️ SOSTITUISCI CON I TUOI VALORI DA SUPABASE
@@ -98,31 +102,19 @@
 <body>
   <!-- Navigation -->
   <nav class="nav" role="navigation" aria-label="Navigazione principale">
-    <button class="logo-btn" onclick="Navigation.goToHome()" aria-label="Torna alla home">
-      <svg viewBox="0 0 32 32" width="28" height="28" fill="currentColor">
-        <!-- Orecchio sinistro -->
-        <ellipse cx="10" cy="8" rx="2.5" ry="7" transform="rotate(-20 10 8)"/>
-        <!-- Orecchio destro -->
-        <ellipse cx="22" cy="8" rx="2.5" ry="7" transform="rotate(20 22 8)"/>
-        <!-- Testa -->
-        <circle cx="16" cy="16" r="8"/>
-        <!-- Occhio sinistro -->
-        <circle cx="13" cy="15" r="1.5" fill="white"/>
-        <!-- Occhio destro -->
-        <circle cx="19" cy="15" r="1.5" fill="white"/>
-        <!-- Nasino -->
-        <circle cx="16" cy="19" r="1" fill="white" opacity="0.8"/>
-        <!-- Corpo stilizzato -->
-        <ellipse cx="16" cy="27" rx="6" ry="4"/>
-      </svg>
-    </button>
-    <strong>Debito Zero - Solvo</strong>
-    <div class="spacer"></div>
-    <span class="nav-subtitle">Professionisti qualificati, soluzioni sostenibili</span>
-    <div class="nav-actions">
-      <button class="nav-btn" onclick="Navigation.scrollToClient()">Richiedi aiuto</button>
-      <button class="nav-btn nav-btn-secondary" onclick="Navigation.showProfessionalLogin()">Area Professionisti</button>
+    <div class="nav-brand" onclick="Navigation.goToHome()" onkeydown="if(event.key==='Enter'||event.key===' ') { Navigation.goToHome(); event.preventDefault(); }" role="link" tabindex="0">
+      <div class="logotype">
+        <span class="logotype-main">Solvo</span>
+        <span class="logotype-sub">Debito Zero</span>
+        <span class="logotype-tagline">Professionisti qualificati, soluzioni sostenibili</span>
+      </div>
     </div>
+    <div class="spacer"></div>
+        <div class="nav-actions">
+          <button class="nav-btn" onclick="Navigation.scrollToClient()">Richiedi aiuto</button>
+          <button class="nav-btn" onclick="Navigation.showAdminLogin()">🔐 Dashboard Admin</button>
+          <button class="nav-btn nav-btn-secondary" onclick="Navigation.showProfessionalLogin()">Area Professionisti</button>
+        </div>
   </nav>
 
   <!-- WIZARD -->
@@ -160,49 +152,76 @@
         <div class="options" role="group" aria-label="Selezione tipo di debito">
           <div class="opt-wrapper">
             <button type="button" class="opt" data-value="banche_finanziarie" aria-pressed="false">
+              <span class="opt-step-badge">1</span>
               <span class="check" aria-hidden="true">✓</span>
-              <span class="label">Debiti con banche e/o finanziaria</span>
+              <span class="label">
+                Debiti bancari e finanziari
+                <small>Mutui, prestiti personali, leasing, carte revolving</small>
+              </span>
             </button>
             <div class="debt-details" id="details-banche_finanziarie" style="display:none;">
-              <div class="debt-item">
-                <div class="debt-row">
-                  <input type="text" class="creditor-input" placeholder="Nome creditore (es. Banca X)" aria-label="Nome creditore">
-                  <input type="number" min="0" step="0.01" class="amount-input-field" placeholder="Importo in €" aria-label="Importo">
-                </div>
-              </div>
-              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('banche_finanziarie')">+ Aggiungi un altro</button>
+              <div class="debt-items"></div>
+              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('banche_finanziarie')">+ Aggiungi voce</button>
             </div>
           </div>
           
           <div class="opt-wrapper">
-            <button type="button" class="opt" data-value="tributari" aria-pressed="false">
+            <button type="button" class="opt" data-value="fiscali_tributari" aria-pressed="false">
+              <span class="opt-step-badge">2</span>
               <span class="check" aria-hidden="true">✓</span>
-              <span class="label">Debiti tributari</span>
+              <span class="label">
+                Debiti fiscali e tributari
+                <small>IVA, IRPEF/IRES, IMU, cartelle esattoriali</small>
+              </span>
             </button>
-            <div class="debt-details" id="details-tributari" style="display:none;">
-              <div class="debt-item">
-                <div class="debt-row">
-                  <input type="text" class="creditor-input" placeholder="Nome creditore (es. Agenzia Entrate)" aria-label="Nome creditore">
-                  <input type="number" min="0" step="0.01" class="amount-input-field" placeholder="Importo in €" aria-label="Importo">
-                </div>
-              </div>
-              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('tributari')">+ Aggiungi un altro</button>
+            <div class="debt-details" id="details-fiscali_tributari" style="display:none;">
+              <div class="debt-items"></div>
+              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('fiscali_tributari')">+ Aggiungi voce</button>
             </div>
           </div>
           
           <div class="opt-wrapper">
-            <button type="button" class="opt" data-value="erario" aria-pressed="false">
+            <button type="button" class="opt" data-value="previdenziali" aria-pressed="false">
+              <span class="opt-step-badge">3</span>
               <span class="check" aria-hidden="true">✓</span>
-              <span class="label">Debiti con erario</span>
+              <span class="label">
+                Debiti contributivi e previdenziali
+                <small>INPS, INAIL, casse professionali, fondi pensione</small>
+              </span>
             </button>
-            <div class="debt-details" id="details-erario" style="display:none;">
-              <div class="debt-item">
-                <div class="debt-row">
-                  <input type="text" class="creditor-input" placeholder="Nome creditore (es. AE-R / INPS)" aria-label="Nome creditore">
-                  <input type="number" min="0" step="0.01" class="amount-input-field" placeholder="Importo in €" aria-label="Importo">
-                </div>
-              </div>
-              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('erario')">+ Aggiungi un altro</button>
+            <div class="debt-details" id="details-previdenziali" style="display:none;">
+              <div class="debt-items"></div>
+              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('previdenziali')">+ Aggiungi voce</button>
+            </div>
+          </div>
+          
+          <div class="opt-wrapper">
+            <button type="button" class="opt" data-value="utenze_servizi" aria-pressed="false">
+              <span class="opt-step-badge">4</span>
+              <span class="check" aria-hidden="true">✓</span>
+              <span class="label">
+                Utenze e servizi ricorrenti
+                <small>Energia, acqua, telefonia, servizi digitali</small>
+              </span>
+            </button>
+            <div class="debt-details" id="details-utenze_servizi" style="display:none;">
+              <div class="debt-items"></div>
+              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('utenze_servizi')">+ Aggiungi voce</button>
+            </div>
+          </div>
+          
+          <div class="opt-wrapper">
+            <button type="button" class="opt" data-value="procedure_esecutive" aria-pressed="false">
+              <span class="opt-step-badge">5</span>
+              <span class="check" aria-hidden="true">✓</span>
+              <span class="label">
+                Procedure esecutive e recupero crediti
+                <small>Pignoramenti, decreti ingiuntivi, crediti gestiti da servicer</small>
+              </span>
+            </button>
+            <div class="debt-details" id="details-procedure_esecutive" style="display:none;">
+              <div class="debt-items"></div>
+              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('procedure_esecutive')">+ Aggiungi voce</button>
             </div>
           </div>
         </div>
@@ -314,11 +333,6 @@
       <div class="grid" id="pro-grid"></div>
     </div>
   </section>
-
-  <!-- Global Back Button (except first page) -->
-  <button id="global-back-btn" class="global-back-btn" onclick="Navigation.goBack()" aria-label="Torna indietro" style="display: none;">
-    ← Indietro
-  </button>
 
   <!-- Professional Login Modal -->
   <div id="professionalLoginModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
@@ -445,21 +459,37 @@
         </div>
         
             <div id="admin-requests" class="tab-content active">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); flex-wrap: wrap; gap: var(--spacing-md);">
                 <h2 style="margin: 0;">Richieste dai Clienti</h2>
-                <button class="btn" onclick="AdminDashboard.exportRequestsCSV()" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
-                  📥 Esporta CSV
-                </button>
+                <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
+                  <button class="btn" onclick="AdminDashboard.exportRequestsCSV()" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
+                    📥 CSV
+                  </button>
+                  <button class="btn" onclick="AdminDashboard.exportRequestsExcel()" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
+                    📊 Excel
+                  </button>
+                  <button class="btn" onclick="AdminDashboard.exportRequestsPDF()" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
+                    📄 PDF
+                  </button>
+                </div>
               </div>
               <div id="requests-list" class="data-list"></div>
             </div>
 
             <div id="admin-professionals" class="tab-content">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); flex-wrap: wrap; gap: var(--spacing-md);">
                 <h2 style="margin: 0;">Professionisti Iscritti</h2>
-                <button class="btn" onclick="AdminDashboard.exportProfessionalsCSV()" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
-                  📥 Esporta CSV
-                </button>
+                <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
+                  <button class="btn" onclick="AdminDashboard.exportProfessionalsCSV()" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
+                    📥 CSV
+                  </button>
+                  <button class="btn" onclick="AdminDashboard.exportProfessionalsExcel()" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
+                    📊 Excel
+                  </button>
+                  <button class="btn" onclick="AdminDashboard.exportProfessionalsPDF()" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
+                    📄 PDF
+                  </button>
+                </div>
               </div>
               <div id="professionals-list" class="data-list"></div>
             </div>

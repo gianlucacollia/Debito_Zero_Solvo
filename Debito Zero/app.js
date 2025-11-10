@@ -30,15 +30,55 @@ if (window.supabase && window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url && w
 const state = {
   currentStep: 1,
   selections: [],
-  debtCreditors: {}, // { banche_finanziarie: [{creditor: "Banca X", amount: 5000}, {...}], ... }
+  debtCreditors: {}, // { banche_finanziarie: [{ subCategory: '', creditor: '', amount: 0 }, ...], ... }
   formData: {}
 };
 
 // ==================== DEBT TYPE LABELS ====================
 const DEBT_LABELS = {
-  banche_finanziarie: 'Debiti con banche e/o finanziaria',
-  tributari: 'Debiti tributari',
-  erario: 'Debiti con erario'
+  banche_finanziarie: 'Debiti bancari e finanziari',
+  fiscali_tributari: 'Debiti fiscali e tributari',
+  previdenziali: 'Debiti contributivi e previdenziali',
+  utenze_servizi: 'Utenze e servizi ricorrenti',
+  procedure_esecutive: 'Procedure esecutive e recupero crediti'
+};
+
+const DEBT_SUBCATEGORIES = {
+  banche_finanziarie: [
+    { value: 'mutuo_ipotecario', label: 'Mutuo ipotecario' },
+    { value: 'prestito_personale', label: 'Prestito personale' },
+    { value: 'carte_revolving', label: 'Carte di credito / revolving' },
+    { value: 'leasing_finanziario', label: 'Leasing o noleggio finanziario' },
+    { value: 'fidi_aziendali', label: 'Fidi e affidamenti aziendali' }
+  ],
+  fiscali_tributari: [
+    { value: 'iva', label: 'IVA' },
+    { value: 'irpef_ires', label: 'IRPEF / IRES' },
+    { value: 'imu_tasi', label: 'IMU / TASI' },
+    { value: 'cartelle_esattoriali', label: 'Cartelle esattoriali' },
+    { value: 'avvisi_bonari', label: 'Avvisi bonari' }
+  ],
+  previdenziali: [
+    { value: 'inps_dipendenti', label: 'INPS dipendenti' },
+    { value: 'inps_gestione_separata', label: 'INPS gestione separata' },
+    { value: 'inail', label: 'INAIL' },
+    { value: 'casse_professionali', label: 'Casse professionali' },
+    { value: 'fondi_pensione', label: 'Fondi pensione' }
+  ],
+  utenze_servizi: [
+    { value: 'energia_gas', label: 'Energia e gas' },
+    { value: 'acqua', label: 'Servizio idrico' },
+    { value: 'telefonia_internet', label: 'Telefonia e internet' },
+    { value: 'servizi_digitali', label: 'Servizi digitali / SaaS' },
+    { value: 'altri_servizi', label: 'Altri servizi ricorrenti' }
+  ],
+  procedure_esecutive: [
+    { value: 'pignoramento_conto', label: 'Pignoramento conto corrente' },
+    { value: 'pignoramento_quinto', label: 'Pignoramento del quinto' },
+    { value: 'ipoteca_giudiziale', label: 'Ipoteca giudiziale' },
+    { value: 'decreto_ingiuntivo', label: 'Decreto ingiuntivo' },
+    { value: 'crediti_servicer', label: 'Crediti gestiti da servicer' }
+  ]
 };
 
 // ==================== UTILITY: Generate Availability ====================
@@ -131,8 +171,24 @@ const PROFESSIONALS_DATA = [
     career: "Consulente specializzato nella gestione delle crisi debitorie, con anni di esperienza nel supporto a famiglie e aziende. Approccio personalizzato per trovare soluzioni sostenibili.",
     strengths: ["Analisi situazione debitoria", "Piani personalizzati", "Mediazione crediti", "Supporto continuo"],
     tags: ["bancari", "fiscali", "privati", "aziende"],
-    calendarLink: "https://calendar.google.com/calendar/u/0?cid=Z2lhbmx1Y2EuY29sbGlhQGdvYnJhdm8uaXQ", // ← Link calendario Google
-    email: "gianluca.collia@gmail.com" // ← Email per ricevere notifiche prenotazioni
+    calendarLink: "https://calendar.google.com/calendar/u/0?cid=Z2lhbmx1Y2EuY29sbGlhQGdvYnJhdm8uaXQ",
+    email: "gianluca.collia@gmail.com",
+    loginUsername: "gianluca90",
+    loginPassword: "gianluca90"
+  },
+  { 
+    name: "Avv. Elena Rossi",
+    specialty: "Avvocato Specializzato in Diritto Tributario e Fallimentare",
+    services: "Contenzioso tributario • Procedure concorsuali • Saldo e stralcio",
+    price: 550,
+    desc: "Avvocato con consolidata esperienza in diritto tributario e procedure concorsuali. Supporta privati e imprese nella risoluzione di situazioni debitorie complesse attraverso percorsi legali strutturati.",
+    career: "Laureata in Giurisprudenza con lode, iscritta all'Albo degli Avvocati. Specializzata in diritto tributario e fallimentare, ha maturato oltre 15 anni di esperienza nel contenzioso con Agenzia delle Entrate, Equitalia e procedure concorsuali. Ha assistito centinaia di clienti in procedure di saldo e stralcio, composizione delle crisi e rinegoziazione debiti.",
+    strengths: ["Contenzioso tributario", "Procedure concorsuali", "Saldo e stralcio", "Mediazione crediti", "Esperienza consolidata"],
+    tags: ["fiscali", "bancari", "privati", "aziende"],
+    calendarLink: "https://calendar.google.com/calendar/u/0?cid=ZWxlbmEucm9zc2lAZXhhbXBsZS5jb20",
+    email: "elena.rossi@studiolegale.it",
+    loginUsername: "elenarossi",
+    loginPassword: "elena2024"
   },
   { 
     name: "Avv. Marco Rossi", 
@@ -198,6 +254,7 @@ const PROFESSIONALS_DATA = [
 
 // Make available globally for structured data
 window.PROFESSIONALS_DATA = PROFESSIONALS_DATA;
+
 
 // ==================== DOM REFERENCES ====================
 const DOM = {
@@ -391,6 +448,20 @@ const Navigation = {
   },
   
   /**
+   * Show admin login modal
+   */
+  showAdminLogin: () => {
+    const modal = document.getElementById('professionalLoginModal');
+    if (modal) {
+      modal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+      const title = document.getElementById('loginTitle');
+      if (title) title.textContent = '🔐 Accesso Dashboard Admin';
+      document.getElementById('username')?.focus();
+    }
+  },
+  
+  /**
    * Show professional login modal
    */
   showProfessionalLogin: () => {
@@ -398,6 +469,8 @@ const Navigation = {
     if (modal) {
       modal.classList.add('show');
       document.body.style.overflow = 'hidden';
+      const title = document.getElementById('loginTitle');
+      if (title) title.textContent = 'Accesso Area Professionisti';
       document.getElementById('username')?.focus();
     }
   },
@@ -494,7 +567,7 @@ const Wizard = {
     Object.values(state.debtCreditors).forEach(creditors => {
       if (Array.isArray(creditors)) {
         creditors.forEach(item => {
-          total += Number(item.amount) || 0;
+          total += Number(item && typeof item.amount !== 'undefined' ? item.amount : 0) || 0;
         });
       }
     });
@@ -544,75 +617,161 @@ const Wizard = {
   },
   
   /**
-   * Add another creditor for a debt type
+   * Populate subcategory select with proper options
    */
-  addCreditor: (debtType) => {
-    const detailsContainer = document.getElementById(`details-${debtType}`);
-    if (!detailsContainer) return;
+  populateSubcategoryOptions: (select, debtType) => {
+    if (!select) return;
+    const options = DEBT_SUBCATEGORIES[debtType] || [];
+    select.innerHTML = '';
     
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Scegli la tipologia';
+    select.appendChild(placeholder);
+    
+    options.forEach(opt => {
+      const optionEl = document.createElement('option');
+      optionEl.value = opt.value;
+      optionEl.textContent = opt.label;
+      select.appendChild(optionEl);
+    });
+  },
+  
+  /**
+   * Ensure there is at least one entry for the given debt type
+   */
+  ensureDebtArray: (debtType) => {
+    if (!state.debtCreditors[debtType]) {
+      state.debtCreditors[debtType] = [];
+    }
+    if (state.debtCreditors[debtType].length === 0) {
+      state.debtCreditors[debtType].push({
+        subCategory: '',
+        creditor: '',
+        amount: 0
+      });
+    }
+  },
+  
+  /**
+   * Get label for a subcategory
+   */
+  getSubcategoryLabel: (debtType, value) => {
+    if (!value) return '';
+    const options = DEBT_SUBCATEGORIES[debtType] || [];
+    const match = options.find(opt => opt.value === value);
+    return match ? match.label : '';
+  },
+  
+  /**
+   * Render debt details list for a category
+   */
+  renderDebtDetails: (debtType) => {
+    const container = document.getElementById(`details-${debtType}`);
+    if (!container) return;
+    const itemsContainer = container.querySelector('.debt-items') || container;
+    
+    Wizard.ensureDebtArray(debtType);
+    
+    itemsContainer.querySelectorAll('.debt-item').forEach(item => item.remove());
+    
+    state.debtCreditors[debtType].forEach((entry, index) => {
+      const debtItem = Wizard.createDebtItem(debtType, index, entry);
+      itemsContainer.appendChild(debtItem);
+    });
+    
+    Wizard.updateTotalAmount();
+  },
+  
+  /**
+   * Create a single debt entry row
+   */
+  createDebtItem: (debtType, index, entry = {}) => {
     const debtItem = document.createElement('div');
     debtItem.className = 'debt-item';
     debtItem.innerHTML = `
       <div class="debt-row">
-        <input type="text" class="creditor-input" placeholder="Nome creditore" aria-label="Nome creditore">
+        <select class="subcategory-select" aria-label="Tipologia specifica del debito"></select>
+        <input type="text" class="creditor-input" placeholder="Nome creditore (facoltativo)" aria-label="Nome creditore">
         <input type="number" min="0" step="0.01" class="amount-input-field" placeholder="Importo in €" aria-label="Importo">
-        <button type="button" class="btn-remove-creditor" onclick="Wizard.removeCreditor(this)" aria-label="Rimuovi">×</button>
+        <button type="button" class="btn-remove-creditor" aria-label="Rimuovi voce">×</button>
       </div>
     `;
     
-    // Insert before the "Aggiungi un altro" button
-    const addButton = detailsContainer.querySelector('.btn-add-creditor');
-    detailsContainer.insertBefore(debtItem, addButton);
-    
-    // Add listeners
+    const select = debtItem.querySelector('.subcategory-select');
     const creditorInput = debtItem.querySelector('.creditor-input');
     const amountInput = debtItem.querySelector('.amount-input-field');
+    const removeBtn = debtItem.querySelector('.btn-remove-creditor');
     
-    const updateDebt = () => {
+    if (select) {
+      select.dataset.debtType = debtType;
+    }
+    
+    Wizard.populateSubcategoryOptions(select, debtType);
+    if (entry.subCategory) {
+      select.value = entry.subCategory;
+    }
+    creditorInput.value = entry.creditor || '';
+    amountInput.value = (typeof entry.amount !== 'undefined' && entry.amount !== null && entry.amount !== '') ? entry.amount : '';
+    
+    const updateEntry = () => {
       if (!state.debtCreditors[debtType]) {
         state.debtCreditors[debtType] = [];
       }
-      const index = Array.from(detailsContainer.querySelectorAll('.debt-item')).indexOf(debtItem);
-      if (index !== -1) {
-        state.debtCreditors[debtType][index] = {
-          creditor: creditorInput.value.trim(),
-          amount: Number(amountInput.value) || 0
-        };
-        Wizard.updateTotalAmount();
-      }
+      state.debtCreditors[debtType][index] = {
+        subCategory: select.value,
+        creditor: creditorInput.value.trim(),
+        amount: Number(amountInput.value) || 0
+      };
+      Wizard.updateTotalAmount();
+      Wizard.saveStateToStorage();
     };
     
-    creditorInput.addEventListener('input', updateDebt);
-    amountInput.addEventListener('input', updateDebt);
+    select.addEventListener('change', updateEntry);
+    creditorInput.addEventListener('input', updateEntry);
+    amountInput.addEventListener('input', updateEntry);
+    
+    removeBtn.addEventListener('click', () => Wizard.removeCreditor(debtType, index));
+    
+    return debtItem;
+  },
+  
+  /**
+   * Add another creditor for a debt type
+   */
+  addCreditor: (debtType) => {
+    Wizard.ensureDebtArray(debtType);
+    state.debtCreditors[debtType].push({
+      subCategory: '',
+      creditor: '',
+      amount: 0
+    });
+    Wizard.renderDebtDetails(debtType);
+    
+    const detailsContainer = document.getElementById(`details-${debtType}`);
+    const newSelect = detailsContainer?.querySelector('.debt-item:last-of-type .subcategory-select');
+    if (newSelect) {
+      newSelect.focus();
+    }
+    Wizard.saveStateToStorage();
   },
   
   /**
    * Remove a creditor
    */
-  removeCreditor: (button) => {
-    const debtItem = button.closest('.debt-item');
-    const detailsContainer = debtItem.closest('.debt-details');
-    const debtType = detailsContainer.id.replace('details-', '');
+  removeCreditor: (debtType, index) => {
+    if (!state.debtCreditors[debtType]) return;
+    state.debtCreditors[debtType].splice(index, 1);
     
-    debtItem.remove();
-    
-    // Recalculate all creditors for this type
-    if (state.debtCreditors[debtType]) {
-      const items = detailsContainer.querySelectorAll('.debt-item');
-      state.debtCreditors[debtType] = [];
-      items.forEach(item => {
-        const creditorInput = item.querySelector('.creditor-input');
-        const amountInput = item.querySelector('.amount-input-field');
-        if (creditorInput && amountInput) {
-          state.debtCreditors[debtType].push({
-            creditor: creditorInput.value.trim(),
-            amount: Number(amountInput.value) || 0
-          });
-        }
+    if (state.debtCreditors[debtType].length === 0) {
+      state.debtCreditors[debtType].push({
+        subCategory: '',
+        creditor: '',
+        amount: 0
       });
     }
     
-    Wizard.updateTotalAmount();
+    Wizard.renderDebtDetails(debtType);
     Wizard.saveStateToStorage();
   },
   
@@ -630,17 +789,10 @@ const Wizard = {
       state.selections = state.selections.filter(s => s !== value);
       if (detailsContainer) {
         detailsContainer.style.display = 'none';
-        // Clear all inputs
-        detailsContainer.querySelectorAll('.creditor-input, .amount-input-field').forEach(input => {
-          input.value = '';
-        });
-        // Clear from state
-        delete state.debtCreditors[value];
-        // Reset to single item
-        const items = detailsContainer.querySelectorAll('.debt-item');
-        items.forEach((item, index) => {
-          if (index > 0) item.remove();
-        });
+        const itemsContainer = detailsContainer.querySelector('.debt-items');
+        if (itemsContainer) {
+          itemsContainer.innerHTML = '';
+        }
         delete state.debtCreditors[value];
         Wizard.saveStateToStorage();
       }
@@ -650,31 +802,9 @@ const Wizard = {
       state.selections.push(value);
       if (detailsContainer) {
         detailsContainer.style.display = 'block';
+        Wizard.ensureDebtArray(value);
+        Wizard.renderDebtDetails(value);
         Wizard.saveStateToStorage();
-        if (!state.debtCreditors[value]) {
-          state.debtCreditors[value] = [];
-        }
-        
-        // Add listeners to first item
-        const firstItem = detailsContainer.querySelector('.debt-item');
-        if (firstItem) {
-          const creditorInput = firstItem.querySelector('.creditor-input');
-          const amountInput = firstItem.querySelector('.amount-input-field');
-          
-          const updateDebt = () => {
-            if (state.debtCreditors[value].length === 0) {
-              state.debtCreditors[value].push({ creditor: '', amount: 0 });
-            }
-            state.debtCreditors[value][0] = {
-              creditor: creditorInput.value.trim(),
-              amount: Number(amountInput.value) || 0
-            };
-            Wizard.updateTotalAmount();
-          };
-          
-          creditorInput.addEventListener('input', updateDebt);
-          amountInput.addEventListener('input', updateDebt);
-        }
       }
     }
     
@@ -782,10 +912,12 @@ const Wizard = {
         state.debtCreditors[debtType] = [];
         const items = detailsContainer.querySelectorAll('.debt-item');
         items.forEach(item => {
+          const select = item.querySelector('.subcategory-select');
           const creditorInput = item.querySelector('.creditor-input');
           const amountInput = item.querySelector('.amount-input-field');
           if (creditorInput && amountInput) {
             state.debtCreditors[debtType].push({
+              subCategory: select ? select.value : '',
               creditor: creditorInput.value.trim(),
               amount: Number(amountInput.value) || 0
             });
@@ -820,12 +952,15 @@ const Wizard = {
       const typeLabel = DEBT_LABELS[debtType] || debtType;
       
       if (creditors.length === 0) {
-        debtsDetail += `<li><b>${typeLabel}:</b> Nessun creditore specificato</li>`;
+        debtsDetail += `<li><b>${typeLabel}:</b> Nessun dettaglio specificato</li>`;
       } else {
         creditors.forEach((item, index) => {
-          if (item.creditor || item.amount > 0) {
-            const creditorName = item.creditor || 'Creditore non specificato';
-            debtsDetail += `<li><b>${typeLabel}${creditors.length > 1 ? ` (${index + 1})` : ''}:</b> ${creditorName} - € ${item.amount.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</li>`;
+          const hasContent = item.subCategory || item.creditor || (Number(item.amount) || 0) > 0;
+          if (hasContent) {
+            const subLabel = Wizard.getSubcategoryLabel(debtType, item.subCategory) || 'Voce non specificata';
+            const creditorName = item.creditor ? ` • ${item.creditor}` : '';
+            const amountText = `€ ${Number(item.amount || 0).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            debtsDetail += `<li><b>${typeLabel}${creditors.length > 1 ? ` (${index + 1})` : ''}:</b> ${subLabel}${creditorName} - ${amountText}</li>`;
           }
         });
       }
@@ -998,8 +1133,13 @@ const Wizard = {
       if (shouldRestore) {
         // Restore selections first
         if (savedData.selections) {
-          state.selections = savedData.selections;
+          state.selections = savedData.selections.filter(sel => DEBT_LABELS[sel]);
           state.debtCreditors = savedData.debtCreditors || {};
+          Object.keys(state.debtCreditors).forEach(key => {
+            if (!DEBT_LABELS[key]) {
+              delete state.debtCreditors[key];
+            }
+          });
           
           // Restore UI for selections
           savedData.selections.forEach(sel => {
@@ -1010,6 +1150,7 @@ const Wizard = {
               const detailsContainer = document.getElementById(`details-${sel}`);
               if (detailsContainer) {
                 detailsContainer.style.display = 'block';
+                Wizard.renderDebtDetails(sel);
               }
             }
           });
@@ -1222,8 +1363,12 @@ const Modal = {
     let targetFilter = 'all';
     if (state.selections.includes('banche_finanziarie')) {
       targetFilter = 'bancari';
-    } else if (state.selections.includes('tributari') || state.selections.includes('erario')) {
+    } else if (state.selections.includes('fiscali_tributari') || state.selections.includes('previdenziali')) {
       targetFilter = 'fiscali';
+    } else if (state.selections.includes('utenze_servizi')) {
+      targetFilter = 'privati';
+    } else if (state.selections.includes('procedure_esecutive')) {
+      targetFilter = 'aziende';
     }
     
     // Navigate to professionals page
@@ -1278,7 +1423,7 @@ const Professionals = {
     }
     
     const tagsHTML = pro.tags.map(tag => {
-      const tagLabels = { bancari: 'Bancari', fiscali: 'Fiscali', aziende: 'Aziende', privati: 'Privati' };
+      const tagLabels = { bancari: 'Bancari', fiscali: 'Fiscali/Tributari', aziende: 'Aziende', privati: 'Privati' };
       return `<span class="tag">${tagLabels[tag] || tag}</span>`;
     }).join('');
     
@@ -1358,7 +1503,6 @@ const Professionals = {
     }
     
     const strengthsHTML = pro.strengths.map(s => `<li>✓ ${s}</li>`).join('');
-    
     const calendarHTML = calendarDays.map(day => `
       <div class="calendar-day">
         <div class="cal-date-header">
@@ -1457,98 +1601,232 @@ const Professionals = {
   bookAppointment: (proIndex, date, time) => {
     const pro = PROFESSIONALS_DATA[proIndex];
     
-    if (confirm(`Confermi la prenotazione?\n\n${pro.name}\n${date} alle ${time}`)) {
-      // Collect client data if not available
-      let clientName = '';
-      let clientSurname = '';
-      let clientPhone = '';
-      let clientEmail = '';
-      
-      if (state.formData.nome && state.formData.cognome) {
-        clientName = state.formData.nome;
-        clientSurname = state.formData.cognome;
-        clientPhone = state.formData.telefono || '';
-        clientEmail = state.formData.email || '';
-      } else {
-        // Prompt for client data if not in form
-        clientName = prompt('Nome del cliente:') || '';
-        clientSurname = prompt('Cognome del cliente:') || '';
-        clientPhone = prompt('Telefono del cliente (opzionale):') || '';
-        clientEmail = prompt('Email del cliente (opzionale):') || '';
+    // Show appointment confirmation modal with meeting type selection
+    Professionals.showAppointmentModal(proIndex, date, time, pro);
+  },
+  
+  /**
+   * Show appointment confirmation modal with meeting type selection
+   */
+  showAppointmentModal: (proIndex, date, time, pro) => {
+    // Create or get appointment modal
+    let appointmentModal = document.getElementById('appointmentModal');
+    if (!appointmentModal) {
+      appointmentModal = document.createElement('div');
+      appointmentModal.id = 'appointmentModal';
+      appointmentModal.className = 'modal-backdrop';
+      document.body.appendChild(appointmentModal);
+    }
+    
+    appointmentModal.innerHTML = `
+      <div class="appointment-modal" style="max-width: 500px; padding: var(--spacing-xl); background: var(--card-bg); border-radius: var(--radius-xl); box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+        <button class="modal-close" onclick="Professionals.closeAppointmentModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text-muted);">&times;</button>
+        <h2 style="margin-top: 0; margin-bottom: var(--spacing-lg); color: var(--text-primary);">Conferma Appuntamento</h2>
+        <div style="margin-bottom: var(--spacing-lg);">
+          <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--spacing-sm);">${pro.name}</div>
+          <div style="color: var(--text-muted); margin-bottom: var(--spacing-xs);">📅 ${date}</div>
+          <div style="color: var(--text-muted);">🕐 ${time}</div>
+        </div>
+        
+        <div style="margin-bottom: var(--spacing-xl);">
+          <label style="display: block; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary);">Modalità di incontro:</label>
+          <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+            <label style="display: flex; align-items: center; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); cursor: pointer; transition: all var(--transition-normal);">
+              <input type="radio" name="meetingType" value="presenza" checked style="margin-right: var(--spacing-md); width: 20px; height: 20px; cursor: pointer;">
+              <div>
+                <div style="font-weight: 600; color: var(--text-primary);">🏢 In Presenza</div>
+                <div style="font-size: 0.875rem; color: var(--text-muted);">Incontro presso lo studio del professionista</div>
+              </div>
+            </label>
+            <label style="display: flex; align-items: center; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); cursor: pointer; transition: all var(--transition-normal);">
+              <input type="radio" name="meetingType" value="remoto" style="margin-right: var(--spacing-md); width: 20px; height: 20px; cursor: pointer;">
+              <div>
+                <div style="font-weight: 600; color: var(--text-primary);">💻 Da Remoto (Webcam/Meet)</div>
+                <div style="font-size: 0.875rem; color: var(--text-muted);">Videochiamata via Google Meet o Zoom</div>
+              </div>
+            </label>
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end;">
+          <button type="button" onclick="Professionals.closeAppointmentModal()" class="btn ghost" style="width: auto;">Annulla</button>
+          <button type="button" onclick="Professionals.confirmAppointment(${proIndex}, '${date}', '${time}')" class="btn" style="width: auto;">Conferma Prenotazione</button>
+        </div>
+      </div>
+    `;
+    
+    // Add hover effects
+    const labels = appointmentModal.querySelectorAll('label[style*="border"]');
+    labels.forEach(label => {
+      label.addEventListener('mouseenter', () => {
+        if (label.querySelector('input[type="radio"]:checked')) {
+          label.style.borderColor = 'var(--accent)';
+          label.style.backgroundColor = 'rgba(93, 173, 226, 0.05)';
+        } else {
+          label.style.borderColor = 'var(--border-hover)';
+        }
+      });
+      label.addEventListener('mouseleave', () => {
+        if (label.querySelector('input[type="radio"]:checked')) {
+          label.style.borderColor = 'var(--accent)';
+          label.style.backgroundColor = 'rgba(93, 173, 226, 0.05)';
+        } else {
+          label.style.borderColor = 'var(--border)';
+          label.style.backgroundColor = 'transparent';
+        }
+      });
+      label.addEventListener('click', () => {
+        labels.forEach(l => {
+          if (!l.querySelector('input[type="radio"]:checked')) {
+            l.style.borderColor = 'var(--border)';
+            l.style.backgroundColor = 'transparent';
+          }
+        });
+        label.style.borderColor = 'var(--accent)';
+        label.style.backgroundColor = 'rgba(93, 173, 226, 0.05)';
+      });
+    });
+    
+    // Set initial checked state
+    labels[0].style.borderColor = 'var(--accent)';
+    labels[0].style.backgroundColor = 'rgba(93, 173, 226, 0.05)';
+    
+    appointmentModal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    
+    // Close on backdrop click
+    appointmentModal.addEventListener('click', (e) => {
+      if (e.target === appointmentModal) {
+        Professionals.closeAppointmentModal();
       }
+    });
+    
+    // Close on Escape key
+    const escapeHandler = (e) => {
+      if (e.key === 'Escape') {
+        Professionals.closeAppointmentModal();
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    };
+    document.addEventListener('keydown', escapeHandler);
+  },
+  
+  /**
+   * Close appointment modal
+   */
+  closeAppointmentModal: () => {
+    const appointmentModal = document.getElementById('appointmentModal');
+    if (appointmentModal) {
+      appointmentModal.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  },
+  
+  /**
+   * Confirm appointment with selected meeting type
+   */
+  confirmAppointment: (proIndex, date, time) => {
+    const pro = PROFESSIONALS_DATA[proIndex];
+    
+    // Get selected meeting type
+    const meetingTypeRadio = document.querySelector('#appointmentModal input[name="meetingType"]:checked');
+    const meetingType = meetingTypeRadio ? meetingTypeRadio.value : 'presenza';
+    const meetingTypeLabel = meetingType === 'presenza' ? 'In Presenza' : 'Da Remoto (Webcam/Meet)';
+    
+    // Close modal
+    Professionals.closeAppointmentModal();
+    
+    // Collect client data if not available
+    let clientName = '';
+    let clientSurname = '';
+    let clientPhone = '';
+    let clientEmail = '';
+    
+    if (state.formData.nome && state.formData.cognome) {
+      clientName = state.formData.nome;
+      clientSurname = state.formData.cognome;
+      clientPhone = state.formData.telefono || '';
+      clientEmail = state.formData.email || '';
+    } else {
+      // Prompt for client data if not in form
+      clientName = prompt('Nome del cliente:') || '';
+      clientSurname = prompt('Cognome del cliente:') || '';
+      clientPhone = prompt('Telefono del cliente (opzionale):') || '';
+      clientEmail = prompt('Email del cliente (opzionale):') || '';
+    }
+    
+    const startDate = new Date(`${date}T${time}:00`);
+    const endDate = new Date(startDate);
+    endDate.setHours(endDate.getHours() + 1); // 1 hour appointment
+    
+    const formatDate = (d) => {
+      const year = d.getUTCFullYear();
+      const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      const hours = String(d.getUTCHours()).padStart(2, '0');
+      const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+      return `${year}${month}${day}T${hours}${minutes}00Z`;
+    };
+    
+    const title = encodeURIComponent(`Consulenza con ${pro.name} - Debito Zero Solvo`);
+    const details = encodeURIComponent(`Appuntamento di consulenza per gestione debiti`);
+    const start = formatDate(startDate);
+    const end = formatDate(endDate);
+    
+    // Format dates for email
+    const eventDate = startDate.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const eventTime = startDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    const eventEndTime = endDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    
+    // Send email to professional with complete appointment details
+    if (pro.email && EMAIL_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
+      const clientFullName = clientName && clientSurname 
+        ? `${clientName} ${clientSurname}`.trim()
+        : clientName || clientSurname || 'Cliente non specificato';
       
-      const startDate = new Date(`${date}T${time}:00`);
-      const endDate = new Date(startDate);
-      endDate.setHours(endDate.getHours() + 1); // 1 hour appointment
-      
-      const formatDate = (d) => {
-        const year = d.getUTCFullYear();
-        const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-        const day = String(d.getUTCDate()).padStart(2, '0');
-        const hours = String(d.getUTCHours()).padStart(2, '0');
-        const minutes = String(d.getUTCMinutes()).padStart(2, '0');
-        return `${year}${month}${day}T${hours}${minutes}00Z`;
+      const appointmentEmailData = {
+        to_email: pro.email,
+        from_name: 'Debito Zero - Solvo',
+        subject: `📅 Nuova prenotazione: ${eventDate} alle ${eventTime} - ${meetingTypeLabel}`,
+        appointment_professional: pro.name,
+        appointment_date: eventDate,
+        appointment_time: `${eventTime} - ${eventEndTime}`,
+        appointment_duration: '1 ora',
+        appointment_type: meetingTypeLabel,
+        client_name: clientFullName,
+        client_phone: clientPhone || 'Non fornito',
+        client_email: clientEmail || 'Non fornita',
+        appointment_details: `Consulenza per gestione debiti - Debito Zero Solvo\n\nModalità: ${meetingTypeLabel}`,
+        calendar_link: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}`,
+        booking_date: new Date().toLocaleString('it-IT')
       };
       
-      const title = encodeURIComponent(`Consulenza con ${pro.name} - Debito Zero Solvo`);
-      const details = encodeURIComponent(`Appuntamento di consulenza per gestione debiti`);
-      const start = formatDate(startDate);
-      const end = formatDate(endDate);
-      
-      // Format dates for email
-      const eventDate = startDate.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const eventTime = startDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-      const eventEndTime = endDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-      
-      // Send email to professional with complete appointment details
-      if (pro.email && EMAIL_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
-        const clientFullName = clientName && clientSurname 
-          ? `${clientName} ${clientSurname}`.trim()
-          : clientName || clientSurname || 'Cliente non specificato';
-        
-        const appointmentEmailData = {
-          to_email: pro.email,
-          from_name: 'Debito Zero - Solvo',
-          subject: `📅 Nuova prenotazione: ${eventDate} alle ${eventTime}`,
-          appointment_professional: pro.name,
-          appointment_date: eventDate,
-          appointment_time: `${eventTime} - ${eventEndTime}`,
-          appointment_duration: '1 ora',
-          client_name: clientFullName,
-          client_phone: clientPhone || 'Non fornito',
-          client_email: clientEmail || 'Non fornita',
-          appointment_details: `Consulenza per gestione debiti - Debito Zero Solvo`,
-          calendar_link: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}`,
-          booking_date: new Date().toLocaleString('it-IT')
-        };
-        
-        // Send appointment notification email
-        emailjs.send(
-          EMAIL_CONFIG.serviceId,
-          EMAIL_CONFIG.templateId,
-          appointmentEmailData
-        ).then(() => {
-          console.log('✅ Email prenotazione inviata a', pro.email);
-        }).catch(err => {
-          console.error('❌ Errore invio email prenotazione:', err);
-        });
-      }
-      
-      // Check if professional has custom calendar link (Cal.com, Calendly, etc.)
-      if (pro.calendarLink && pro.calendarLink !== 'TUO_CALENDAR_LINK' && pro.calendarLink.includes('http') && !pro.calendarLink.includes('calendar.google.com')) {
-        // Custom link (like Cal.com or Calendly) - open directly
-        window.open(pro.calendarLink, '_blank');
-        alert(`✅ Prenotazione confermata!\n\n${pro.name} riceverà una notifica email con i dettagli.\n\nData: ${date} alle ${time}`);
-      } else {
-        // Google Calendar link
-        const googleCalendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}`;
-        window.open(googleCalendarLink, '_blank');
-        
-        alert(`✅ Prenotazione confermata!\n\n${pro.name} riceverà una notifica email con i dettagli.\n\nData: ${date} alle ${time}\n\nAggiungi l'evento al tuo calendario Google.`);
-      }
-      
-      Professionals.closeDetails();
+      // Send appointment notification email
+      emailjs.send(
+        EMAIL_CONFIG.serviceId,
+        EMAIL_CONFIG.templateId,
+        appointmentEmailData
+      ).then(() => {
+        console.log('✅ Email prenotazione inviata a', pro.email);
+      }).catch(err => {
+        console.error('❌ Errore invio email prenotazione:', err);
+      });
     }
+    
+    // Check if professional has custom calendar link (Cal.com, Calendly, etc.)
+    if (pro.calendarLink && pro.calendarLink !== 'TUO_CALENDAR_LINK' && pro.calendarLink.includes('http') && !pro.calendarLink.includes('calendar.google.com')) {
+      // Custom link (like Cal.com or Calendly) - open directly
+      window.open(pro.calendarLink, '_blank');
+      alert(`✅ Prenotazione confermata!\n\n${pro.name} riceverà una notifica email con i dettagli.\n\nData: ${date} alle ${time}\nModalità: ${meetingTypeLabel}`);
+    } else {
+      // Google Calendar link
+      const googleCalendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}`;
+      window.open(googleCalendarLink, '_blank');
+      
+      alert(`✅ Prenotazione confermata!\n\n${pro.name} riceverà una notifica email con i dettagli.\n\nData: ${date} alle ${time}\nModalità: ${meetingTypeLabel}\n\nAggiungi l'evento al tuo calendario Google.`);
+    }
+    
+    Professionals.closeDetails();
   },
   
   /**
@@ -1601,6 +1879,34 @@ const Professionals = {
    */
   loadSavedProfessionalData: () => {
     try {
+      // Load saved data for all professionals with login credentials
+      PROFESSIONALS_DATA.forEach(pro => {
+        if (pro.loginUsername) {
+          const savedData = localStorage.getItem(`professionalData_${pro.loginUsername}`);
+          if (savedData) {
+            const data = JSON.parse(savedData);
+            const proIndex = PROFESSIONALS_DATA.findIndex(p => p.name === pro.name);
+            if (proIndex !== -1 && data) {
+              // Update professional data with saved values, preserving defaults for missing fields
+              PROFESSIONALS_DATA[proIndex] = {
+                ...PROFESSIONALS_DATA[proIndex],
+                specialty: data.specialty || PROFESSIONALS_DATA[proIndex].specialty,
+                services: data.services || PROFESSIONALS_DATA[proIndex].services,
+                price: data.price || PROFESSIONALS_DATA[proIndex].price,
+                desc: data.desc || PROFESSIONALS_DATA[proIndex].desc,
+                career: data.career || PROFESSIONALS_DATA[proIndex].career,
+                email: data.email || PROFESSIONALS_DATA[proIndex].email,
+                phone: data.phone || PROFESSIONALS_DATA[proIndex].phone,
+                address: data.address || PROFESSIONALS_DATA[proIndex].address,
+                cf: data.cf || PROFESSIONALS_DATA[proIndex].cf,
+                piva: data.piva || PROFESSIONALS_DATA[proIndex].piva
+              };
+            }
+          }
+        }
+      });
+      
+      // Also load legacy data for backward compatibility
       const saved = localStorage.getItem('professionalData');
       if (saved) {
         const data = JSON.parse(saved);
@@ -1614,7 +1920,11 @@ const Professionals = {
             price: data.price || PROFESSIONALS_DATA[gianlucaIndex].price,
             desc: data.desc || PROFESSIONALS_DATA[gianlucaIndex].desc,
             career: data.career || PROFESSIONALS_DATA[gianlucaIndex].career,
-            email: data.email || PROFESSIONALS_DATA[gianlucaIndex].email
+            email: data.email || PROFESSIONALS_DATA[gianlucaIndex].email,
+            phone: data.phone || PROFESSIONALS_DATA[gianlucaIndex].phone,
+            address: data.address || PROFESSIONALS_DATA[gianlucaIndex].address,
+            cf: data.cf || PROFESSIONALS_DATA[gianlucaIndex].cf,
+            piva: data.piva || PROFESSIONALS_DATA[gianlucaIndex].piva
           };
         }
       }
@@ -1672,6 +1982,9 @@ const ProfessionalDashboard = {
    * Save professional data
    */
   saveData: () => {
+    const currentPro = JSON.parse(localStorage.getItem('currentProfessional') || '{}');
+    const username = currentPro.username || 'gianluca90';
+    
     const data = {
       name: document.getElementById('pro-name')?.value || '',
       email: document.getElementById('pro-email')?.value || '',
@@ -1688,20 +2001,28 @@ const ProfessionalDashboard = {
     };
     
     try {
-      localStorage.setItem('professionalData', JSON.stringify(data));
+      // Save to localStorage with username key
+      localStorage.setItem(`professionalData_${username}`, JSON.stringify(data));
+      
+      // Also save to legacy key for backward compatibility
+      if (username === 'gianluca90') {
+        localStorage.setItem('professionalData', JSON.stringify(data));
+      }
       
       // Update PROFESSIONALS_DATA with new data
-      const gianlucaIndex = PROFESSIONALS_DATA.findIndex(pro => pro.name === 'Gianluca Collia');
-      if (gianlucaIndex !== -1) {
+      const proIndex = PROFESSIONALS_DATA.findIndex(pro => pro.name === data.name);
+      if (proIndex !== -1) {
         // Update existing professional data
-        PROFESSIONALS_DATA[gianlucaIndex] = {
-          ...PROFESSIONALS_DATA[gianlucaIndex],
-          specialty: data.specialty || PROFESSIONALS_DATA[gianlucaIndex].specialty,
-          services: data.services || PROFESSIONALS_DATA[gianlucaIndex].services,
-          price: data.price || PROFESSIONALS_DATA[gianlucaIndex].price,
-          desc: data.desc || PROFESSIONALS_DATA[gianlucaIndex].desc,
-          career: data.career || PROFESSIONALS_DATA[gianlucaIndex].career,
-          email: data.email || PROFESSIONALS_DATA[gianlucaIndex].email
+        PROFESSIONALS_DATA[proIndex] = {
+          ...PROFESSIONALS_DATA[proIndex],
+          specialty: data.specialty || PROFESSIONALS_DATA[proIndex].specialty,
+          services: data.services || PROFESSIONALS_DATA[proIndex].services,
+          price: data.price || PROFESSIONALS_DATA[proIndex].price,
+          desc: data.desc || PROFESSIONALS_DATA[proIndex].desc,
+          career: data.career || PROFESSIONALS_DATA[proIndex].career,
+          email: data.email || PROFESSIONALS_DATA[proIndex].email,
+          phone: data.phone || PROFESSIONALS_DATA[proIndex].phone,
+          address: data.address || PROFESSIONALS_DATA[proIndex].address
         };
         
         // Re-render professionals list to show updated data
@@ -1967,21 +2288,36 @@ const ProfessionalDashboard = {
   /**
    * Load professional data
    */
-  loadData: () => {
+  loadData: (professional = null) => {
     try {
-      const saved = localStorage.getItem('professionalData');
-      if (saved) {
-        const data = JSON.parse(saved);
-        if (document.getElementById('pro-phone')) document.getElementById('pro-phone').value = data.phone || '';
-        if (document.getElementById('pro-address')) document.getElementById('pro-address').value = data.address || '';
-        if (document.getElementById('pro-cf')) document.getElementById('pro-cf').value = data.cf || '';
-        if (document.getElementById('pro-piva')) document.getElementById('pro-piva').value = data.piva || '';
-        if (document.getElementById('pro-specialty')) document.getElementById('pro-specialty').value = data.specialty || '';
-        if (document.getElementById('pro-services')) document.getElementById('pro-services').value = data.services || '';
-        if (document.getElementById('pro-price')) document.getElementById('pro-price').value = data.price || '';
-        if (document.getElementById('pro-desc')) document.getElementById('pro-desc').value = data.desc || '';
-        if (document.getElementById('pro-career')) document.getElementById('pro-career').value = data.career || '';
+      // Get current professional from localStorage or use provided
+      const currentPro = professional || JSON.parse(localStorage.getItem('currentProfessional') || '{}');
+      
+      // Find professional in PROFESSIONALS_DATA
+      const proData = PROFESSIONALS_DATA.find(pro => pro.name === currentPro.name) || PROFESSIONALS_DATA[0];
+      
+      // Load saved data from localStorage (if exists)
+      const saved = localStorage.getItem(`professionalData_${currentPro.username || 'gianluca90'}`);
+      const savedData = saved ? JSON.parse(saved) : {};
+      
+      // Populate form fields with professional data or saved data
+      if (document.getElementById('pro-name')) {
+        document.getElementById('pro-name').value = savedData.name || proData.name || '';
+        document.getElementById('pro-name').readOnly = true; // Name is readonly
       }
+      if (document.getElementById('pro-email')) {
+        document.getElementById('pro-email').value = savedData.email || proData.email || '';
+        document.getElementById('pro-email').readOnly = true; // Email is readonly
+      }
+      if (document.getElementById('pro-phone')) document.getElementById('pro-phone').value = savedData.phone || '';
+      if (document.getElementById('pro-address')) document.getElementById('pro-address').value = savedData.address || '';
+      if (document.getElementById('pro-cf')) document.getElementById('pro-cf').value = savedData.cf || '';
+      if (document.getElementById('pro-piva')) document.getElementById('pro-piva').value = savedData.piva || '';
+      if (document.getElementById('pro-specialty')) document.getElementById('pro-specialty').value = savedData.specialty || proData.specialty || '';
+      if (document.getElementById('pro-services')) document.getElementById('pro-services').value = savedData.services || proData.services || '';
+      if (document.getElementById('pro-price')) document.getElementById('pro-price').value = savedData.price || proData.price || '';
+      if (document.getElementById('pro-desc')) document.getElementById('pro-desc').value = savedData.desc || proData.desc || '';
+      if (document.getElementById('pro-career')) document.getElementById('pro-career').value = savedData.career || proData.career || '';
       
       // Load and render documents
       ProfessionalDashboard.renderDocuments();
@@ -2108,45 +2444,52 @@ const AdminDashboard = {
     if (!container) return;
     
     try {
-      const professionals = [];
+      // Get all professionals with login credentials (real professionals)
+      const realProfessionals = PROFESSIONALS_DATA.filter(pro => pro.loginUsername && pro.loginPassword);
       
-      // Add Gianluca Collia (default)
-      professionals.push({
-        name: 'Gianluca Collia',
-        email: 'gianluca.collia@gmail.com',
-        specialty: 'Consulente Gestione Crisi Debitoria',
-        price: 400
-      });
-      
-      // Load saved professional data
-      const saved = localStorage.getItem('professionalData');
-      if (saved) {
-        const data = JSON.parse(saved);
-        professionals[0] = { ...professionals[0], ...data };
+      if (realProfessionals.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); padding: var(--spacing-xl); text-align: center;">Nessun professionista registrato.</p>';
+        return;
       }
       
-      container.innerHTML = professionals.map(pro => `
-        <div class="data-card">
-          <div class="data-card-header">
-            <h3>${pro.name || 'N/A'}</h3>
+      container.innerHTML = realProfessionals.map(pro => {
+        // Load saved data for this professional
+        const savedData = localStorage.getItem(`professionalData_${pro.loginUsername}`);
+        const saved = savedData ? JSON.parse(savedData) : {};
+        
+        // Merge with default data
+        const finalPro = {
+          name: saved.name || pro.name,
+          email: saved.email || pro.email,
+          phone: saved.phone || '',
+          specialty: saved.specialty || pro.specialty,
+          services: saved.services || pro.services,
+          price: saved.price || pro.price
+        };
+        
+        return `
+          <div class="data-card">
+            <div class="data-card-header">
+              <h3>${finalPro.name || 'N/A'}</h3>
+            </div>
+            <div class="data-card-body">
+              <div class="data-row">
+                <strong>Email:</strong> ${finalPro.email || 'N/A'}
+              </div>
+              <div class="data-row">
+                <strong>Telefono:</strong> ${finalPro.phone || 'N/A'}
+              </div>
+              <div class="data-row">
+                <strong>Specialità:</strong> ${finalPro.specialty || 'N/A'}
+              </div>
+              <div class="data-row">
+                <strong>Tariffa:</strong> € ${finalPro.price || 'N/A'}
+              </div>
+              ${finalPro.services ? `<div class="data-row"><strong>Servizi:</strong> ${finalPro.services}</div>` : ''}
+            </div>
           </div>
-          <div class="data-card-body">
-            <div class="data-row">
-              <strong>Email:</strong> ${pro.email || 'N/A'}
-            </div>
-            <div class="data-row">
-              <strong>Telefono:</strong> ${pro.phone || 'N/A'}
-            </div>
-            <div class="data-row">
-              <strong>Specialità:</strong> ${pro.specialty || 'N/A'}
-            </div>
-            <div class="data-row">
-              <strong>Tariffa:</strong> € ${pro.price || 'N/A'}
-            </div>
-            ${pro.services ? `<div class="data-row"><strong>Servizi:</strong> ${pro.services}</div>` : ''}
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     } catch (e) {
       console.error('Errore caricamento professionisti:', e);
       container.innerHTML = '<p style="color: #f56565;">Errore nel caricamento dei professionisti.</p>';
@@ -2211,27 +2554,33 @@ const AdminDashboard = {
    */
   exportProfessionalsCSV: () => {
     try {
-      const professionals = [];
+      // Get all professionals with login credentials (real professionals)
+      const realProfessionals = PROFESSIONALS_DATA.filter(pro => pro.loginUsername && pro.loginPassword);
       
-      // Add Gianluca Collia (default)
-      professionals.push({
-        name: 'Gianluca Collia',
-        email: 'gianluca.collia@gmail.com',
-        specialty: 'Consulente Gestione Crisi Debitoria',
-        price: 400
-      });
-      
-      // Load saved professional data
-      const saved = localStorage.getItem('professionalData');
-      if (saved) {
-        const data = JSON.parse(saved);
-        professionals[0] = { ...professionals[0], ...data };
-      }
-      
-      if (professionals.length === 0) {
+      if (realProfessionals.length === 0) {
         alert('Nessun professionista da esportare.');
         return;
       }
+      
+      // Load saved data for each professional
+      const professionals = realProfessionals.map(pro => {
+        const savedData = localStorage.getItem(`professionalData_${pro.loginUsername}`);
+        const saved = savedData ? JSON.parse(savedData) : {};
+        
+        return {
+          name: saved.name || pro.name,
+          email: saved.email || pro.email,
+          phone: saved.phone || '',
+          address: saved.address || '',
+          cf: saved.cf || '',
+          piva: saved.piva || '',
+          specialty: saved.specialty || pro.specialty,
+          services: saved.services || pro.services,
+          price: saved.price || pro.price,
+          desc: saved.desc || pro.desc || '',
+          career: saved.career || pro.career || ''
+        };
+      });
       
       // CSV headers
       const headers = ['Nome', 'Email', 'Telefono', 'Indirizzo', 'Codice Fiscale', 'Partita IVA', 'Specialità', 'Servizi', 'Tariffa (€)', 'Descrizione', 'Carriera'];
@@ -2274,6 +2623,328 @@ const AdminDashboard = {
     } catch (e) {
       console.error('Errore esportazione CSV:', e);
       alert('Errore durante l\'esportazione. Riprova.');
+    }
+  },
+  
+  /**
+   * Export client requests to Excel
+   */
+  exportRequestsExcel: () => {
+    try {
+      if (typeof XLSX === 'undefined') {
+        alert('Libreria Excel non caricata. Riprova a ricaricare la pagina.');
+        return;
+      }
+      
+      const requests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+      
+      if (requests.length === 0) {
+        alert('Nessuna richiesta da esportare.');
+        return;
+      }
+      
+      // Prepare data
+      const data = requests.map(req => ({
+        'Nome': req.name || '',
+        'Cognome': req.surname || '',
+        'Email': req.email || '',
+        'Telefono': req.phone || '',
+        'Tipologie Debiti': req.debtTypes || '',
+        'Importo Totale': req.totalAmount || '',
+        'Dettagli Debiti': req.debtDetails || '',
+        'Data Richiesta': req.date || ''
+      }));
+      
+      // Create workbook
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Richieste');
+      
+      // Export
+      XLSX.writeFile(wb, `richieste-clienti_${new Date().toISOString().split('T')[0]}.xlsx`);
+      console.log('✅ Excel esportato:', requests.length, 'richieste');
+    } catch (e) {
+      console.error('Errore esportazione Excel:', e);
+      alert('Errore durante l\'esportazione Excel. Riprova.');
+    }
+  },
+  
+  /**
+   * Export client requests to PDF
+   */
+  exportRequestsPDF: () => {
+    try {
+      if (typeof window.jspdf === 'undefined') {
+        alert('Libreria PDF non caricata. Riprova a ricaricare la pagina.');
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const requests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+      
+      if (requests.length === 0) {
+        alert('Nessuna richiesta da esportare.');
+        return;
+      }
+      
+      const doc = new jsPDF();
+      let yPosition = 20;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 15;
+      
+      // Header
+      doc.setFontSize(18);
+      doc.text('Richieste Clienti - Debito Zero Solvo', margin, yPosition);
+      yPosition += 10;
+      doc.setFontSize(10);
+      doc.text(`Data export: ${new Date().toLocaleDateString('it-IT')}`, margin, yPosition);
+      yPosition += 15;
+      
+      // Table data
+      requests.forEach((req, index) => {
+        // Check if new page needed
+        if (yPosition > pageHeight - 60) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text(`Richiesta #${requests.length - index}`, margin, yPosition);
+        yPosition += 7;
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Data: ${req.date || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Cliente: ${req.name || ''} ${req.surname || ''}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Email: ${req.email || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Telefono: ${req.phone || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Tipi di debito: ${req.debtTypes || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Importo totale: ${req.totalAmount || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        
+        if (req.debtDetails) {
+          const details = doc.splitTextToSize(`Dettagli: ${req.debtDetails}`, 180);
+          doc.text(details, margin, yPosition);
+          yPosition += details.length * 5;
+        }
+        
+        yPosition += 10;
+        
+        // Draw line separator
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, yPosition, 195, yPosition);
+        yPosition += 5;
+      });
+      
+      // Footer
+      const totalPages = doc.internal.pages.length - 1;
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Pagina ${i} di ${totalPages}`, 195, 285, { align: 'right' });
+      }
+      
+      doc.save(`richieste-clienti_${new Date().toISOString().split('T')[0]}.pdf`);
+      console.log('✅ PDF esportato:', requests.length, 'richieste');
+    } catch (e) {
+      console.error('Errore esportazione PDF:', e);
+      alert('Errore durante l\'esportazione PDF. Riprova.');
+    }
+  },
+  
+  /**
+   * Export professionals to Excel
+   */
+  exportProfessionalsExcel: () => {
+    try {
+      if (typeof XLSX === 'undefined') {
+        alert('Libreria Excel non caricata. Riprova a ricaricare la pagina.');
+        return;
+      }
+      
+      // Get all professionals with login credentials (real professionals)
+      const realProfessionals = PROFESSIONALS_DATA.filter(pro => pro.loginUsername && pro.loginPassword);
+      
+      if (realProfessionals.length === 0) {
+        alert('Nessun professionista da esportare.');
+        return;
+      }
+      
+      // Load saved data for each professional
+      const professionals = realProfessionals.map(pro => {
+        const savedData = localStorage.getItem(`professionalData_${pro.loginUsername}`);
+        const saved = savedData ? JSON.parse(savedData) : {};
+        
+        return {
+          name: saved.name || pro.name,
+          email: saved.email || pro.email,
+          phone: saved.phone || '',
+          address: saved.address || '',
+          cf: saved.cf || '',
+          piva: saved.piva || '',
+          specialty: saved.specialty || pro.specialty,
+          services: saved.services || pro.services,
+          price: saved.price || pro.price,
+          desc: saved.desc || pro.desc || '',
+          career: saved.career || pro.career || ''
+        };
+      });
+      
+      // Prepare data
+      const data = professionals.map(pro => ({
+        'Nome': pro.name || '',
+        'Email': pro.email || '',
+        'Telefono': pro.phone || '',
+        'Indirizzo': pro.address || '',
+        'Codice Fiscale': pro.cf || '',
+        'Partita IVA': pro.piva || '',
+        'Specialità': pro.specialty || '',
+        'Servizi': pro.services || '',
+        'Tariffa (€)': pro.price || '',
+        'Descrizione': pro.desc || '',
+        'Carriera': pro.career || ''
+      }));
+      
+      // Create workbook
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Professionisti');
+      
+      // Export
+      XLSX.writeFile(wb, `professionisti_${new Date().toISOString().split('T')[0]}.xlsx`);
+      console.log('✅ Excel esportato:', professionals.length, 'professionisti');
+    } catch (e) {
+      console.error('Errore esportazione Excel:', e);
+      alert('Errore durante l\'esportazione Excel. Riprova.');
+    }
+  },
+  
+  /**
+   * Export professionals to PDF
+   */
+  exportProfessionalsPDF: () => {
+    try {
+      if (typeof window.jspdf === 'undefined') {
+        alert('Libreria PDF non caricata. Riprova a ricaricare la pagina.');
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      
+      // Get all professionals with login credentials (real professionals)
+      const realProfessionals = PROFESSIONALS_DATA.filter(pro => pro.loginUsername && pro.loginPassword);
+      
+      if (realProfessionals.length === 0) {
+        alert('Nessun professionista da esportare.');
+        return;
+      }
+      
+      // Load saved data for each professional
+      const professionals = realProfessionals.map(pro => {
+        const savedData = localStorage.getItem(`professionalData_${pro.loginUsername}`);
+        const saved = savedData ? JSON.parse(savedData) : {};
+        
+        return {
+          name: saved.name || pro.name,
+          email: saved.email || pro.email,
+          phone: saved.phone || '',
+          address: saved.address || '',
+          cf: saved.cf || '',
+          piva: saved.piva || '',
+          specialty: saved.specialty || pro.specialty,
+          services: saved.services || pro.services,
+          price: saved.price || pro.price,
+          desc: saved.desc || pro.desc || '',
+          career: saved.career || pro.career || ''
+        };
+      });
+      
+      const doc = new jsPDF();
+      let yPosition = 20;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 15;
+      
+      // Header
+      doc.setFontSize(18);
+      doc.text('Professionisti - Debito Zero Solvo', margin, yPosition);
+      yPosition += 10;
+      doc.setFontSize(10);
+      doc.text(`Data export: ${new Date().toLocaleDateString('it-IT')}`, margin, yPosition);
+      yPosition += 15;
+      
+      // Professional data
+      professionals.forEach((pro, index) => {
+        // Check if new page needed
+        if (yPosition > pageHeight - 80) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text(`Professionista #${index + 1}`, margin, yPosition);
+        yPosition += 7;
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Nome: ${pro.name || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Email: ${pro.email || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Telefono: ${pro.phone || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Indirizzo: ${pro.address || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Codice Fiscale: ${pro.cf || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Partita IVA: ${pro.piva || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Specialità: ${pro.specialty || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Servizi: ${pro.services || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Tariffa: € ${pro.price || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        
+        if (pro.desc) {
+          const desc = doc.splitTextToSize(`Descrizione: ${pro.desc}`, 180);
+          doc.text(desc, margin, yPosition);
+          yPosition += desc.length * 5;
+        }
+        
+        if (pro.career) {
+          const career = doc.splitTextToSize(`Carriera: ${pro.career}`, 180);
+          doc.text(career, margin, yPosition);
+          yPosition += career.length * 5;
+        }
+        
+        yPosition += 10;
+        
+        // Draw line separator
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, yPosition, 195, yPosition);
+        yPosition += 5;
+      });
+      
+      // Footer
+      const totalPages = doc.internal.pages.length - 1;
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Pagina ${i} di ${totalPages}`, 195, 285, { align: 'right' });
+      }
+      
+      doc.save(`professionisti_${new Date().toISOString().split('T')[0]}.pdf`);
+      console.log('✅ PDF esportato:', professionals.length, 'professionisti');
+    } catch (e) {
+      console.error('Errore esportazione PDF:', e);
+      alert('Errore durante l\'esportazione PDF. Riprova.');
     }
   },
   
@@ -2432,12 +3103,22 @@ const LoginHandler = {
     }
     
     // Check credentials
-    if (username === 'gianluca90' && password === 'gianluca90') {
+    // Find professional by login credentials
+    const professional = PROFESSIONALS_DATA.find(pro => 
+      pro.loginUsername === username && pro.loginPassword === password
+    );
+    
+    if (professional) {
       // Professional login
       localStorage.setItem('professionalLoggedIn', 'true');
+      localStorage.setItem('currentProfessional', JSON.stringify({
+        name: professional.name,
+        email: professional.email,
+        username: username
+      }));
       Navigation.hideProfessionalLogin();
       ProfessionalDashboard.show();
-      ProfessionalDashboard.loadData();
+      ProfessionalDashboard.loadData(professional);
     } else if (username === 'admin' && password === 'admin') {
       // Admin login (for owner)
       localStorage.setItem('adminLoggedIn', 'true');
@@ -2492,13 +3173,13 @@ const App = {
     Professionals.init();
     LoginHandler.init();
     
-    // Check if already logged in
-    if (localStorage.getItem('professionalLoggedIn') === 'true') {
-      ProfessionalDashboard.show();
-      ProfessionalDashboard.loadData();
-    } else if (localStorage.getItem('adminLoggedIn') === 'true') {
-      AdminDashboard.show();
-    }
+    // Ensure the app always starts from the home wizard
+    Navigation.goToHome();
+    
+    // Avoid automatic redirects to reserved areas on refresh
+    localStorage.removeItem('professionalLoggedIn');
+    localStorage.removeItem('adminLoggedIn');
+    localStorage.removeItem('currentProfessional');
     
     console.log('✅ Debito Zero - Solvo app initialized');
   }
