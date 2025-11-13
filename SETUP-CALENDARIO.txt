@@ -1,0 +1,170 @@
+═══════════════════════════════════════════════════════════════════════
+   📅 COME COLLEGARE IL TUO CALENDARIO GOOGLE
+   Guida passo-passo per Gianluca Collia
+═══════════════════════════════════════════════════════════════════════
+
+✅ FATTO:
+  • Aggiunto "Gianluca Collia" come primo professionista
+  • Sviluppata integrazione Google Calendar
+
+═══════════════════════════════════════════════════════════════════════
+🔧 COSA FARE ADESSO
+═══════════════════════════════════════════════════════════════════════
+
+PASSO 1: APRI IL FILE app.js
+───────────────────────────────────────────────────────────────────────
+  File: C:\Users\gianl\OneDrive\Desktop\Debito Zero\app.js
+  Linea: circa 104-113
+
+  Troverai:
+  
+  name: "Gianluca Collia",
+  ...
+  calendarLink: "TUO_CALENDAR_LINK", // ← MODIFICA QUESTA RIGA
+  email: "gianluca.collia@debitozero.com" // ← E QUESTA
+
+PASSO 2: SCEGLI IL TUO METODO
+───────────────────────────────────────────────────────────────────────
+
+OPZIONE A: USO AUTOMATICO (Raccomandato!)
+  → Non devi modificare calendarLink
+  → Il sistema aprirà automaticamente Google Calendar
+  → L'utente aggiunge l'appuntamento al suo calendario
+
+OPZIONE B: COLLEGAMENTO DIRETTO AL TUO CALENDARIO
+  → Vedi passo 3 per configurazione avanzata
+
+PASSO 3: MODIFICA EMAIL (Importante!)
+───────────────────────────────────────────────────────────────────────
+  Sostituisci:
+    email: "gianluca.collia@debitozero.com"
+  
+  Con la tua email reale:
+    email: "tua-email@gmail.com"
+
+═══════════════════════════════════════════════════════════════════════
+🧪 COME FUNZIONA ORA
+═══════════════════════════════════════════════════════════════════════
+
+1. L'utente clicca su "Gianluca Collia" → "Vedi dettagli e prenota"
+2. Vede il calendario disponibilità
+3. Clicca su un orario disponibile
+4. Conferma la prenotazione
+5. SI APRE GOOGLE CALENDAR con i dettagli pre-compilati
+6. L'utente aggiunge l'appuntamento al SUO calendario Google
+7. Riceverai notifica da Google Calendar se hai abilitato
+
+═══════════════════════════════════════════════════════════════════════
+🔐 VUOI RICEVERE NOTIFICHE AUTOMATICHE?
+═══════════════════════════════════════════════════════════════════════
+
+IMPOSTAZIONE 1: Notifiche Email da Google Calendar
+───────────────────────────────────────────────────────────────────────
+  1. Apri Google Calendar: https://calendar.google.com
+  2. Clicca ⚙️ Settings (alto a destra)
+  3. Vai su "Notifications"
+  4. Abilita: "Email notifications for new events"
+  5. Salva
+
+IMPOSTAZIONE 2: Calendario Condiviso
+───────────────────────────────────────────────────────────────────────
+  1. Google Calendar → Settings
+  2. "Settings for my calendars" → scegli il tuo calendario
+  3. "Share with specific people"
+  4. Aggiungi: tua-email@gmail.com
+  5. Permessi: "Make changes to events"
+  6. Salva
+
+Così ricevi notifica ogni volta che qualcuno prenota!
+
+═══════════════════════════════════════════════════════════════════════
+🎯 TEST IMMEDIATO
+═══════════════════════════════════════════════════════════════════════
+
+1. Apri il file: index.html nel browser
+2. Vai su "Professionisti"
+3. Cerca "Gianluca Collia" (sarà il primo!)
+4. Clicca "Vedi dettagli e prenota"
+5. Clicca su un orario
+6. Conferma → si apre Google Calendar!
+
+═══════════════════════════════════════════════════════════════════════
+⚙️ CONFIGURAZIONE AVANZATA (Opzionale)
+═══════════════════════════════════════════════════════════════════════
+
+Se vuoi un collegamento diretto al TUO calendario pubblico:
+
+METODO 1: Usa Cal.com o Calendly (Professionale!)
+───────────────────────────────────────────────────────────────────────
+  1. Registrati su https://cal.com (GRATIS!)
+  2. Configura i tuoi orari disponibili
+  3. Copia il link pubblico
+  4. Incollalo in calendarLink nel codice
+
+METODO 2: Google Calendar Pubblico
+───────────────────────────────────────────────────────────────────────
+  1. Google Calendar → Settings
+  2. "Settings for my calendars"
+  3. Trova "Access permissions"
+  4. Spunta "Make available to public"
+  5. Copia il "Public URL to this calendar"
+  6. Incollalo in calendarLink
+
+═══════════════════════════════════════════════════════════════════════
+📊 MODIFICHE FATTE AL CODICE
+═══════════════════════════════════════════════════════════════════════
+
+✅ Aggiunto Gianluca Collia come primo professionista
+✅ Integrazione Google Calendar automatica
+✅ Quando calendarLink è vuoto → apre Google Calendar
+✅ Quando calendarLink è popolato → apre link personalizzato
+✅ Formato appuntamenti: 1 ora di durata
+✅ Messaggio conferma personalizzato
+
+═══════════════════════════════════════════════════════════════════════
+❓ DOMANDE FREQUENTI
+═══════════════════════════════════════════════════════════════════════
+
+Q: Ricevo notifiche quando qualcuno prenota?
+A: Se configuri le notifiche Google Calendar → SÌ!
+
+Q: Come vedo chi ha prenotato?
+A: Google Calendar ti mostrerà chi ha aggiunto l'evento
+
+Q: Posso cambiare orari disponibili?
+A: SÌ! Modifica la funzione generateAvailability() in app.js
+
+Q: Gli altri professionisti usano lo stesso sistema?
+A: SÌ, tutti possono avere calendarLink personalizzato
+
+Q: Serve backend o database?
+A: NO! Tutto funziona via Google Calendar
+
+═══════════════════════════════════════════════════════════════════════
+🚀 PROSSIMI PASSI
+═══════════════════════════════════════════════════════════════════════
+
+1. ✅ Test locale (apri index.html)
+2. ✅ Prova prenotazione con te stesso
+3. ✅ Configura notifiche Google Calendar
+4. ✅ Carica tutto su GitHub/Netlify
+5. ✅ Fai un test dal sito online!
+6. ✅ Divertiti con le prenotazioni! 🎉
+
+═══════════════════════════════════════════════════════════════════════
+💡 TIP RAPIDO
+═══════════════════════════════════════════════════════════════════════
+
+Per testare SUBITO:
+  1. Apri index.html
+  2. Filtra per "Tutti"
+  3. Clicca su "Gianluca Collia" (primo risultato!)
+  4. Scegli un orario
+  5. Conferma → Apre Google Calendar
+
+FATTO! 🎊
+
+═══════════════════════════════════════════════════════════════════════
+
+Buon lavoro! 🚀
+

@@ -1,0 +1,17 @@
+# Robots.txt per Debito Zero - Solvo
+# https://www.robotstxt.org/
+
+User-agent: *
+Allow: /
+
+# Disallow admin and professional dashboards
+Disallow: /#page-admin
+Disallow: /#page-professional
+
+# Allow all CSS and JS files
+Allow: /*.css
+Allow: /*.js
+
+# Sitemap location
+Sitemap: https://debitozero-solvo.it/sitemap.xml
+

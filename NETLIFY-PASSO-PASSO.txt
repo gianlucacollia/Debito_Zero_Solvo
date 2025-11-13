@@ -1,0 +1,166 @@
+═══════════════════════════════════════════════════════════════════════
+   🚀 GUIDA RAPIDA: Netlify Deploy da GitHub (PASSO-PASSO)
+═══════════════════════════════════════════════════════════════════════
+
+✅ PREREQUISITI:
+   - Account GitHub: https://github.com
+   - Account Netlify: https://app.netlify.com
+   - Progetto caricato su GitHub
+
+═══════════════════════════════════════════════════════════════════════
+📋 PASSO 1: CARICARE IL PROGETTO SU GITHUB (Se non l'hai già fatto)
+═══════════════════════════════════════════════════════════════════════
+
+1. Vai su GitHub: https://github.com
+2. Accedi (o registrati se non hai account)
+3. Crea nuovo repository:
+   → Clicca "+" in alto a destra → "New repository"
+   → Nome: debito-zero-solvo
+   → Descrizione: Piattaforma gestione debiti
+   → ✅ Public
+   → ❌ NON selezionare "Add README"
+   → Clicca "Create repository"
+
+4. Carica i file:
+   → Nella pagina del repository, clicca "Add file" → "Upload files"
+   → Apri Explorer: C:\Users\gianl\OneDrive\Desktop\Debito Zero
+   → Trascina TUTTI i file nel browser:
+     ☑ index.html
+     ☑ app.js
+     ☑ styles.css
+     ☑ README.md
+     ☑ favicon.svg
+     ☑ robots.txt
+     ☑ sitemap.xml
+     ☑ netlify.toml (appena creato)
+     ☑ Tutti gli altri file necessari
+   → Scorri in basso, inserisci: "Initial commit - Debito Zero Solvo"
+   → Clicca "Commit changes"
+
+✅ FATTO! Il progetto è su GitHub.
+
+═══════════════════════════════════════════════════════════════════════
+📋 PASSO 2: COLLEGARE GITHUB A NETLIFY
+═══════════════════════════════════════════════════════════════════════
+
+1. Vai su Netlify: https://app.netlify.com
+2. Accedi (o registrati se non hai account)
+3. Apri il menu "Add new site":
+   → Clicca "Add new site" → "Import an existing project"
+   → Oppure: Clicca "Sites" → "New site" → "Import an existing project"
+
+4. Autorizza GitHub:
+   → Clicca "GitHub" (o "GitLab" / "Bitbucket" se preferisci)
+   → Se è la prima volta, clicca "Authorize Netlify"
+   → Autorizza Netlify ad accedere ai tuoi repository
+   → Se necessario, inserisci la password di GitHub
+
+5. Seleziona il repository:
+   → Cerca "debito-zero-solvo" (o il nome che hai scelto)
+   → Clicca sul repository
+
+6. Configura il deploy:
+   → Branch to deploy: main (o master se è quello che usi)
+   → Base directory: (lascia vuoto)
+   → Build command: (lascia vuoto)
+   → Publish directory: (lascia vuoto)
+
+7. Clicca "Deploy site"
+
+8. Attendi il deploy (1-2 minuti):
+   → Vedrai "Building" → "Published"
+   → Il link sarà: https://random-name-123.netlify.app
+
+✅ FATTO! Netlify ha collegato GitHub e fatto il deploy.
+
+═══════════════════════════════════════════════════════════════════════
+📋 PASSO 3: PERSONALIZZARE IL SITO
+═══════════════════════════════════════════════════════════════════════
+
+1. Cambia il nome del sito:
+   → Vai su "Site settings" (in alto a destra)
+   → Clicca "Change site name"
+   → Scegli un nome: debito-zero-solvo (se disponibile)
+   → Il link diventa: https://debito-zero-solvo.netlify.app
+
+2. Verifica che il sito funzioni:
+   → Clicca sul link per vedere il sito
+   → Controlla che tutto funzioni correttamente
+   → Verifica che i file siano caricati (es. CSS, JS)
+
+✅ FATTO! Il sito è online e personalizzato.
+
+═══════════════════════════════════════════════════════════════════════
+📋 PASSO 4: DEPLOY AUTOMATICO (Opzionale ma Consigliato)
+═══════════════════════════════════════════════════════════════════════
+
+1. Deploy automatico è già attivo di default:
+   → Ogni volta che fai push su GitHub, Netlify fa il deploy automatico
+   → Modifichi un file su GitHub → Netlify rileva il cambiamento
+   → Fa il deploy automatico (1-2 minuti)
+   → Il sito si aggiorna automaticamente
+
+2. Per verificare:
+   → Vai su "Site settings" → "Build & deploy"
+   → Sezione "Continuous Deployment"
+   → Dovrebbe essere attivo "Auto publishing"
+
+✅ FATTO! Deploy automatico è attivo.
+
+═══════════════════════════════════════════════════════════════════════
+🔧 RISOLUZIONE PROBLEMI
+═══════════════════════════════════════════════════════════════════════
+
+❌ PROBLEMA: "Site not found" o 404
+   → Verifica che index.html sia nella root del repository
+   → Controlla che i percorsi dei file siano corretti
+   → Assicurati che netlify.toml sia configurato correttamente
+
+❌ PROBLEMA: "Build failed"
+   → Controlla i log di build su Netlify
+   → Verifica che non ci siano errori nei file
+   → Assicurati che tutti i file necessari siano presenti
+
+❌ PROBLEMA: "Deploy non parte automatico"
+   → Verifica che GitHub sia autorizzato su Netlify
+   → Controlla che il branch sia corretto (main o master)
+   → Assicurati che i file siano stati commitati e pushati su GitHub
+
+❌ PROBLEMA: "Sito non si aggiorna"
+   → Fai un hard refresh del browser (Ctrl+Shift+R)
+   → Verifica che il deploy sia completato su Netlify
+   → Controlla che i file siano stati pushati su GitHub
+
+═══════════════════════════════════════════════════════════════════════
+✅ CHECKLIST FINALE
+═══════════════════════════════════════════════════════════════════════
+
+☑ Progetto caricato su GitHub
+☑ Repository collegato a Netlify
+☑ Deploy completato con successo
+☑ Sito accessibile online
+☑ Nome del sito personalizzato
+☑ netlify.toml creato e caricato
+☑ Deploy automatico attivo
+
+═══════════════════════════════════════════════════════════════════════
+🎯 RISULTATO FINALE
+═══════════════════════════════════════════════════════════════════════
+
+Dopo questi passaggi, avrai:
+✅ Sito online su Netlify (es. https://debito-zero-solvo.netlify.app)
+✅ Deploy automatico da GitHub (ogni push = nuovo deploy)
+✅ HTTPS automatico
+✅ CDN globale (veloce ovunque)
+✅ Statistiche e monitoraggio
+
+═══════════════════════════════════════════════════════════════════════
+📞 SUPPORTO
+═══════════════════════════════════════════════════════════════════════
+
+- Netlify Docs: https://docs.netlify.com
+- GitHub Docs: https://docs.github.com
+- Netlify Support: https://www.netlify.com/support
+
+Buon deploy! 🚀
+

@@ -1,0 +1,3194 @@
+// ==================== CONFIGURAZIONE EMAIL ====================
+// 🔧 ISTRUZIONI: Segui la guida in CONFIGURAZIONE-COMPLETA.txt per configurare EmailJS
+const EMAIL_CONFIG = {
+  serviceId: 'service_ok3g5iy',      // ← Service ID da EmailJS
+  templateId: 'template_1p0r597',    // ← Template ID da EmailJS per richieste clienti
+  templateIdConfirmation: 'template_1p0r597',  // ← Template ID per email conferma cliente (usa lo stesso o crea uno separato)
+  templateIdAppointment: 'template_1p0r597',    // ← Template ID per prenotazioni (usa lo stesso o crea uno separato)
+  publicKey: 'wrPtIJWjgaySCJWjZ',      // ← Public Key da EmailJS
+  recipientEmail: 'gianluca.collia@gmail.com'  // ← Email dove ricevere le richieste
+};
+
+// ==================== CONFIGURAZIONE SUPABASE ====================
+// 🔧 ISTRUZIONI: Segui la guida in CONFIGURAZIONE-COMPLETA.txt per configurare Supabase
+let supabase = null;
+if (window.supabase && window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url && window.SUPABASE_CONFIG.url !== 'https://xxxxx.supabase.co') {
+  try {
+    supabase = window.supabase.createClient(
+      window.SUPABASE_CONFIG.url,
+      window.SUPABASE_CONFIG.anonKey
+    );
+    console.log('✅ Supabase inizializzato');
+  } catch (e) {
+    console.error('❌ Errore inizializzazione Supabase:', e);
+  }
+} else {
+  console.warn('⚠️ Supabase non configurato. I documenti verranno salvati in localStorage.');
+}
+
+// ==================== APP STATE ====================
+const state = {
+  currentStep: 1,
+  selections: [],
+  debtCreditors: {}, // { banche_finanziarie: [{ subCategory: '', creditor: '', amount: 0 }, ...], ... }
+  formData: {}
+};
+
+// ==================== DEBT TYPE LABELS ====================
+const DEBT_LABELS = {
+  banche_finanziarie: 'Debiti bancari e finanziari',
+  fiscali_tributari: 'Debiti fiscali e tributari',
+  previdenziali: 'Debiti contributivi e previdenziali',
+  utenze_servizi: 'Utenze e servizi ricorrenti',
+  procedure_esecutive: 'Procedure esecutive e recupero crediti'
+};
+
+const DEBT_SUBCATEGORIES = {
+  banche_finanziarie: [
+    { value: 'mutuo_ipotecario', label: 'Mutuo ipotecario' },
+    { value: 'prestito_personale', label: 'Prestito personale' },
+    { value: 'carte_revolving', label: 'Carte di credito / revolving' },
+    { value: 'leasing_finanziario', label: 'Leasing o noleggio finanziario' },
+    { value: 'fidi_aziendali', label: 'Fidi e affidamenti aziendali' }
+  ],
+  fiscali_tributari: [
+    { value: 'iva', label: 'IVA' },
+    { value: 'irpef_ires', label: 'IRPEF / IRES' },
+    { value: 'imu_tasi', label: 'IMU / TASI' },
+    { value: 'cartelle_esattoriali', label: 'Cartelle esattoriali' },
+    { value: 'avvisi_bonari', label: 'Avvisi bonari' }
+  ],
+  previdenziali: [
+    { value: 'inps_dipendenti', label: 'INPS dipendenti' },
+    { value: 'inps_gestione_separata', label: 'INPS gestione separata' },
+    { value: 'inail', label: 'INAIL' },
+    { value: 'casse_professionali', label: 'Casse professionali' },
+    { value: 'fondi_pensione', label: 'Fondi pensione' }
+  ],
+  utenze_servizi: [
+    { value: 'energia_gas', label: 'Energia e gas' },
+    { value: 'acqua', label: 'Servizio idrico' },
+    { value: 'telefonia_internet', label: 'Telefonia e internet' },
+    { value: 'servizi_digitali', label: 'Servizi digitali / SaaS' },
+    { value: 'altri_servizi', label: 'Altri servizi ricorrenti' }
+  ],
+  procedure_esecutive: [
+    { value: 'pignoramento_conto', label: 'Pignoramento conto corrente' },
+    { value: 'pignoramento_quinto', label: 'Pignoramento del quinto' },
+    { value: 'ipoteca_giudiziale', label: 'Ipoteca giudiziale' },
+    { value: 'decreto_ingiuntivo', label: 'Decreto ingiuntivo' },
+    { value: 'crediti_servicer', label: 'Crediti gestiti da servicer' }
+  ]
+};
+
+// ==================== UTILITY: Generate Availability ====================
+const generateAvailability = (days = 30) => {
+  const slots = [];
+  const today = new Date();
+  
+  for (let day = 0; day < days; day++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + day);
+    
+    // Skip weekends (sabato = 6, domenica = 0)
+    const dayOfWeek = date.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      // Weekend: meno disponibilità
+      if (Math.random() > 0.7) continue; // 30% chance di avere slot
+    }
+    
+    // Genera 2-4 slot casuali per giorno (9:00-18:00)
+    const numSlots = Math.floor(Math.random() * 3) + 2;
+    const daySlots = [];
+    
+    for (let i = 0; i < numSlots; i++) {
+      const hour = Math.floor(Math.random() * 9) + 9; // 9-17
+      const minute = Math.random() > 0.5 ? 0 : 30;
+      const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      
+      if (!daySlots.includes(time)) {
+        daySlots.push(time);
+      }
+    }
+    
+    if (daySlots.length > 0) {
+      daySlots.sort();
+      
+      slots.push({
+        date: date.toISOString().split('T')[0],
+        dayName: date.toLocaleDateString('it-IT', { weekday: 'short' }),
+        dayNumber: date.getDate(),
+        month: date.toLocaleDateString('it-IT', { month: 'short' }),
+        times: daySlots
+      });
+    }
+  }
+  
+  return slots;
+};
+
+// ==================== UTILITY: Generate Career & Strengths ====================
+const generateCareerData = (name, specialty, desc, services) => {
+  const careers = {
+    "Avv.": {
+      career: `Avvocato iscritto all'Albo, con consolidata esperienza in ${specialty.toLowerCase()}. Laureato in Giurisprudenza, ha maturato competenze approfondite nella ${desc.toLowerCase()}. Partecipa regolarmente a corsi di aggiornamento e convegni specialistici.`,
+      strengths: [specialty, desc.split('.')[0], services.split(' • ')[0], "Approfondita esperienza"]
+    },
+    "Dott.": {
+      career: `Commercialista iscritto all'Ordine, specializzato in ${specialty.toLowerCase()}. Con anni di esperienza nella ${desc.toLowerCase()}, supporta clienti privati e aziende nella gestione della crisi debitoria.`,
+      strengths: [specialty, "Consulenza personalizzata", services.split(' • ')[0], "Esperienza consolidata"]
+    },
+    "Dott.ssa": {
+      career: `Professionista certificata, esperta in ${specialty.toLowerCase()}. Con un approccio metodico e attento ai dettagli, si occupa di ${desc.toLowerCase()}. Forte di una solida formazione continua.`,
+      strengths: [specialty, "Metodologia consolidata", services.split(' • ')[0], "Cura del dettaglio"]
+    },
+    "OCC": {
+      career: `Gestore crisi certificato OCC, abilitato alla gestione delle procedure di sovraindebitamento. Con esperienza nella ${desc.toLowerCase()}, accompagna i clienti attraverso tutto il percorso.`,
+      strengths: ["Certificazione OCC", specialty, "Procedure complete", "Supporto continuo"]
+    }
+  };
+  
+  const prefix = name.split(' ')[0];
+  const data = careers[prefix] || {
+    career: `Professionista esperto in ${specialty.toLowerCase()}, specializzato nella ${desc.toLowerCase()}.`,
+    strengths: [specialty, services.split(' • ')[0], "Competenza specialistica"]
+  };
+  
+  return data;
+};
+
+// Make PROFESSIONALS_DATA available globally for structured data
+window.PROFESSIONALS_DATA = null;
+
+// ==================== PROFESSIONALS DATA ====================
+const PROFESSIONALS_DATA = [
+  { 
+    name: "Gianluca Collia",
+    specialty: "Consulente Gestione Crisi Debitoria",
+    services: "Analisi debito • Piani personalizzati • Mediazione crediti",
+    price: 400,
+    desc: "Consulente esperto in analisi situazioni debitorie e progettazione soluzioni personalizzate per famiglie e imprese.",
+    career: "Consulente specializzato nella gestione delle crisi debitorie, con anni di esperienza nel supporto a famiglie e aziende. Approccio personalizzato per trovare soluzioni sostenibili.",
+    strengths: ["Analisi situazione debitoria", "Piani personalizzati", "Mediazione crediti", "Supporto continuo"],
+    tags: ["bancari", "fiscali", "privati", "aziende"],
+    calendarLink: "https://calendar.google.com/calendar/u/0?cid=Z2lhbmx1Y2EuY29sbGlhQGdvYnJhdm8uaXQ",
+    email: "gianluca.collia@gmail.com",
+    loginUsername: "gianluca90",
+    loginPassword: "gianluca90"
+  },
+  { 
+    name: "Avv. Elena Rossi",
+    specialty: "Avvocato Specializzato in Diritto Tributario e Fallimentare",
+    services: "Contenzioso tributario • Procedure concorsuali • Saldo e stralcio",
+    price: 550,
+    desc: "Avvocato con consolidata esperienza in diritto tributario e procedure concorsuali. Supporta privati e imprese nella risoluzione di situazioni debitorie complesse attraverso percorsi legali strutturati.",
+    career: "Laureata in Giurisprudenza con lode, iscritta all'Albo degli Avvocati. Specializzata in diritto tributario e fallimentare, ha maturato oltre 15 anni di esperienza nel contenzioso con Agenzia delle Entrate, Equitalia e procedure concorsuali. Ha assistito centinaia di clienti in procedure di saldo e stralcio, composizione delle crisi e rinegoziazione debiti.",
+    strengths: ["Contenzioso tributario", "Procedure concorsuali", "Saldo e stralcio", "Mediazione crediti", "Esperienza consolidata"],
+    tags: ["fiscali", "bancari", "privati", "aziende"],
+    calendarLink: "https://calendar.google.com/calendar/u/0?cid=ZWxlbmEucm9zc2lAZXhhbXBsZS5jb20",
+    email: "elena.rossi@studiolegale.it",
+    loginUsername: "elenarossi",
+    loginPassword: "elena2024"
+  },
+  { 
+    name: "Avv. Marco Rossi", 
+    specialty: "Diritto bancario", 
+    services: "Opposizioni • Decreti ingiuntivi", 
+    price: 450, 
+    desc: "Specializzato in contenziosi bancari e tutela del debitore.",
+    career: "Avvocato iscritto all'Albo dal 2010, con oltre 13 anni di esperienza nel diritto bancario. Ha gestito oltre 500 pratiche di opposizione a decreti ingiuntivi con tasso di successo del 85%. Laureato in Giurisprudenza all'Università di Milano con lode.",
+    strengths: ["Opposizioni decreti ingiuntivi", "Tutela consumatori", "Contenzioso bancario", "Esperienza 13+ anni"],
+    tags: ["bancari", "privati"],
+    availability: generateAvailability()
+  },
+  { name: "Dott. Giuseppe Bianchi", specialty: "Commercialista", services: "Piani rientro • Transazioni fiscali", price: 500, desc: "Gestione crisi d'impresa e accordi con Agenzia Entrate.", tags: ["fiscali", "aziende"] },
+  { name: "Avv. Laura Ferrari", specialty: "Diritto civile", services: "Saldo e stralcio • Negoziazioni", price: 400, desc: "Esperta in accordi bonari con istituti di credito.", tags: ["bancari", "privati"] },
+  { name: "Dott.ssa Anna Romano", specialty: "OCC Certificato", services: "Legge 3/2012 • Piano consumatore", price: 600, desc: "Gestore crisi da sovraindebitamento certificato.", tags: ["fiscali", "privati"] },
+  { name: "Avv. Francesco Costa", specialty: "Diritto fallimentare", services: "Procedure concorsuali", price: 750, desc: "Assistenza in procedure fallimentari e concordati.", tags: ["aziende", "fiscali"] },
+  { name: "Dott. Matteo Greco", specialty: "Consulente finanziario", services: "Ristrutturazione debiti", price: 350, desc: "Analisi sostenibilità e piani di rientro personalizzati.", tags: ["bancari", "privati"] },
+  { name: "Avv. Silvia Conti", specialty: "Diritto bancario", services: "Pignoramenti • Opposizioni", price: 480, desc: "Difesa da azioni esecutive e recupero crediti.", tags: ["bancari", "privati"] },
+  { name: "Dott. Paolo Ricci", specialty: "Commercialista", services: "Accordi AE-R • INPS", price: 520, desc: "Specialista in rateizzazioni e transazioni fiscali.", tags: ["fiscali", "aziende"] },
+  { name: "Avv. Elena Marino", specialty: "Mediatore creditizio", services: "Consolidamento • Surroga", price: 300, desc: "Mediazione con istituti per rifinanziamenti vantaggiosi.", tags: ["bancari", "privati", "aziende"] },
+  { name: "Dott.ssa Chiara Gallo", specialty: "Esperta sovraindebitamento", services: "Esdebitazione • Piani accordo", price: 580, desc: "Procedure Legge 3/2012 per famiglie e partite IVA.", tags: ["fiscali", "privati"] },
+  { name: "Avv. Roberto Bruno", specialty: "Diritto tributario", services: "Contenzioso fiscale", price: 650, desc: "Ricorsi contro cartelle esattoriali e avvisi bonari.", tags: ["fiscali", "aziende"] },
+  { name: "Dott. Andrea Fontana", specialty: "Consulente debiti", services: "Negoziazioni con servicer", price: 250, desc: "Trattative dirette con società recupero crediti.", tags: ["bancari", "privati"] },
+  { name: "Avv. Valentina Colombo", specialty: "Diritto civile e bancario", services: "Tutela consumatori", price: 420, desc: "Difesa da pratiche scorrette e usura bancaria.", tags: ["bancari", "privati"] },
+  { name: "Dott.ssa Francesca Esposito", specialty: "Commercialista", services: "182-bis • Ristrutturazioni", price: 550, desc: "Piani ristrutturazione debiti tributari per PMI.", tags: ["fiscali", "aziende"] },
+  { name: "Avv. Stefano Rizzo", specialty: "Diritto fallimentare", services: "Concordati preventivi", price: 800, desc: "Assistenza in concordati e accordi di ristrutturazione.", tags: ["aziende", "fiscali", "bancari"] },
+  { name: "Dott. Luca Moretti", specialty: "Mediatore finanziario", services: "Consolidamento prestiti", price: 320, desc: "Unificazione debiti e riduzione rate mensili.", tags: ["bancari", "privati"] },
+  { name: "Avv. Giulia Barbieri", specialty: "Diritto bancario", services: "Opposizioni esecutive", price: 460, desc: "Blocco pignoramenti su stipendi e conti correnti.", tags: ["bancari", "privati"] },
+  { name: "Dott.ssa Maria Fabbri", specialty: "OCC Gestore crisi", services: "Composizione crisi", price: 620, desc: "Liquidazione controllata e accordo con creditori.", tags: ["fiscali", "privati", "aziende"] },
+  { name: "Avv. Antonio De Luca", specialty: "Diritto civile", services: "Saldo e stralcio", price: 380, desc: "Definizioni agevolate con banche e finanziarie.", tags: ["bancari", "privati"] },
+  { name: "Dott. Giorgio Santoro", specialty: "Commercialista", services: "Piani rateali AE", price: 490, desc: "Rateizzazioni fino a 72 mesi con Agenzia Entrate.", tags: ["fiscali", "privati", "aziende"] },
+  { name: "Avv. Alessia Marini", specialty: "Diritto tributario", services: "Contenzioso • Ricorsi", price: 680, desc: "Impugnazioni cartelle e difesa in commissioni tributarie.", tags: ["fiscali", "aziende"] },
+  { name: "Dott.ssa Serena Ferrara", specialty: "Consulente crisi", services: "Analisi debito • Soluzioni", price: 280, desc: "Valutazione completa situazione debitoria e strategie.", tags: ["bancari", "privati"] },
+  { name: "Avv. Davide Lombardi", specialty: "Diritto fallimentare", services: "Accordi ristrutturazione", price: 720, desc: "Negoziazione con creditori per salvataggio impresa.", tags: ["aziende", "fiscali"] },
+  { name: "Dott. Simone Caruso", specialty: "Mediatore creditizio", services: "Surroga • Cessione quinto", price: 340, desc: "Soluzioni alternative per dipendenti e pensionati.", tags: ["bancari", "privati"] },
+  { name: "Avv. Monica Vitale", specialty: "Diritto bancario", services: "Anatocismo • Usura", price: 500, desc: "Verifiche su interessi illegittimi e rimborsi.", tags: ["bancari", "privati"] },
+  { name: "Dott.ssa Paola Riva", specialty: "Commercialista", services: "Transazioni fiscali", price: 530, desc: "Accordi con fisco per riduzione debiti tributari.", tags: ["fiscali", "aziende"] },
+  { name: "Avv. Massimo Gatti", specialty: "Diritto civile", services: "Opposizioni decreti", price: 440, desc: "Difesa da decreti ingiuntivi e precetti.", tags: ["bancari", "privati", "aziende"] },
+  { name: "Dott. Claudio Mancini", specialty: "Esperto sovraindebitamento", services: "Piano del consumatore", price: 590, desc: "Liquidazione patrimonio e esdebitazione finale.", tags: ["fiscali", "privati"] },
+  { name: "Avv. Federica Pellegrini", specialty: "Diritto tributario", services: "Difesa contribuente", price: 620, desc: "Tutela da accertamenti e riscossioni aggressive.", tags: ["fiscali", "aziende"] },
+  { name: "Dott.ssa Lucia Monti", specialty: "Consulente finanziario", services: "Budget familiare • Piani", price: 200, desc: "Riorganizzazione finanze personali e familiari.", tags: ["privati"] },
+  { name: "Avv. Nicola Ferretti", specialty: "Diritto fallimentare", services: "Crisi d'impresa", price: 850, desc: "Gestione completa procedure concorsuali PMI.", tags: ["aziende", "fiscali", "bancari"] },
+  { name: "Dott. Emanuele Sala", specialty: "Commercialista", services: "Piani risanamento", price: 560, desc: "Recupero equilibrio economico-finanziario aziende.", tags: ["fiscali", "aziende"] },
+  { name: "Avv. Sara Benedetti", specialty: "Diritto bancario", services: "Revocatorie • Surroghe", price: 470, desc: "Azioni di recupero e portabilità mutui/prestiti.", tags: ["bancari", "privati"] },
+  { name: "Dott.ssa Veronica Martini", specialty: "OCC Certificato", services: "Accordo composizione", price: 640, desc: "Mediazione con creditori per accordo stragiudiziale.", tags: ["fiscali", "privati", "aziende"] },
+  { name: "Avv. Alberto Rossini", specialty: "Diritto civile", services: "Estinzione debiti", price: 390, desc: "Trattative per chiusura posizioni debitorie.", tags: ["bancari", "privati"] },
+  { name: "Dott. Pietro Serra", specialty: "Consulente debiti", services: "Negoziazioni servicer", price: 260, desc: "Accordi con Cerved, Italfondiario, Kruk e altri.", tags: ["bancari", "privati"] },
+  { name: "Avv. Cristina Donati", specialty: "Diritto tributario", services: "Annullamenti cartelle", price: 600, desc: "Istanze autotutela e sgravi fiscali.", tags: ["fiscali", "aziende", "privati"] },
+  { name: "Dott.ssa Elisa Marchi", specialty: "Commercialista", services: "Rateizzazioni INPS", price: 480, desc: "Piani pagamento contributi previdenziali arretrati.", tags: ["fiscali", "aziende"] },
+  { name: "Avv. Riccardo Tosi", specialty: "Diritto fallimentare", services: "Concordati semplificati", price: 700, desc: "Procedure veloci per piccole imprese.", tags: ["aziende", "fiscali"] },
+  { name: "Dott. Lorenzo Parisi", specialty: "Mediatore creditizio", services: "Prestiti consolidamento", price: 310, desc: "Accesso a finanziamenti per unificare debiti.", tags: ["bancari", "privati"] },
+  { name: "Avv. Beatrice Castelli", specialty: "Diritto bancario", services: "Difesa consumatori", price: 430, desc: "Class action e azioni collettive contro banche.", tags: ["bancari", "privati"] },
+  { name: "Dott.ssa Martina Leone", specialty: "Esperta crisi familiare", services: "Sovraindebitamento privati", price: 570, desc: "Supporto specializzato per nuclei familiari.", tags: ["fiscali", "privati"] },
+  { name: "Avv. Fabio Bassi", specialty: "Diritto civile e commerciale", services: "Recupero crediti • Difesa", price: 520, desc: "Assistenza sia a creditori che debitori.", tags: ["bancari", "aziende", "privati"] },
+  { name: "Dott. Daniele Villa", specialty: "Commercialista", services: "Consulenza fiscale integrata", price: 540, desc: "Ottimizzazione fiscale e gestione debiti erariali.", tags: ["fiscali", "aziende"] },
+  { name: "Avv. Silvia Benedetti", specialty: "Diritto tributario", services: "Contenzioso tributario", price: 660, desc: "Rappresentanza in tutte le commissioni tributarie.", tags: ["fiscali", "aziende"] },
+  { name: "Dott.ssa Giorgia Orlando", specialty: "OCC Gestore crisi", services: "Liquidazione patrimonio", price: 610, desc: "Vendita beni e distribuzione ricavato ai creditori.", tags: ["fiscali", "privati"] },
+  { name: "Avv. Tommaso Bellini", specialty: "Diritto bancario", services: "Mutui • Prestiti", price: 410, desc: "Contestazioni clausole vessatorie e tassi usurari.", tags: ["bancari", "privati"] },
+  { name: "Dott. Gabriele Neri", specialty: "Consulente finanziario", services: "Educazione finanziaria", price: 180, desc: "Corsi e consulenze per gestione consapevole denaro.", tags: ["privati"] },
+  { name: "Avv. Michela Caputo", specialty: "Diritto fallimentare", services: "Procedure minori", price: 650, desc: "Liquidazione semplificata per piccoli debitori.", tags: ["aziende", "privati", "fiscali"] },
+  { name: "Dott.ssa Roberta Piras", specialty: "Commercialista", services: "Rottamazione cartelle", price: 450, desc: "Definizioni agevolate debiti con Agenzia Riscossione.", tags: ["fiscali", "privati", "aziende"] }
+];
+
+// Make available globally for structured data
+window.PROFESSIONALS_DATA = PROFESSIONALS_DATA;
+
+
+// ==================== DOM REFERENCES ====================
+const DOM = {
+  // Pages
+  pageWizard: document.getElementById('page-wizard'),
+  pagePro: document.getElementById('page-pro'),
+  
+  // Progress
+  progressBar: document.getElementById('bar'),
+  stepIndicators: document.querySelectorAll('.step'),
+  
+  // Steps
+  step1: document.getElementById('step1'),
+  step2: document.getElementById('step2'),
+  step3: document.getElementById('step3'),
+  
+  // Step 1
+  optionButtons: document.querySelectorAll('.opt'),
+  toStep2Btn: document.getElementById('to2'),
+  
+  // Step 2
+  form: document.getElementById('form'),
+  chipsSpan: document.getElementById('chips'),
+  back1Btn: document.getElementById('back1'),
+  toStep3Btn: document.getElementById('to3'),
+  
+  // Step 3
+  reviewDiv: document.getElementById('review'),
+  back2Btn: document.getElementById('back2'),
+  submitBtn: document.getElementById('submit'),
+  successMsg: document.getElementById('ok'),
+  sendingMsg: document.getElementById('sending'),
+  emailErrorMsg: document.getElementById('email-error'),
+  
+  // Modal
+  modal: document.getElementById('gdprModal'),
+  consentChk: document.getElementById('consentChk'),
+  closeModalBtn: document.getElementById('closeModal'),
+  confirmSendBtn: document.getElementById('confirmSend'),
+  
+  // Professionals
+  searchInput: document.getElementById('search'),
+  filterChips: document.querySelectorAll('.chip'),
+  proGrid: document.getElementById('pro-grid')
+};
+
+// ==================== UTILITIES ====================
+const Utils = {
+  /**
+   * Extract only digits from a string
+   */
+  extractDigits: (str) => (str || '').replace(/\D/g, ''),
+  
+  /**
+   * Validate email format
+   */
+  isValidEmail: (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  },
+  
+  /**
+   * Show/hide error message
+   */
+  toggleError: (fieldId, show) => {
+    const errorEl = document.getElementById(`err-${fieldId}`);
+    if (errorEl) {
+      if (show) {
+        errorEl.classList.add('show');
+      } else {
+        errorEl.classList.remove('show');
+      }
+    }
+  },
+  
+  /**
+   * Scroll to top smoothly
+   */
+  scrollToTop: () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+};
+
+// ==================== NAVIGATION ====================
+const Navigation = {
+  /**
+   * Show professionals page
+   */
+  showProfessionals: () => {
+    // Hide all pages first
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.remove('active');
+      page.hidden = true;
+    });
+    // Show professionals page
+    DOM.pagePro.hidden = false;
+    DOM.pagePro.classList.add('active');
+    Navigation.updateGlobalBackButton();
+    Utils.scrollToTop();
+  },
+  
+  /**
+   * Go to home (wizard page)
+   */
+  goToHome: () => {
+    // Hide all pages first
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.remove('active');
+      page.hidden = true;
+    });
+    // Show wizard page
+    DOM.pageWizard.hidden = false;
+    DOM.pageWizard.classList.add('active');
+    Wizard.showStep(1);
+    Navigation.updateGlobalBackButton();
+    Utils.scrollToTop();
+  },
+  
+  /**
+   * Go back (previous step or home)
+   */
+  goBack: () => {
+    const privacyPage = document.getElementById('privacy-policy');
+    const professionalPage = document.getElementById('page-professional');
+    const adminPage = document.getElementById('page-admin');
+    
+    // Handle privacy policy
+    if (privacyPage && privacyPage.classList.contains('active')) {
+      privacyPage.classList.remove('active');
+      privacyPage.hidden = true;
+      Navigation.goToHome();
+      return;
+    }
+    
+    // Handle professional dashboard - go to home
+    if (professionalPage && professionalPage.classList.contains('active')) {
+      Navigation.goToHome();
+      return;
+    }
+    
+    // Handle admin dashboard - go to home
+    if (adminPage && adminPage.classList.contains('active')) {
+      Navigation.goToHome();
+      return;
+    }
+    
+    // Handle professionals page - go to home
+    if (DOM.pagePro.classList.contains('active')) {
+      Navigation.goToHome();
+    } else if (state.currentStep > 1) {
+      // Handle wizard steps
+      Wizard.showStep(state.currentStep - 1);
+      Navigation.updateGlobalBackButton();
+    }
+  },
+  
+  /**
+   * Update global back button visibility
+   */
+  updateGlobalBackButton: (forceShow = false) => {
+    const globalBackBtn = document.getElementById('global-back-btn');
+    if (!globalBackBtn) return;
+    
+    if (forceShow) {
+      globalBackBtn.style.display = 'flex';
+      return;
+    }
+    
+    // Show if not on step 1 of wizard or if on professionals page or privacy page
+    const isProfessionalsPage = DOM.pagePro.classList.contains('active');
+    const privacyPage = document.getElementById('privacy-policy');
+    const isPrivacyPage = privacyPage && privacyPage.classList.contains('active');
+    const isStep1 = state.currentStep === 1 && !isProfessionalsPage && !isPrivacyPage;
+    
+    globalBackBtn.style.display = isStep1 ? 'none' : 'flex';
+  },
+  
+  /**
+   * Scroll to client section (wizard step 1)
+   */
+  scrollToClient: () => {
+    Navigation.goToHome();
+    setTimeout(() => {
+      const step1Element = document.getElementById('step1');
+      if (step1Element) {
+        step1Element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Add a small offset
+        window.scrollBy(0, -80);
+      }
+    }, 300);
+  },
+  
+  /**
+   * Show admin login modal
+   */
+  showAdminLogin: () => {
+    const modal = document.getElementById('professionalLoginModal');
+    if (modal) {
+      modal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+      const title = document.getElementById('loginTitle');
+      if (title) title.textContent = '🔐 Accesso Dashboard Admin';
+      document.getElementById('username')?.focus();
+    }
+  },
+  
+  /**
+   * Show professional login modal
+   */
+  showProfessionalLogin: () => {
+    const modal = document.getElementById('professionalLoginModal');
+    if (modal) {
+      modal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+      const title = document.getElementById('loginTitle');
+      if (title) title.textContent = 'Accesso Area Professionisti';
+      document.getElementById('username')?.focus();
+    }
+  },
+  
+  /**
+   * Hide professional login modal
+   */
+  hideProfessionalLogin: () => {
+    const modal = document.getElementById('professionalLoginModal');
+    if (modal) {
+      modal.classList.remove('show');
+      document.body.style.overflow = '';
+      document.getElementById('loginForm')?.reset();
+      const errorEl = document.getElementById('login-error');
+      if (errorEl) errorEl.style.display = 'none';
+    }
+  },
+
+  /**
+   * Show privacy policy page
+   */
+  showPrivacyPolicy: () => {
+    DOM.pageWizard.classList.remove('active');
+    DOM.pagePro.classList.remove('active');
+    const privacyPage = document.getElementById('privacy-policy');
+    const professionalPage = document.getElementById('page-professional');
+    const adminPage = document.getElementById('page-admin');
+    if (professionalPage) professionalPage.hidden = true;
+    if (adminPage) adminPage.hidden = true;
+    if (privacyPage) {
+      privacyPage.hidden = false;
+      privacyPage.classList.add('active');
+      Navigation.updateGlobalBackButton(true);
+      Utils.scrollToTop();
+    }
+  }
+};
+
+// ==================== WIZARD ====================
+const Wizard = {
+  /**
+   * Update progress bar and step indicators
+   */
+  updateProgress: (step) => {
+    const progressValue = step === 1 ? 33 : step === 2 ? 66 : 100;
+    DOM.progressBar.style.width = `${progressValue}%`;
+    DOM.progressBar.parentElement.setAttribute('aria-valuenow', progressValue);
+    
+    DOM.stepIndicators.forEach(indicator => {
+      const indicatorStep = Number(indicator.dataset.step);
+      indicator.classList.toggle('active', indicatorStep === step);
+    });
+  },
+  
+  /**
+   * Show specific step with smooth animation
+   */
+  showStep: (step) => {
+    // Save current state before switching
+    Wizard.saveStateToStorage();
+    
+    const currentStepElement = [DOM.step1, DOM.step2, DOM.step3][state.currentStep - 1];
+    const nextStepElement = [DOM.step1, DOM.step2, DOM.step3][step - 1];
+    
+    // Animate out current step
+    if (currentStepElement && !currentStepElement.hidden) {
+      currentStepElement.classList.add('slide-out');
+      setTimeout(() => {
+        currentStepElement.hidden = true;
+        currentStepElement.classList.remove('slide-out');
+      }, 300);
+    }
+    
+    // Animate in next step
+    state.currentStep = step;
+    setTimeout(() => {
+      nextStepElement.hidden = false;
+      Wizard.updateProgress(step);
+      Navigation.updateGlobalBackButton();
+      Utils.scrollToTop();
+      
+      // Restore saved data if available
+      if (step === 2) {
+        Wizard.loadStateFromStorage();
+      }
+    }, currentStepElement && !currentStepElement.hidden ? 300 : 0);
+  },
+  
+  /**
+   * Calculate and display total debt amount
+   */
+  updateTotalAmount: () => {
+    let total = 0;
+    Object.values(state.debtCreditors).forEach(creditors => {
+      if (Array.isArray(creditors)) {
+        creditors.forEach(item => {
+          total += Number(item && typeof item.amount !== 'undefined' ? item.amount : 0) || 0;
+        });
+      }
+    });
+    
+    const totalDisplay = document.getElementById('total-display');
+    const totalSection = document.getElementById('total-amount');
+    
+    if (total > 0) {
+      // Animate count-up effect
+      const targetAmount = total;
+      const currentText = totalDisplay ? totalDisplay.textContent.replace(/[^\d,]/g, '').replace(',', '.') : '0';
+      const currentAmount = parseFloat(currentText) || 0;
+      
+      if (Math.abs(currentAmount - targetAmount) > 0.01 && totalDisplay) {
+        let startAmount = currentAmount;
+        const duration = 500;
+        const startTime = Date.now();
+        
+        const animate = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+          const current = startAmount + (targetAmount - startAmount) * easeOut;
+          
+          totalDisplay.textContent = `€ ${current.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+          
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            totalDisplay.textContent = `€ ${targetAmount.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+          }
+        };
+        
+        requestAnimationFrame(animate);
+      } else if (totalDisplay) {
+        totalDisplay.textContent = `€ ${total.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      }
+      
+      if (totalSection) {
+        totalSection.style.display = 'block';
+      }
+    } else {
+      if (totalSection) {
+        totalSection.style.display = 'none';
+      }
+    }
+  },
+  
+  /**
+   * Populate subcategory select with proper options
+   */
+  populateSubcategoryOptions: (select, debtType) => {
+    if (!select) return;
+    const options = DEBT_SUBCATEGORIES[debtType] || [];
+    select.innerHTML = '';
+    
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Scegli la tipologia';
+    select.appendChild(placeholder);
+    
+    options.forEach(opt => {
+      const optionEl = document.createElement('option');
+      optionEl.value = opt.value;
+      optionEl.textContent = opt.label;
+      select.appendChild(optionEl);
+    });
+  },
+  
+  /**
+   * Ensure there is at least one entry for the given debt type
+   */
+  ensureDebtArray: (debtType) => {
+    if (!state.debtCreditors[debtType]) {
+      state.debtCreditors[debtType] = [];
+    }
+    if (state.debtCreditors[debtType].length === 0) {
+      state.debtCreditors[debtType].push({
+        subCategory: '',
+        creditor: '',
+        amount: 0
+      });
+    }
+  },
+  
+  /**
+   * Get label for a subcategory
+   */
+  getSubcategoryLabel: (debtType, value) => {
+    if (!value) return '';
+    const options = DEBT_SUBCATEGORIES[debtType] || [];
+    const match = options.find(opt => opt.value === value);
+    return match ? match.label : '';
+  },
+  
+  /**
+   * Render debt details list for a category
+   */
+  renderDebtDetails: (debtType) => {
+    const container = document.getElementById(`details-${debtType}`);
+    if (!container) return;
+    const itemsContainer = container.querySelector('.debt-items') || container;
+    
+    Wizard.ensureDebtArray(debtType);
+    
+    itemsContainer.querySelectorAll('.debt-item').forEach(item => item.remove());
+    
+    state.debtCreditors[debtType].forEach((entry, index) => {
+      const debtItem = Wizard.createDebtItem(debtType, index, entry);
+      itemsContainer.appendChild(debtItem);
+    });
+    
+    Wizard.updateTotalAmount();
+  },
+  
+  /**
+   * Create a single debt entry row
+   */
+  createDebtItem: (debtType, index, entry = {}) => {
+    const debtItem = document.createElement('div');
+    debtItem.className = 'debt-item';
+    debtItem.innerHTML = `
+      <div class="debt-row">
+        <select class="subcategory-select" aria-label="Tipologia specifica del debito"></select>
+        <input type="text" class="creditor-input" placeholder="Nome creditore (facoltativo)" aria-label="Nome creditore">
+        <input type="number" min="0" step="0.01" class="amount-input-field" placeholder="Importo in €" aria-label="Importo">
+        <button type="button" class="btn-remove-creditor" aria-label="Rimuovi voce">×</button>
+      </div>
+    `;
+    
+    const select = debtItem.querySelector('.subcategory-select');
+    const creditorInput = debtItem.querySelector('.creditor-input');
+    const amountInput = debtItem.querySelector('.amount-input-field');
+    const removeBtn = debtItem.querySelector('.btn-remove-creditor');
+    
+    if (select) {
+      select.dataset.debtType = debtType;
+    }
+    
+    Wizard.populateSubcategoryOptions(select, debtType);
+    if (entry.subCategory) {
+      select.value = entry.subCategory;
+    }
+    creditorInput.value = entry.creditor || '';
+    amountInput.value = (typeof entry.amount !== 'undefined' && entry.amount !== null && entry.amount !== '') ? entry.amount : '';
+    
+    const updateEntry = () => {
+      if (!state.debtCreditors[debtType]) {
+        state.debtCreditors[debtType] = [];
+      }
+      state.debtCreditors[debtType][index] = {
+        subCategory: select.value,
+        creditor: creditorInput.value.trim(),
+        amount: Number(amountInput.value) || 0
+      };
+      Wizard.updateTotalAmount();
+      Wizard.saveStateToStorage();
+    };
+    
+    select.addEventListener('change', updateEntry);
+    creditorInput.addEventListener('input', updateEntry);
+    amountInput.addEventListener('input', updateEntry);
+    
+    removeBtn.addEventListener('click', () => Wizard.removeCreditor(debtType, index));
+    
+    return debtItem;
+  },
+  
+  /**
+   * Add another creditor for a debt type
+   */
+  addCreditor: (debtType) => {
+    Wizard.ensureDebtArray(debtType);
+    state.debtCreditors[debtType].push({
+      subCategory: '',
+      creditor: '',
+      amount: 0
+    });
+    Wizard.renderDebtDetails(debtType);
+    
+    const detailsContainer = document.getElementById(`details-${debtType}`);
+    const newSelect = detailsContainer?.querySelector('.debt-item:last-of-type .subcategory-select');
+    if (newSelect) {
+      newSelect.focus();
+    }
+    Wizard.saveStateToStorage();
+  },
+  
+  /**
+   * Remove a creditor
+   */
+  removeCreditor: (debtType, index) => {
+    if (!state.debtCreditors[debtType]) return;
+    state.debtCreditors[debtType].splice(index, 1);
+    
+    if (state.debtCreditors[debtType].length === 0) {
+      state.debtCreditors[debtType].push({
+        subCategory: '',
+        creditor: '',
+        amount: 0
+      });
+    }
+    
+    Wizard.renderDebtDetails(debtType);
+    Wizard.saveStateToStorage();
+  },
+  
+  /**
+   * Handle option selection in Step 1
+   */
+  handleOptionClick: (button) => {
+    const value = button.dataset.value;
+    const isSelected = button.classList.contains('selected');
+    const detailsContainer = document.getElementById(`details-${value}`);
+    
+    if (isSelected) {
+      button.classList.remove('selected');
+      button.setAttribute('aria-pressed', 'false');
+      state.selections = state.selections.filter(s => s !== value);
+      if (detailsContainer) {
+        detailsContainer.style.display = 'none';
+        const itemsContainer = detailsContainer.querySelector('.debt-items');
+        if (itemsContainer) {
+          itemsContainer.innerHTML = '';
+        }
+        delete state.debtCreditors[value];
+        Wizard.saveStateToStorage();
+      }
+    } else {
+      button.classList.add('selected');
+      button.setAttribute('aria-pressed', 'true');
+      state.selections.push(value);
+      if (detailsContainer) {
+        detailsContainer.style.display = 'block';
+        Wizard.ensureDebtArray(value);
+        Wizard.renderDebtDetails(value);
+        Wizard.saveStateToStorage();
+      }
+    }
+    
+    DOM.toStep2Btn.disabled = state.selections.length === 0;
+    Wizard.updateTotalAmount();
+    Wizard.saveStateToStorage();
+  },
+  
+  /**
+   * Move to Step 2
+   */
+  goToStep2: () => {
+    const chipsHTML = state.selections
+      .map(sel => `<span class="pill">${DEBT_LABELS[sel] || sel}</span>`)
+      .join(' ');
+    DOM.chipsSpan.innerHTML = chipsHTML;
+    Wizard.showStep(2);
+  },
+  
+  /**
+   * Validate individual field
+   */
+  validateField: (fieldId, value, showFeedback = true) => {
+    let isValid = true;
+    
+    switch (fieldId) {
+      case 'nome':
+      case 'cognome':
+        isValid = value.trim().length >= 3;
+        break;
+      
+      case 'telefono':
+        isValid = Utils.extractDigits(value).length >= 9;
+        break;
+      
+      case 'email':
+        isValid = Utils.isValidEmail(value);
+        break;
+    }
+    
+    if (showFeedback) {
+      Wizard.updateFieldState(fieldId, isValid, value.trim().length > 0);
+    }
+    
+    Utils.toggleError(fieldId, !isValid);
+    return isValid;
+  },
+  
+  /**
+   * Update field visual state (icon and styling)
+   */
+  updateFieldState: (fieldId, isValid, hasValue) => {
+    const input = document.getElementById(fieldId);
+    const icon = document.getElementById(`icon-${fieldId}`);
+    
+    if (!input || !icon) return;
+    
+    // Remove previous states
+    input.classList.remove('valid', 'invalid');
+    icon.classList.remove('valid', 'invalid');
+    
+    // Only show state if user has typed something
+    if (hasValue) {
+      if (isValid) {
+        input.classList.add('valid');
+        icon.classList.add('valid');
+      } else {
+        input.classList.add('invalid');
+        icon.classList.add('invalid');
+      }
+    }
+  },
+  
+  /**
+   * Validate all form fields
+   */
+  validateAllFields: () => {
+    const fields = ['nome', 'cognome', 'telefono', 'email'];
+    let allValid = true;
+    
+    fields.forEach(fieldId => {
+      const input = document.getElementById(fieldId);
+      const isValid = Wizard.validateField(fieldId, input.value);
+      if (!isValid) allValid = false;
+    });
+    
+    // creditore is optional now
+    return allValid;
+  },
+  
+  /**
+   * Move to Step 3 (Review)
+   */
+  goToStep3: () => {
+    DOM.successMsg.style.display = 'none';
+    
+    if (!Wizard.validateAllFields()) {
+      return;
+    }
+    
+    // Recalculate all creditors from inputs
+    state.selections.forEach(debtType => {
+      const detailsContainer = document.getElementById(`details-${debtType}`);
+      if (detailsContainer) {
+        state.debtCreditors[debtType] = [];
+        const items = detailsContainer.querySelectorAll('.debt-item');
+        items.forEach(item => {
+          const select = item.querySelector('.subcategory-select');
+          const creditorInput = item.querySelector('.creditor-input');
+          const amountInput = item.querySelector('.amount-input-field');
+          if (creditorInput && amountInput) {
+            state.debtCreditors[debtType].push({
+              subCategory: select ? select.value : '',
+              creditor: creditorInput.value.trim(),
+              amount: Number(amountInput.value) || 0
+            });
+          }
+        });
+      }
+    });
+    
+    // Calculate total
+    let totalAmount = 0;
+    Object.values(state.debtCreditors).forEach(creditors => {
+      if (Array.isArray(creditors)) {
+        creditors.forEach(item => {
+          totalAmount += Number(item.amount) || 0;
+        });
+      }
+    });
+    
+    // Collect form data
+    state.formData = {
+      nome: document.getElementById('nome').value.trim(),
+      cognome: document.getElementById('cognome').value.trim(),
+      telefono: document.getElementById('telefono').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      totalAmount: totalAmount
+    };
+    
+    // Generate debts detail with all creditors
+    let debtsDetail = '';
+    state.selections.forEach(debtType => {
+      const creditors = state.debtCreditors[debtType] || [];
+      const typeLabel = DEBT_LABELS[debtType] || debtType;
+      
+      if (creditors.length === 0) {
+        debtsDetail += `<li><b>${typeLabel}:</b> Nessun dettaglio specificato</li>`;
+      } else {
+        creditors.forEach((item, index) => {
+          const hasContent = item.subCategory || item.creditor || (Number(item.amount) || 0) > 0;
+          if (hasContent) {
+            const subLabel = Wizard.getSubcategoryLabel(debtType, item.subCategory) || 'Voce non specificata';
+            const creditorName = item.creditor ? ` • ${item.creditor}` : '';
+            const amountText = `€ ${Number(item.amount || 0).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            debtsDetail += `<li><b>${typeLabel}${creditors.length > 1 ? ` (${index + 1})` : ''}:</b> ${subLabel}${creditorName} - ${amountText}</li>`;
+          }
+        });
+      }
+    });
+    
+    // Generate review HTML
+    const reviewHTML = `
+      <ul>
+        <li><b>Nome:</b> ${state.formData.nome} ${state.formData.cognome}</li>
+        <li><b>Cellulare:</b> ${state.formData.telefono}</li>
+        <li><b>Email:</b> ${state.formData.email}</li>
+      </ul>
+      <h3 style="margin-top:24px; margin-bottom:12px;">Dettaglio Debiti:</h3>
+      <ul>
+        ${debtsDetail}
+      </ul>
+      <div style="margin-top:20px; padding:16px; background:#e6f4ff; border-radius:12px;">
+        <div style="font-size:0.875rem; color:var(--text-muted);">Totale complessivo:</div>
+        <div style="font-size:1.75rem; font-weight:800; color:var(--accent);">€ ${totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+      </div>
+    `;
+    DOM.reviewDiv.innerHTML = reviewHTML;
+    
+    Wizard.showStep(3);
+  },
+  
+  /**
+   * Initialize Step 1 event listeners
+   */
+  initStep1: () => {
+    DOM.optionButtons.forEach(btn => {
+      btn.addEventListener('click', () => Wizard.handleOptionClick(btn));
+    });
+    
+    DOM.toStep2Btn.addEventListener('click', Wizard.goToStep2);
+  },
+  
+  /**
+   * Initialize Step 2 event listeners
+   */
+  initStep2: () => {
+    // Real-time validation on input (debounced)
+    ['nome', 'cognome', 'telefono', 'email'].forEach(fieldId => {
+      const input = document.getElementById(fieldId);
+      if (input) {
+        let timeout;
+        
+        // Real-time validation while typing (debounced)
+        input.addEventListener('input', () => {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => {
+            Wizard.validateField(fieldId, input.value, true);
+          }, 300);
+        });
+        
+        // Immediate validation on blur
+        input.addEventListener('blur', () => {
+          clearTimeout(timeout);
+          Wizard.validateField(fieldId, input.value, true);
+        });
+        
+        // Save on change
+        input.addEventListener('input', () => {
+          Wizard.saveStateToStorage();
+        });
+      }
+    });
+    
+    DOM.back1Btn.addEventListener('click', () => Wizard.showStep(1));
+    DOM.toStep3Btn.addEventListener('click', Wizard.goToStep3);
+  },
+  
+  /**
+   * Save current state to LocalStorage
+   */
+  saveStateToStorage: () => {
+    try {
+      const saveData = {
+        currentStep: state.currentStep,
+        selections: state.selections,
+        debtCreditors: state.debtCreditors,
+        formData: state.formData,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('debitoZeroWizard', JSON.stringify(saveData));
+    } catch (e) {
+      console.warn('LocalStorage non disponibile:', e);
+    }
+  },
+  
+  /**
+   * Load state from LocalStorage
+   */
+  loadStateFromStorage: () => {
+    try {
+      const saved = localStorage.getItem('debitoZeroWizard');
+      if (!saved) return;
+      
+      const saveData = JSON.parse(saved);
+      
+      // Only restore if saved less than 24 hours ago
+      const hoursSinceSave = (Date.now() - saveData.timestamp) / (1000 * 60 * 60);
+      if (hoursSinceSave > 24) {
+        localStorage.removeItem('debitoZeroWizard');
+        return;
+      }
+      
+      // Restore form fields
+      if (saveData.formData) {
+        const fields = ['nome', 'cognome', 'telefono', 'email'];
+        fields.forEach(fieldId => {
+          const input = document.getElementById(fieldId);
+          if (input && saveData.formData[fieldId]) {
+            input.value = saveData.formData[fieldId];
+            // Validate restored field
+            setTimeout(() => {
+              Wizard.validateField(fieldId, input.value, true);
+            }, 100);
+          }
+        });
+      }
+      
+      // Restore selections and creditors (will be shown on init)
+      if (saveData.selections && saveData.currentStep > 1) {
+        state.selections = saveData.selections;
+        state.debtCreditors = saveData.debtCreditors || {};
+      }
+      
+      // Restore form data
+      return saveData;
+    } catch (e) {
+      console.warn('Errore nel caricamento da LocalStorage:', e);
+    }
+  },
+  
+  /**
+   * Clear saved state
+   */
+  clearSavedState: () => {
+    try {
+      localStorage.removeItem('debitoZeroWizard');
+    } catch (e) {
+      console.warn('Errore nel cancellare LocalStorage:', e);
+    }
+  },
+  
+  /**
+   * Initialize Step 3 event listeners
+   */
+  initStep3: () => {
+    DOM.back2Btn.addEventListener('click', () => Wizard.showStep(2));
+    DOM.submitBtn.addEventListener('click', Modal.open);
+  },
+  
+  /**
+   * Initialize wizard
+   */
+  init: () => {
+    Wizard.initStep1();
+    Wizard.initStep2();
+    Wizard.initStep3();
+    
+    // Check for saved state on load
+    const savedData = Wizard.loadStateFromStorage();
+    
+    if (savedData && savedData.currentStep > 1) {
+      // Show restore prompt only if there's significant progress
+      const shouldRestore = confirm('Hai una richiesta in sospeso. Vuoi continuare da dove hai lasciato?');
+      
+      if (shouldRestore) {
+        // Restore selections first
+        if (savedData.selections) {
+          state.selections = savedData.selections.filter(sel => DEBT_LABELS[sel]);
+          state.debtCreditors = savedData.debtCreditors || {};
+          Object.keys(state.debtCreditors).forEach(key => {
+            if (!DEBT_LABELS[key]) {
+              delete state.debtCreditors[key];
+            }
+          });
+          
+          // Restore UI for selections
+          savedData.selections.forEach(sel => {
+            const button = document.querySelector(`[data-value="${sel}"]`);
+            if (button) {
+              button.classList.add('selected');
+              button.setAttribute('aria-pressed', 'true');
+              const detailsContainer = document.getElementById(`details-${sel}`);
+              if (detailsContainer) {
+                detailsContainer.style.display = 'block';
+                Wizard.renderDebtDetails(sel);
+              }
+            }
+          });
+          
+          Wizard.updateTotalAmount();
+          Wizard.goToStep2();
+        }
+        Wizard.showStep(savedData.currentStep);
+      } else {
+        localStorage.removeItem('debitoZeroWizard');
+        Wizard.showStep(1);
+      }
+    } else {
+      Wizard.showStep(1);
+    }
+    
+    // Update global back button on init
+    Navigation.updateGlobalBackButton();
+  }
+};
+
+// ==================== EMAIL SERVICE ====================
+const EmailService = {
+  /**
+   * Initialize EmailJS
+   */
+  init: () => {
+    if (typeof emailjs !== 'undefined' && EMAIL_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
+      emailjs.init(EMAIL_CONFIG.publicKey);
+      console.log('✅ EmailJS initialized');
+    } else {
+      console.warn('⚠️ EmailJS non configurato. Leggi CONFIG-EMAIL.txt');
+    }
+  },
+  
+  /**
+   * Send email with form data
+   */
+  sendEmail: async () => {
+    // Hide previous messages
+    DOM.successMsg.style.display = 'none';
+    DOM.emailErrorMsg.style.display = 'none';
+    DOM.sendingMsg.style.display = 'block';
+    
+    // Check if EmailJS is configured
+    if (EMAIL_CONFIG.publicKey === 'YOUR_PUBLIC_KEY' || typeof emailjs === 'undefined') {
+      console.warn('⚠️ EmailJS non configurato - simulazione invio');
+      DOM.sendingMsg.style.display = 'none';
+      DOM.successMsg.style.display = 'block';
+      return true;
+    }
+    
+    try {
+      // Prepare debts detail with all creditors
+      let debtsDetail = '';
+      state.selections.forEach(debtType => {
+        const creditors = state.debtCreditors[debtType] || [];
+        const typeLabel = DEBT_LABELS[debtType] || debtType;
+        
+        if (creditors.length === 0) {
+          debtsDetail += `${typeLabel}: Nessun creditore specificato\n`;
+        } else {
+          creditors.forEach((item, index) => {
+            if (item.creditor || item.amount > 0) {
+              const creditorName = item.creditor || 'Creditore non specificato';
+              debtsDetail += `${typeLabel}${creditors.length > 1 ? ` (${index + 1})` : ''}: ${creditorName} - € ${item.amount.toLocaleString('it-IT', {minimumFractionDigits: 2})}\n`;
+            }
+          });
+        }
+      });
+      
+      // Prepare email data
+      const emailData = {
+        to_email: EMAIL_CONFIG.recipientEmail,
+        from_name: `${state.formData.nome} ${state.formData.cognome}`,
+        from_email: state.formData.email,
+        phone: state.formData.telefono,
+        debt_types: state.selections.map(s => DEBT_LABELS[s] || s).join(', '),
+        debt_details: debtsDetail.trim(),
+        debt_amount: `€ ${state.formData.totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2})}`,
+        submission_date: new Date().toLocaleString('it-IT')
+      };
+      
+      // Send via EmailJS
+      const response = await emailjs.send(
+        EMAIL_CONFIG.serviceId,
+        EMAIL_CONFIG.templateId,
+        emailData
+      );
+      
+      console.log('✅ Email inviata con successo:', response);
+      DOM.sendingMsg.style.display = 'none';
+      DOM.successMsg.style.display = 'block';
+      
+      // Save request to admin dashboard
+      try {
+        const requestData = {
+          name: state.formData.nome,
+          surname: state.formData.cognome,
+          email: state.formData.email,
+          phone: state.formData.telefono,
+          debtTypes: state.selections.map(s => DEBT_LABELS[s] || s).join(', '),
+          totalAmount: `€ ${state.formData.totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2})}`,
+          debtDetails: debtsDetail.trim(),
+          date: new Date().toLocaleString('it-IT')
+        };
+        
+        const existingRequests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+        existingRequests.push(requestData);
+        localStorage.setItem('clientRequests', JSON.stringify(existingRequests));
+      } catch (e) {
+        console.error('Errore salvataggio richiesta:', e);
+      }
+      
+      // Send confirmation email to client
+      if (state.formData.email && EMAIL_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
+        try {
+          const confirmationEmailData = {
+            to_email: state.formData.email,
+            from_name: 'Debito Zero - Solvo',
+            subject: '✅ Richiesta ricevuta - Debito Zero Solvo',
+            client_name: `${state.formData.nome} ${state.formData.cognome}`,
+            debt_types: state.selections.map(s => DEBT_LABELS[s] || s).join(', '),
+            debt_amount: `€ ${state.formData.totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2})}`,
+            submission_date: new Date().toLocaleString('it-IT'),
+            message: `Gentile ${state.formData.nome},
+
+La tua richiesta è stata ricevuta con successo.
+
+Un nostro operatore ti contatterà a breve per valutare la tua situazione e metterti in contatto con i professionisti più adatti.
+
+Nel frattempo, puoi esplorare i professionisti disponibili sulla piattaforma.
+
+Dettagli della richiesta:
+- Tipologie debiti: ${state.selections.map(s => DEBT_LABELS[s] || s).join(', ')}
+- Importo totale: € ${state.formData.totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2})}
+- Data richiesta: ${new Date().toLocaleString('it-IT')}
+
+Cordiali saluti,
+Il team di Debito Zero - Solvo`
+          };
+          
+          // Use same service but different template (or same template with different data)
+          // Note: You may need to create a separate template for client confirmation
+          // For now, we'll use the same template but you should create a confirmation template
+          emailjs.send(
+            EMAIL_CONFIG.serviceId,
+            EMAIL_CONFIG.templateId, // Consider creating a separate templateId for confirmations
+            confirmationEmailData
+          ).then(() => {
+            console.log('✅ Email di conferma inviata al cliente');
+          }).catch(err => {
+            console.error('⚠️ Errore invio email conferma (non critico):', err);
+            // Don't fail the whole process if confirmation email fails
+          });
+        } catch (e) {
+          console.error('⚠️ Errore preparazione email conferma (non critico):', e);
+        }
+      }
+      
+      // Clear saved state after successful submission
+      Wizard.clearSavedState();
+      
+      return true;
+      
+    } catch (error) {
+      console.error('❌ Errore invio email:', error);
+      DOM.sendingMsg.style.display = 'none';
+      DOM.emailErrorMsg.style.display = 'block';
+      
+      // Still show success to user but log error
+      setTimeout(() => {
+        DOM.emailErrorMsg.style.display = 'none';
+        DOM.successMsg.style.display = 'block';
+      }, 3000);
+      
+      return false;
+    }
+  }
+};
+
+// ==================== MODAL ====================
+const Modal = {
+  /**
+   * Open GDPR modal
+   */
+  open: () => {
+    DOM.consentChk.checked = false;
+    DOM.confirmSendBtn.disabled = true;
+    DOM.modal.classList.add('show');
+  },
+  
+  /**
+   * Close modal
+   */
+  close: () => {
+    DOM.modal.classList.remove('show');
+  },
+  
+  /**
+   * Handle form submission
+   */
+  handleSubmit: async () => {
+    Modal.close();
+    
+    // Send email
+    await EmailService.sendEmail();
+    
+    // Determine appropriate filter based on selections
+    let targetFilter = 'all';
+    if (state.selections.includes('banche_finanziarie')) {
+      targetFilter = 'bancari';
+    } else if (state.selections.includes('fiscali_tributari') || state.selections.includes('previdenziali')) {
+      targetFilter = 'fiscali';
+    } else if (state.selections.includes('utenze_servizi')) {
+      targetFilter = 'privati';
+    } else if (state.selections.includes('procedure_esecutive')) {
+      targetFilter = 'aziende';
+    }
+    
+    // Navigate to professionals page
+    setTimeout(() => {
+      Navigation.showProfessionals();
+      Professionals.applyFilter(targetFilter);
+    }, 2000);
+  },
+  
+  /**
+   * Initialize modal event listeners
+   */
+  init: () => {
+    DOM.consentChk.addEventListener('change', () => {
+      DOM.confirmSendBtn.disabled = !DOM.consentChk.checked;
+    });
+    
+    DOM.closeModalBtn.addEventListener('click', Modal.close);
+    DOM.confirmSendBtn.addEventListener('click', Modal.handleSubmit);
+    
+    // Close modal on backdrop click
+    DOM.modal.addEventListener('click', (e) => {
+      if (e.target === DOM.modal) {
+        Modal.close();
+      }
+    });
+    
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && DOM.modal.classList.contains('show')) {
+        Modal.close();
+      }
+    });
+  }
+};
+
+// ==================== PROFESSIONALS ====================
+const Professionals = {
+  currentFilter: 'all',
+  currentSearch: '',
+  
+  /**
+   * Generate HTML for a professional card
+   */
+  createCard: (pro, index) => {
+    // Ensure professional has all required data
+    if (!pro.availability) pro.availability = generateAvailability();
+    if (!pro.career || !pro.strengths) {
+      const careerData = generateCareerData(pro.name, pro.specialty, pro.desc, pro.services);
+      pro.career = careerData.career;
+      pro.strengths = careerData.strengths;
+    }
+    
+    const tagsHTML = pro.tags.map(tag => {
+      const tagLabels = { bancari: 'Bancari', fiscali: 'Fiscali/Tributari', aziende: 'Aziende', privati: 'Privati' };
+      return `<span class="tag">${tagLabels[tag] || tag}</span>`;
+    }).join('');
+    
+    // Generate availability preview (next 3 days)
+    const availabilityPreview = pro.availability.slice(0, 3).map(day => {
+      const timeSlots = day.times.slice(0, 2).join(', '); // Mostra max 2 orari
+      const moreSlots = day.times.length > 2 ? ` +${day.times.length - 2}` : '';
+      return `
+        <div class="avail-day">
+          <span class="avail-date">${day.dayName} ${day.dayNumber} ${day.month}</span>
+          <span class="avail-times">${timeSlots}${moreSlots}</span>
+        </div>
+      `;
+    }).join('');
+    
+    return `
+      <article class="pro-card" data-tags="${pro.tags.join(' ')}" data-searchtext="${pro.name.toLowerCase()} ${pro.specialty.toLowerCase()} ${pro.services.toLowerCase()} ${pro.desc.toLowerCase()}" data-pro-index="${index}">
+        <h3 class="pro-title">${pro.name}</h3>
+        <div class="pro-sub">${pro.specialty}</div>
+        <div class="pro-sub" style="margin-top:4px; font-size:0.85rem;">${pro.services}</div>
+        <div class="pro-price">da € ${pro.price}</div>
+        <p class="pro-desc">${pro.desc}</p>
+        
+        <div class="availability-preview">
+          <div class="avail-header">📅 Prossimi appuntamenti disponibili:</div>
+          ${availabilityPreview}
+        </div>
+        
+        <div class="tags">${tagsHTML}</div>
+        <button type="button" class="pro-cta" onclick="Professionals.openDetails(${index})">Vedi dettagli e prenota</button>
+      </article>
+    `;
+  },
+  
+  /**
+   * Render all professionals
+   */
+  render: () => {
+    const html = PROFESSIONALS_DATA.map((pro, index) => Professionals.createCard(pro, index)).join('');
+    DOM.proGrid.innerHTML = html;
+  },
+  
+  /**
+   * Open professional details modal
+   */
+  openDetails: (index) => {
+    const pro = PROFESSIONALS_DATA[index];
+    
+    // Ensure data is generated
+    if (!pro.availability) pro.availability = generateAvailability();
+    if (!pro.career || !pro.strengths) {
+      const careerData = generateCareerData(pro.name, pro.specialty, pro.desc, pro.services);
+      pro.career = careerData.career;
+      pro.strengths = careerData.strengths;
+    }
+    
+    // Generate calendar HTML (next 30 days)
+    const calendarDays = [];
+    const today = new Date();
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      
+      // Find availability for this date
+      const dateStr = date.toISOString().split('T')[0];
+      const dayAvailability = pro.availability.find(av => av.date === dateStr);
+      
+      if (dayAvailability && dayAvailability.times.length > 0) {
+        calendarDays.push({
+          date: dateStr,
+          dayName: date.toLocaleDateString('it-IT', { weekday: 'short' }),
+          dayNumber: date.getDate(),
+          month: date.toLocaleDateString('it-IT', { month: 'short' }),
+          times: dayAvailability.times
+        });
+      }
+    }
+    
+    const strengthsHTML = pro.strengths.map(s => `<li>✓ ${s}</li>`).join('');
+    const calendarHTML = calendarDays.map(day => `
+      <div class="calendar-day">
+        <div class="cal-date-header">
+          <strong>${day.dayName} ${day.dayNumber} ${day.month}</strong>
+        </div>
+        <div class="cal-times">
+          ${day.times.map(time => `
+            <button type="button" class="time-slot" onclick="Professionals.bookAppointment(${index}, '${day.date}', '${time}')">
+              ${time}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+    
+    // Create or update modal
+    let modal = document.getElementById('proDetailsModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'proDetailsModal';
+      modal.className = 'modal-backdrop';
+      modal.innerHTML = `
+        <div class="pro-modal">
+          <button class="modal-close" onclick="Professionals.closeDetails()">&times;</button>
+          <div class="pro-modal-content"></div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    
+    const content = modal.querySelector('.pro-modal-content');
+    content.innerHTML = `
+      <div class="pro-modal-header">
+        <h2>${pro.name}</h2>
+        <div class="pro-modal-specialty">${pro.specialty}</div>
+        <div class="pro-modal-price">da € ${pro.price}</div>
+      </div>
+      
+      <div class="pro-modal-section">
+        <h3>📋 Carriera e Esperienza</h3>
+        <p>${pro.career}</p>
+      </div>
+      
+      <div class="pro-modal-section">
+        <h3>⭐ Punti di Forza</h3>
+        <ul class="strengths-list">${strengthsHTML}</ul>
+      </div>
+      
+      <div class="pro-modal-section">
+        <h3>🕐 Servizi Offerti</h3>
+        <p>${pro.services}</p>
+      </div>
+      
+      <div class="pro-modal-section">
+        <h3>📅 Agenda Disponibile - Seleziona un orario</h3>
+        <div class="calendar-container">
+          ${calendarHTML || '<p style="color:#718096;">Nessun appuntamento disponibile nei prossimi 30 giorni.</p>'}
+        </div>
+      </div>
+    `;
+    
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        Professionals.closeDetails();
+      }
+    });
+    
+    // Close on Escape key
+    const escapeHandler = (e) => {
+      if (e.key === 'Escape') {
+        Professionals.closeDetails();
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    };
+    document.addEventListener('keydown', escapeHandler);
+  },
+  
+  /**
+   * Close professional details modal
+   */
+  closeDetails: () => {
+    const modal = document.getElementById('proDetailsModal');
+    if (modal) {
+      modal.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  },
+  
+  /**
+   * Book appointment
+   */
+  bookAppointment: (proIndex, date, time) => {
+    const pro = PROFESSIONALS_DATA[proIndex];
+    
+    // Show appointment confirmation modal with meeting type selection
+    Professionals.showAppointmentModal(proIndex, date, time, pro);
+  },
+  
+  /**
+   * Show appointment confirmation modal with meeting type selection
+   */
+  showAppointmentModal: (proIndex, date, time, pro) => {
+    // Create or get appointment modal
+    let appointmentModal = document.getElementById('appointmentModal');
+    if (!appointmentModal) {
+      appointmentModal = document.createElement('div');
+      appointmentModal.id = 'appointmentModal';
+      appointmentModal.className = 'modal-backdrop';
+      document.body.appendChild(appointmentModal);
+    }
+    
+    appointmentModal.innerHTML = `
+      <div class="appointment-modal" style="max-width: 500px; padding: var(--spacing-xl); background: var(--card-bg); border-radius: var(--radius-xl); box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+        <button class="modal-close" onclick="Professionals.closeAppointmentModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text-muted);">&times;</button>
+        <h2 style="margin-top: 0; margin-bottom: var(--spacing-lg); color: var(--text-primary);">Conferma Appuntamento</h2>
+        <div style="margin-bottom: var(--spacing-lg);">
+          <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--spacing-sm);">${pro.name}</div>
+          <div style="color: var(--text-muted); margin-bottom: var(--spacing-xs);">📅 ${date}</div>
+          <div style="color: var(--text-muted);">🕐 ${time}</div>
+        </div>
+        
+        <div style="margin-bottom: var(--spacing-xl);">
+          <label style="display: block; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary);">Modalità di incontro:</label>
+          <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+            <label style="display: flex; align-items: center; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); cursor: pointer; transition: all var(--transition-normal);">
+              <input type="radio" name="meetingType" value="presenza" checked style="margin-right: var(--spacing-md); width: 20px; height: 20px; cursor: pointer;">
+              <div>
+                <div style="font-weight: 600; color: var(--text-primary);">🏢 In Presenza</div>
+                <div style="font-size: 0.875rem; color: var(--text-muted);">Incontro presso lo studio del professionista</div>
+              </div>
+            </label>
+            <label style="display: flex; align-items: center; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); cursor: pointer; transition: all var(--transition-normal);">
+              <input type="radio" name="meetingType" value="remoto" style="margin-right: var(--spacing-md); width: 20px; height: 20px; cursor: pointer;">
+              <div>
+                <div style="font-weight: 600; color: var(--text-primary);">💻 Da Remoto (Webcam/Meet)</div>
+                <div style="font-size: 0.875rem; color: var(--text-muted);">Videochiamata via Google Meet o Zoom</div>
+              </div>
+            </label>
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end;">
+          <button type="button" onclick="Professionals.closeAppointmentModal()" class="btn ghost" style="width: auto;">Annulla</button>
+          <button type="button" onclick="Professionals.confirmAppointment(${proIndex}, '${date}', '${time}')" class="btn" style="width: auto;">Conferma Prenotazione</button>
+        </div>
+      </div>
+    `;
+    
+    // Add hover effects
+    const labels = appointmentModal.querySelectorAll('label[style*="border"]');
+    labels.forEach(label => {
+      label.addEventListener('mouseenter', () => {
+        if (label.querySelector('input[type="radio"]:checked')) {
+          label.style.borderColor = 'var(--accent)';
+          label.style.backgroundColor = 'rgba(93, 173, 226, 0.05)';
+        } else {
+          label.style.borderColor = 'var(--border-hover)';
+        }
+      });
+      label.addEventListener('mouseleave', () => {
+        if (label.querySelector('input[type="radio"]:checked')) {
+          label.style.borderColor = 'var(--accent)';
+          label.style.backgroundColor = 'rgba(93, 173, 226, 0.05)';
+        } else {
+          label.style.borderColor = 'var(--border)';
+          label.style.backgroundColor = 'transparent';
+        }
+      });
+      label.addEventListener('click', () => {
+        labels.forEach(l => {
+          if (!l.querySelector('input[type="radio"]:checked')) {
+            l.style.borderColor = 'var(--border)';
+            l.style.backgroundColor = 'transparent';
+          }
+        });
+        label.style.borderColor = 'var(--accent)';
+        label.style.backgroundColor = 'rgba(93, 173, 226, 0.05)';
+      });
+    });
+    
+    // Set initial checked state
+    labels[0].style.borderColor = 'var(--accent)';
+    labels[0].style.backgroundColor = 'rgba(93, 173, 226, 0.05)';
+    
+    appointmentModal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    
+    // Close on backdrop click
+    appointmentModal.addEventListener('click', (e) => {
+      if (e.target === appointmentModal) {
+        Professionals.closeAppointmentModal();
+      }
+    });
+    
+    // Close on Escape key
+    const escapeHandler = (e) => {
+      if (e.key === 'Escape') {
+        Professionals.closeAppointmentModal();
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    };
+    document.addEventListener('keydown', escapeHandler);
+  },
+  
+  /**
+   * Close appointment modal
+   */
+  closeAppointmentModal: () => {
+    const appointmentModal = document.getElementById('appointmentModal');
+    if (appointmentModal) {
+      appointmentModal.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  },
+  
+  /**
+   * Confirm appointment with selected meeting type
+   */
+  confirmAppointment: (proIndex, date, time) => {
+    const pro = PROFESSIONALS_DATA[proIndex];
+    
+    // Get selected meeting type
+    const meetingTypeRadio = document.querySelector('#appointmentModal input[name="meetingType"]:checked');
+    const meetingType = meetingTypeRadio ? meetingTypeRadio.value : 'presenza';
+    const meetingTypeLabel = meetingType === 'presenza' ? 'In Presenza' : 'Da Remoto (Webcam/Meet)';
+    
+    // Close modal
+    Professionals.closeAppointmentModal();
+    
+    // Collect client data if not available
+    let clientName = '';
+    let clientSurname = '';
+    let clientPhone = '';
+    let clientEmail = '';
+    
+    if (state.formData.nome && state.formData.cognome) {
+      clientName = state.formData.nome;
+      clientSurname = state.formData.cognome;
+      clientPhone = state.formData.telefono || '';
+      clientEmail = state.formData.email || '';
+    } else {
+      // Prompt for client data if not in form
+      clientName = prompt('Nome del cliente:') || '';
+      clientSurname = prompt('Cognome del cliente:') || '';
+      clientPhone = prompt('Telefono del cliente (opzionale):') || '';
+      clientEmail = prompt('Email del cliente (opzionale):') || '';
+    }
+    
+    const startDate = new Date(`${date}T${time}:00`);
+    const endDate = new Date(startDate);
+    endDate.setHours(endDate.getHours() + 1); // 1 hour appointment
+    
+    const formatDate = (d) => {
+      const year = d.getUTCFullYear();
+      const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      const hours = String(d.getUTCHours()).padStart(2, '0');
+      const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+      return `${year}${month}${day}T${hours}${minutes}00Z`;
+    };
+    
+    const title = encodeURIComponent(`Consulenza con ${pro.name} - Debito Zero Solvo`);
+    const details = encodeURIComponent(`Appuntamento di consulenza per gestione debiti`);
+    const start = formatDate(startDate);
+    const end = formatDate(endDate);
+    
+    // Format dates for email
+    const eventDate = startDate.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const eventTime = startDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    const eventEndTime = endDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    
+    // Send email to professional with complete appointment details
+    if (pro.email && EMAIL_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
+      const clientFullName = clientName && clientSurname 
+        ? `${clientName} ${clientSurname}`.trim()
+        : clientName || clientSurname || 'Cliente non specificato';
+      
+      const appointmentEmailData = {
+        to_email: pro.email,
+        from_name: 'Debito Zero - Solvo',
+        subject: `📅 Nuova prenotazione: ${eventDate} alle ${eventTime} - ${meetingTypeLabel}`,
+        appointment_professional: pro.name,
+        appointment_date: eventDate,
+        appointment_time: `${eventTime} - ${eventEndTime}`,
+        appointment_duration: '1 ora',
+        appointment_type: meetingTypeLabel,
+        client_name: clientFullName,
+        client_phone: clientPhone || 'Non fornito',
+        client_email: clientEmail || 'Non fornita',
+        appointment_details: `Consulenza per gestione debiti - Debito Zero Solvo\n\nModalità: ${meetingTypeLabel}`,
+        calendar_link: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}`,
+        booking_date: new Date().toLocaleString('it-IT')
+      };
+      
+      // Send appointment notification email
+      emailjs.send(
+        EMAIL_CONFIG.serviceId,
+        EMAIL_CONFIG.templateId,
+        appointmentEmailData
+      ).then(() => {
+        console.log('✅ Email prenotazione inviata a', pro.email);
+      }).catch(err => {
+        console.error('❌ Errore invio email prenotazione:', err);
+      });
+    }
+    
+    // Check if professional has custom calendar link (Cal.com, Calendly, etc.)
+    if (pro.calendarLink && pro.calendarLink !== 'TUO_CALENDAR_LINK' && pro.calendarLink.includes('http') && !pro.calendarLink.includes('calendar.google.com')) {
+      // Custom link (like Cal.com or Calendly) - open directly
+      window.open(pro.calendarLink, '_blank');
+      alert(`✅ Prenotazione confermata!\n\n${pro.name} riceverà una notifica email con i dettagli.\n\nData: ${date} alle ${time}\nModalità: ${meetingTypeLabel}`);
+    } else {
+      // Google Calendar link
+      const googleCalendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}`;
+      window.open(googleCalendarLink, '_blank');
+      
+      alert(`✅ Prenotazione confermata!\n\n${pro.name} riceverà una notifica email con i dettagli.\n\nData: ${date} alle ${time}\nModalità: ${meetingTypeLabel}\n\nAggiungi l'evento al tuo calendario Google.`);
+    }
+    
+    Professionals.closeDetails();
+  },
+  
+  /**
+   * Apply filters and search
+   */
+  applyFilters: () => {
+    const cards = DOM.proGrid.querySelectorAll('.pro-card');
+    const query = Professionals.currentSearch.toLowerCase();
+    const filter = Professionals.currentFilter;
+    
+    cards.forEach(card => {
+      const tags = (card.dataset.tags || '').split(' ');
+      const searchText = card.dataset.searchtext || '';
+      
+      // Check filter
+      const matchesFilter = filter === 'all' || tags.includes(filter);
+      
+      // Check search
+      const matchesSearch = !query || searchText.includes(query);
+      
+      // Show only if both match
+      card.style.display = (matchesFilter && matchesSearch) ? '' : 'none';
+    });
+  },
+  
+  /**
+   * Apply search filter
+   */
+  applySearch: () => {
+    Professionals.currentSearch = DOM.searchInput.value || '';
+    Professionals.applyFilters();
+  },
+  
+  /**
+   * Apply category filter
+   */
+  applyFilter: (filterTag) => {
+    Professionals.currentFilter = filterTag;
+    
+    // Update active chip
+    DOM.filterChips.forEach(chip => {
+      chip.classList.toggle('active', chip.dataset.filter === filterTag);
+    });
+    
+    Professionals.applyFilters();
+  },
+  
+  /**
+   * Load and apply saved professional data to PROFESSIONALS_DATA
+   */
+  loadSavedProfessionalData: () => {
+    try {
+      // Load saved data for all professionals with login credentials
+      PROFESSIONALS_DATA.forEach(pro => {
+        if (pro.loginUsername) {
+          const savedData = localStorage.getItem(`professionalData_${pro.loginUsername}`);
+          if (savedData) {
+            const data = JSON.parse(savedData);
+            const proIndex = PROFESSIONALS_DATA.findIndex(p => p.name === pro.name);
+            if (proIndex !== -1 && data) {
+              // Update professional data with saved values, preserving defaults for missing fields
+              PROFESSIONALS_DATA[proIndex] = {
+                ...PROFESSIONALS_DATA[proIndex],
+                specialty: data.specialty || PROFESSIONALS_DATA[proIndex].specialty,
+                services: data.services || PROFESSIONALS_DATA[proIndex].services,
+                price: data.price || PROFESSIONALS_DATA[proIndex].price,
+                desc: data.desc || PROFESSIONALS_DATA[proIndex].desc,
+                career: data.career || PROFESSIONALS_DATA[proIndex].career,
+                email: data.email || PROFESSIONALS_DATA[proIndex].email,
+                phone: data.phone || PROFESSIONALS_DATA[proIndex].phone,
+                address: data.address || PROFESSIONALS_DATA[proIndex].address,
+                cf: data.cf || PROFESSIONALS_DATA[proIndex].cf,
+                piva: data.piva || PROFESSIONALS_DATA[proIndex].piva
+              };
+            }
+          }
+        }
+      });
+      
+      // Also load legacy data for backward compatibility
+      const saved = localStorage.getItem('professionalData');
+      if (saved) {
+        const data = JSON.parse(saved);
+        const gianlucaIndex = PROFESSIONALS_DATA.findIndex(pro => pro.name === 'Gianluca Collia');
+        if (gianlucaIndex !== -1 && data) {
+          // Update Gianluca's data with saved values, preserving defaults for missing fields
+          PROFESSIONALS_DATA[gianlucaIndex] = {
+            ...PROFESSIONALS_DATA[gianlucaIndex],
+            specialty: data.specialty || PROFESSIONALS_DATA[gianlucaIndex].specialty,
+            services: data.services || PROFESSIONALS_DATA[gianlucaIndex].services,
+            price: data.price || PROFESSIONALS_DATA[gianlucaIndex].price,
+            desc: data.desc || PROFESSIONALS_DATA[gianlucaIndex].desc,
+            career: data.career || PROFESSIONALS_DATA[gianlucaIndex].career,
+            email: data.email || PROFESSIONALS_DATA[gianlucaIndex].email,
+            phone: data.phone || PROFESSIONALS_DATA[gianlucaIndex].phone,
+            address: data.address || PROFESSIONALS_DATA[gianlucaIndex].address,
+            cf: data.cf || PROFESSIONALS_DATA[gianlucaIndex].cf,
+            piva: data.piva || PROFESSIONALS_DATA[gianlucaIndex].piva
+          };
+        }
+      }
+    } catch (e) {
+      console.error('Errore caricamento dati professionista salvati:', e);
+    }
+  },
+  
+  /**
+   * Initialize professionals section
+   */
+  init: () => {
+    // Load saved professional data first
+    Professionals.loadSavedProfessionalData();
+    
+    // Render professionals
+    Professionals.render();
+    
+    // Search input
+    DOM.searchInput.addEventListener('input', Professionals.applySearch);
+    
+    // Filter chips
+    DOM.filterChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        Professionals.applyFilter(chip.dataset.filter);
+      });
+    });
+    
+    // Initialize with 'all' filter
+    Professionals.applyFilter('all');
+  }
+};
+
+// ==================== PROFESSIONAL DASHBOARD ====================
+const ProfessionalDashboard = {
+  /**
+   * Show professional dashboard
+   */
+  show: () => {
+    // Hide all pages first (including wizard and professionals)
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.remove('active');
+      page.hidden = true;
+    });
+    const proPage = document.getElementById('page-professional');
+    if (proPage) {
+      proPage.hidden = false;
+      proPage.classList.add('active');
+      Navigation.updateGlobalBackButton(true);
+      Utils.scrollToTop();
+    }
+  },
+  
+  /**
+   * Save professional data
+   */
+  saveData: () => {
+    const currentPro = JSON.parse(localStorage.getItem('currentProfessional') || '{}');
+    const username = currentPro.username || 'gianluca90';
+    
+    const data = {
+      name: document.getElementById('pro-name')?.value || '',
+      email: document.getElementById('pro-email')?.value || '',
+      phone: document.getElementById('pro-phone')?.value || '',
+      address: document.getElementById('pro-address')?.value || '',
+      cf: document.getElementById('pro-cf')?.value || '',
+      piva: document.getElementById('pro-piva')?.value || '',
+      specialty: document.getElementById('pro-specialty')?.value || '',
+      services: document.getElementById('pro-services')?.value || '',
+      price: parseInt(document.getElementById('pro-price')?.value || '400', 10),
+      desc: document.getElementById('pro-desc')?.value || '',
+      career: document.getElementById('pro-career')?.value || '',
+      lastUpdate: new Date().toISOString()
+    };
+    
+    try {
+      // Save to localStorage with username key
+      localStorage.setItem(`professionalData_${username}`, JSON.stringify(data));
+      
+      // Also save to legacy key for backward compatibility
+      if (username === 'gianluca90') {
+        localStorage.setItem('professionalData', JSON.stringify(data));
+      }
+      
+      // Update PROFESSIONALS_DATA with new data
+      const proIndex = PROFESSIONALS_DATA.findIndex(pro => pro.name === data.name);
+      if (proIndex !== -1) {
+        // Update existing professional data
+        PROFESSIONALS_DATA[proIndex] = {
+          ...PROFESSIONALS_DATA[proIndex],
+          specialty: data.specialty || PROFESSIONALS_DATA[proIndex].specialty,
+          services: data.services || PROFESSIONALS_DATA[proIndex].services,
+          price: data.price || PROFESSIONALS_DATA[proIndex].price,
+          desc: data.desc || PROFESSIONALS_DATA[proIndex].desc,
+          career: data.career || PROFESSIONALS_DATA[proIndex].career,
+          email: data.email || PROFESSIONALS_DATA[proIndex].email,
+          phone: data.phone || PROFESSIONALS_DATA[proIndex].phone,
+          address: data.address || PROFESSIONALS_DATA[proIndex].address
+        };
+        
+        // Re-render professionals list to show updated data
+        Professionals.render();
+      }
+      
+      alert('✅ Dati salvati con successo! Le modifiche sono visibili anche nella lista professionisti.');
+    } catch (e) {
+      console.error('Errore salvataggio:', e);
+      alert('❌ Errore nel salvataggio dei dati');
+    }
+  },
+  
+  /**
+   * Handle file upload
+   */
+  handleFileUpload: async (event) => {
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
+    
+    const maxSize = 5 * 1024 * 1024; // 5MB per file
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/jpg', 'image/png'];
+    
+    for (const file of files) {
+      // Check file size
+      if (file.size > maxSize) {
+        alert(`⚠️ Il file "${file.name}" è troppo grande (max 5MB).`);
+        continue;
+      }
+      
+      // Check file type
+      if (!allowedTypes.includes(file.type)) {
+        alert(`⚠️ Il tipo di file "${file.name}" non è supportato. Usa PDF, DOC, DOCX, JPG o PNG.`);
+        continue;
+      }
+      
+      try {
+        // Try to upload to Supabase first
+        if (supabase) {
+          const fileName = `professional-${Date.now()}-${file.name}`;
+          const filePath = `gianluca-collia/${fileName}`;
+          
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('professional-documents')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+          
+          if (uploadError) {
+            throw uploadError;
+          }
+          
+          // Get public URL
+          const { data: urlData } = supabase.storage
+            .from('professional-documents')
+            .getPublicUrl(filePath);
+          
+          // Save document metadata
+          const documentData = {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            path: filePath,
+            url: urlData.publicUrl,
+            uploadedAt: new Date().toISOString(),
+            storage: 'supabase'
+          };
+          
+          // Save to localStorage for quick access
+          const documents = JSON.parse(localStorage.getItem('professionalDocuments') || '[]');
+          const existingIndex = documents.findIndex(doc => doc.name === file.name && doc.storage === 'supabase');
+          
+          if (existingIndex !== -1) {
+            documents[existingIndex] = documentData;
+          } else {
+            documents.push(documentData);
+          }
+          
+          localStorage.setItem('professionalDocuments', JSON.stringify(documents));
+          ProfessionalDashboard.renderDocuments();
+          
+          alert(`✅ Documento "${file.name}" caricato su Supabase con successo!`);
+        } else {
+          // Fallback to localStorage if Supabase not configured
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const documents = JSON.parse(localStorage.getItem('professionalDocuments') || '[]');
+              const existingIndex = documents.findIndex(doc => doc.name === file.name);
+              
+              const documentData = {
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                data: e.target.result, // Base64 data
+                uploadedAt: new Date().toISOString(),
+                storage: 'localStorage'
+              };
+              
+              if (existingIndex !== -1) {
+                documents[existingIndex] = documentData;
+              } else {
+                documents.push(documentData);
+              }
+              
+              localStorage.setItem('professionalDocuments', JSON.stringify(documents));
+              ProfessionalDashboard.renderDocuments();
+              
+              alert(`✅ Documento "${file.name}" caricato con successo! (salvato localmente)`);
+            } catch (err) {
+              console.error('Errore caricamento documento:', err);
+              alert(`❌ Errore nel caricamento del documento "${file.name}"`);
+            }
+          };
+          
+          reader.onerror = () => {
+            alert(`❌ Errore nella lettura del file "${file.name}"`);
+          };
+          
+          reader.readAsDataURL(file);
+        }
+      } catch (err) {
+        console.error('Errore upload Supabase:', err);
+        alert(`❌ Errore nel caricamento del documento "${file.name}". Verifica la configurazione Supabase.`);
+      }
+    }
+    
+    // Reset input
+    event.target.value = '';
+  },
+  
+  /**
+   * Render documents list
+   */
+  renderDocuments: () => {
+    const container = document.getElementById('documents-list');
+    if (!container) return;
+    
+    try {
+      const documents = JSON.parse(localStorage.getItem('professionalDocuments') || '[]');
+      
+      if (documents.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); font-style: italic; text-align: center; padding: var(--spacing-xl);">Nessun documento caricato</p>';
+        return;
+      }
+      
+      container.innerHTML = documents.map((doc, index) => {
+        const fileSize = (doc.size / 1024).toFixed(2); // KB
+        const uploadDate = new Date(doc.uploadedAt).toLocaleDateString('it-IT');
+        const fileIcon = doc.type.includes('pdf') ? '📄' : doc.type.includes('image') ? '🖼️' : '📝';
+        
+        return `
+          <div class="document-item">
+            <div class="document-info">
+              <span class="document-icon">${fileIcon}</span>
+              <div class="document-details">
+                <div class="document-name">${doc.name}</div>
+                <div class="document-meta">${fileSize} KB • ${uploadDate}</div>
+              </div>
+            </div>
+            <div class="document-actions">
+              <button type="button" class="btn-icon" onclick="ProfessionalDashboard.downloadDocument(${index})" title="Scarica">
+                ⬇️
+              </button>
+              <button type="button" class="btn-icon btn-icon-danger" onclick="ProfessionalDashboard.deleteDocument(${index})" title="Elimina">
+                🗑️
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      console.error('Errore rendering documenti:', e);
+      container.innerHTML = '<p style="color: #f56565;">Errore nel caricamento dei documenti.</p>';
+    }
+  },
+  
+  /**
+   * Download document
+   */
+  downloadDocument: async (index) => {
+    try {
+      const documents = JSON.parse(localStorage.getItem('professionalDocuments') || '[]');
+      const doc = documents[index];
+      
+      if (!doc) {
+        alert('Documento non trovato.');
+        return;
+      }
+      
+      // If stored in Supabase, download from URL
+      if (doc.storage === 'supabase' && doc.url) {
+        window.open(doc.url, '_blank');
+        return;
+      }
+      
+      // If stored in localStorage, convert base64 to blob
+      if (doc.data) {
+        const byteCharacters = atob(doc.data.split(',')[1]);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: doc.type });
+        
+        // Create download link
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+    } catch (e) {
+      console.error('Errore download documento:', e);
+      alert('❌ Errore nel download del documento');
+    }
+  },
+  
+  /**
+   * Delete document
+   */
+  deleteDocument: async (index) => {
+    if (!confirm('Sei sicuro di voler eliminare questo documento?')) {
+      return;
+    }
+    
+    try {
+      const documents = JSON.parse(localStorage.getItem('professionalDocuments') || '[]');
+      const doc = documents[index];
+      
+      if (!doc) {
+        alert('Documento non trovato.');
+        return;
+      }
+      
+      // If stored in Supabase, delete from storage
+      if (doc.storage === 'supabase' && doc.path && supabase) {
+        const { error } = await supabase.storage
+          .from('professional-documents')
+          .remove([doc.path]);
+        
+        if (error) {
+          throw error;
+        }
+      }
+      
+      // Remove from localStorage
+      documents.splice(index, 1);
+      localStorage.setItem('professionalDocuments', JSON.stringify(documents));
+      ProfessionalDashboard.renderDocuments();
+      alert('✅ Documento eliminato con successo!');
+    } catch (e) {
+      console.error('Errore eliminazione documento:', e);
+      alert('❌ Errore nell\'eliminazione del documento');
+    }
+  },
+  
+  /**
+   * Load professional data
+   */
+  loadData: (professional = null) => {
+    try {
+      // Get current professional from localStorage or use provided
+      const currentPro = professional || JSON.parse(localStorage.getItem('currentProfessional') || '{}');
+      
+      // Find professional in PROFESSIONALS_DATA
+      const proData = PROFESSIONALS_DATA.find(pro => pro.name === currentPro.name) || PROFESSIONALS_DATA[0];
+      
+      // Load saved data from localStorage (if exists)
+      const saved = localStorage.getItem(`professionalData_${currentPro.username || 'gianluca90'}`);
+      const savedData = saved ? JSON.parse(saved) : {};
+      
+      // Populate form fields with professional data or saved data
+      if (document.getElementById('pro-name')) {
+        document.getElementById('pro-name').value = savedData.name || proData.name || '';
+        document.getElementById('pro-name').readOnly = true; // Name is readonly
+      }
+      if (document.getElementById('pro-email')) {
+        document.getElementById('pro-email').value = savedData.email || proData.email || '';
+        document.getElementById('pro-email').readOnly = true; // Email is readonly
+      }
+      if (document.getElementById('pro-phone')) document.getElementById('pro-phone').value = savedData.phone || '';
+      if (document.getElementById('pro-address')) document.getElementById('pro-address').value = savedData.address || '';
+      if (document.getElementById('pro-cf')) document.getElementById('pro-cf').value = savedData.cf || '';
+      if (document.getElementById('pro-piva')) document.getElementById('pro-piva').value = savedData.piva || '';
+      if (document.getElementById('pro-specialty')) document.getElementById('pro-specialty').value = savedData.specialty || proData.specialty || '';
+      if (document.getElementById('pro-services')) document.getElementById('pro-services').value = savedData.services || proData.services || '';
+      if (document.getElementById('pro-price')) document.getElementById('pro-price').value = savedData.price || proData.price || '';
+      if (document.getElementById('pro-desc')) document.getElementById('pro-desc').value = savedData.desc || proData.desc || '';
+      if (document.getElementById('pro-career')) document.getElementById('pro-career').value = savedData.career || proData.career || '';
+      
+      // Load and render documents
+      ProfessionalDashboard.renderDocuments();
+    } catch (e) {
+      console.error('Errore caricamento dati:', e);
+    }
+  },
+  
+  /**
+   * Logout
+   */
+  logout: () => {
+    localStorage.removeItem('professionalLoggedIn');
+    Navigation.goToHome();
+  }
+};
+
+// ==================== ADMIN DASHBOARD ====================
+const AdminDashboard = {
+  currentTab: 'requests',
+  
+  /**
+   * Show admin dashboard
+   */
+  show: () => {
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.remove('active');
+      page.hidden = true;
+    });
+    const adminPage = document.getElementById('page-admin');
+    if (adminPage) {
+      adminPage.hidden = false;
+      adminPage.classList.add('active');
+      Navigation.updateGlobalBackButton();
+      AdminDashboard.loadData();
+      Utils.scrollToTop();
+    }
+  },
+  
+  /**
+   * Show tab
+   */
+  showTab: (tab) => {
+    AdminDashboard.currentTab = tab;
+    
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    const activeBtn = document.querySelector(`[onclick="AdminDashboard.showTab('${tab}')"]`);
+    const activeContent = document.getElementById(`admin-${tab}`);
+    
+    if (activeBtn) activeBtn.classList.add('active');
+    if (activeContent) activeContent.classList.add('active');
+    
+    AdminDashboard.loadData();
+  },
+  
+  /**
+   * Load and display data
+   */
+  loadData: () => {
+    if (AdminDashboard.currentTab === 'requests') {
+      AdminDashboard.loadRequests();
+    } else if (AdminDashboard.currentTab === 'professionals') {
+      AdminDashboard.loadProfessionals();
+    } else if (AdminDashboard.currentTab === 'statistics') {
+      AdminDashboard.loadStatistics();
+    }
+  },
+  
+  /**
+   * Load client requests
+   */
+  loadRequests: () => {
+    const container = document.getElementById('requests-list');
+    if (!container) return;
+    
+    try {
+      const allRequests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+      
+      if (allRequests.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); padding: var(--spacing-xl); text-align: center;">Nessuna richiesta ancora ricevuta.</p>';
+        return;
+      }
+      
+      container.innerHTML = allRequests.map((request, index) => `
+        <div class="data-card">
+          <div class="data-card-header">
+            <h3>Richiesta #${allRequests.length - index}</h3>
+            <span class="data-date">${request.date || 'Data non disponibile'}</span>
+          </div>
+          <div class="data-card-body">
+            <div class="data-row">
+              <strong>Cliente:</strong> ${request.name || 'N/A'} ${request.surname || ''}
+            </div>
+            <div class="data-row">
+              <strong>Email:</strong> ${request.email || 'N/A'}
+            </div>
+            <div class="data-row">
+              <strong>Telefono:</strong> ${request.phone || 'N/A'}
+            </div>
+            <div class="data-row">
+              <strong>Tipi di debito:</strong> ${request.debtTypes || 'N/A'}
+            </div>
+            <div class="data-row">
+              <strong>Totale debiti:</strong> ${request.totalAmount || 'N/A'}
+            </div>
+            ${request.debtDetails ? `<div class="data-row"><strong>Dettagli:</strong><pre style="white-space: pre-wrap; margin-top: 8px;">${request.debtDetails}</pre></div>` : ''}
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      console.error('Errore caricamento richieste:', e);
+      container.innerHTML = '<p style="color: #f56565;">Errore nel caricamento delle richieste.</p>';
+    }
+  },
+  
+  /**
+   * Load professionals list
+   */
+  loadProfessionals: () => {
+    const container = document.getElementById('professionals-list');
+    if (!container) return;
+    
+    try {
+      // Get all professionals with login credentials (real professionals)
+      const realProfessionals = PROFESSIONALS_DATA.filter(pro => pro.loginUsername && pro.loginPassword);
+      
+      if (realProfessionals.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); padding: var(--spacing-xl); text-align: center;">Nessun professionista registrato.</p>';
+        return;
+      }
+      
+      container.innerHTML = realProfessionals.map(pro => {
+        // Load saved data for this professional
+        const savedData = localStorage.getItem(`professionalData_${pro.loginUsername}`);
+        const saved = savedData ? JSON.parse(savedData) : {};
+        
+        // Merge with default data
+        const finalPro = {
+          name: saved.name || pro.name,
+          email: saved.email || pro.email,
+          phone: saved.phone || '',
+          specialty: saved.specialty || pro.specialty,
+          services: saved.services || pro.services,
+          price: saved.price || pro.price
+        };
+        
+        return `
+          <div class="data-card">
+            <div class="data-card-header">
+              <h3>${finalPro.name || 'N/A'}</h3>
+            </div>
+            <div class="data-card-body">
+              <div class="data-row">
+                <strong>Email:</strong> ${finalPro.email || 'N/A'}
+              </div>
+              <div class="data-row">
+                <strong>Telefono:</strong> ${finalPro.phone || 'N/A'}
+              </div>
+              <div class="data-row">
+                <strong>Specialità:</strong> ${finalPro.specialty || 'N/A'}
+              </div>
+              <div class="data-row">
+                <strong>Tariffa:</strong> € ${finalPro.price || 'N/A'}
+              </div>
+              ${finalPro.services ? `<div class="data-row"><strong>Servizi:</strong> ${finalPro.services}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      console.error('Errore caricamento professionisti:', e);
+      container.innerHTML = '<p style="color: #f56565;">Errore nel caricamento dei professionisti.</p>';
+    }
+  },
+  
+  /**
+   * Export client requests to CSV
+   */
+  exportRequestsCSV: () => {
+    try {
+      const requests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+      
+      if (requests.length === 0) {
+        alert('Nessuna richiesta da esportare.');
+        return;
+      }
+      
+      // CSV headers
+      const headers = ['Nome', 'Cognome', 'Email', 'Telefono', 'Tipologie Debiti', 'Importo Totale', 'Dettagli Debiti', 'Data Richiesta'];
+      
+      // CSV rows
+      const rows = requests.map(req => [
+        req.name || '',
+        req.surname || '',
+        req.email || '',
+        req.phone || '',
+        req.debtTypes || '',
+        req.totalAmount || '',
+        (req.debtDetails || '').replace(/"/g, '""'), // Escape quotes
+        req.date || ''
+      ]);
+      
+      // Create CSV content
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+      
+      // Add BOM for Excel UTF-8 support
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `richieste-clienti_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log('✅ CSV esportato:', requests.length, 'richieste');
+    } catch (e) {
+      console.error('Errore esportazione CSV:', e);
+      alert('Errore durante l\'esportazione. Riprova.');
+    }
+  },
+  
+  /**
+   * Export professionals to CSV
+   */
+  exportProfessionalsCSV: () => {
+    try {
+      // Get all professionals with login credentials (real professionals)
+      const realProfessionals = PROFESSIONALS_DATA.filter(pro => pro.loginUsername && pro.loginPassword);
+      
+      if (realProfessionals.length === 0) {
+        alert('Nessun professionista da esportare.');
+        return;
+      }
+      
+      // Load saved data for each professional
+      const professionals = realProfessionals.map(pro => {
+        const savedData = localStorage.getItem(`professionalData_${pro.loginUsername}`);
+        const saved = savedData ? JSON.parse(savedData) : {};
+        
+        return {
+          name: saved.name || pro.name,
+          email: saved.email || pro.email,
+          phone: saved.phone || '',
+          address: saved.address || '',
+          cf: saved.cf || '',
+          piva: saved.piva || '',
+          specialty: saved.specialty || pro.specialty,
+          services: saved.services || pro.services,
+          price: saved.price || pro.price,
+          desc: saved.desc || pro.desc || '',
+          career: saved.career || pro.career || ''
+        };
+      });
+      
+      // CSV headers
+      const headers = ['Nome', 'Email', 'Telefono', 'Indirizzo', 'Codice Fiscale', 'Partita IVA', 'Specialità', 'Servizi', 'Tariffa (€)', 'Descrizione', 'Carriera'];
+      
+      // CSV rows
+      const rows = professionals.map(pro => [
+        pro.name || '',
+        pro.email || '',
+        pro.phone || '',
+        pro.address || '',
+        pro.cf || '',
+        pro.piva || '',
+        pro.specialty || '',
+        (pro.services || '').replace(/"/g, '""'),
+        pro.price || '',
+        (pro.desc || '').replace(/"/g, '""'),
+        (pro.career || '').replace(/"/g, '""')
+      ]);
+      
+      // Create CSV content
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+      
+      // Add BOM for Excel UTF-8 support
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `professionisti_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log('✅ CSV esportato:', professionals.length, 'professionisti');
+    } catch (e) {
+      console.error('Errore esportazione CSV:', e);
+      alert('Errore durante l\'esportazione. Riprova.');
+    }
+  },
+  
+  /**
+   * Export client requests to Excel
+   */
+  exportRequestsExcel: () => {
+    try {
+      if (typeof XLSX === 'undefined') {
+        alert('Libreria Excel non caricata. Riprova a ricaricare la pagina.');
+        return;
+      }
+      
+      const requests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+      
+      if (requests.length === 0) {
+        alert('Nessuna richiesta da esportare.');
+        return;
+      }
+      
+      // Prepare data
+      const data = requests.map(req => ({
+        'Nome': req.name || '',
+        'Cognome': req.surname || '',
+        'Email': req.email || '',
+        'Telefono': req.phone || '',
+        'Tipologie Debiti': req.debtTypes || '',
+        'Importo Totale': req.totalAmount || '',
+        'Dettagli Debiti': req.debtDetails || '',
+        'Data Richiesta': req.date || ''
+      }));
+      
+      // Create workbook
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Richieste');
+      
+      // Export
+      XLSX.writeFile(wb, `richieste-clienti_${new Date().toISOString().split('T')[0]}.xlsx`);
+      console.log('✅ Excel esportato:', requests.length, 'richieste');
+    } catch (e) {
+      console.error('Errore esportazione Excel:', e);
+      alert('Errore durante l\'esportazione Excel. Riprova.');
+    }
+  },
+  
+  /**
+   * Export client requests to PDF
+   */
+  exportRequestsPDF: () => {
+    try {
+      if (typeof window.jspdf === 'undefined') {
+        alert('Libreria PDF non caricata. Riprova a ricaricare la pagina.');
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const requests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+      
+      if (requests.length === 0) {
+        alert('Nessuna richiesta da esportare.');
+        return;
+      }
+      
+      const doc = new jsPDF();
+      let yPosition = 20;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 15;
+      
+      // Header
+      doc.setFontSize(18);
+      doc.text('Richieste Clienti - Debito Zero Solvo', margin, yPosition);
+      yPosition += 10;
+      doc.setFontSize(10);
+      doc.text(`Data export: ${new Date().toLocaleDateString('it-IT')}`, margin, yPosition);
+      yPosition += 15;
+      
+      // Table data
+      requests.forEach((req, index) => {
+        // Check if new page needed
+        if (yPosition > pageHeight - 60) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text(`Richiesta #${requests.length - index}`, margin, yPosition);
+        yPosition += 7;
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Data: ${req.date || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Cliente: ${req.name || ''} ${req.surname || ''}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Email: ${req.email || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Telefono: ${req.phone || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Tipi di debito: ${req.debtTypes || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Importo totale: ${req.totalAmount || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        
+        if (req.debtDetails) {
+          const details = doc.splitTextToSize(`Dettagli: ${req.debtDetails}`, 180);
+          doc.text(details, margin, yPosition);
+          yPosition += details.length * 5;
+        }
+        
+        yPosition += 10;
+        
+        // Draw line separator
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, yPosition, 195, yPosition);
+        yPosition += 5;
+      });
+      
+      // Footer
+      const totalPages = doc.internal.pages.length - 1;
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Pagina ${i} di ${totalPages}`, 195, 285, { align: 'right' });
+      }
+      
+      doc.save(`richieste-clienti_${new Date().toISOString().split('T')[0]}.pdf`);
+      console.log('✅ PDF esportato:', requests.length, 'richieste');
+    } catch (e) {
+      console.error('Errore esportazione PDF:', e);
+      alert('Errore durante l\'esportazione PDF. Riprova.');
+    }
+  },
+  
+  /**
+   * Export professionals to Excel
+   */
+  exportProfessionalsExcel: () => {
+    try {
+      if (typeof XLSX === 'undefined') {
+        alert('Libreria Excel non caricata. Riprova a ricaricare la pagina.');
+        return;
+      }
+      
+      // Get all professionals with login credentials (real professionals)
+      const realProfessionals = PROFESSIONALS_DATA.filter(pro => pro.loginUsername && pro.loginPassword);
+      
+      if (realProfessionals.length === 0) {
+        alert('Nessun professionista da esportare.');
+        return;
+      }
+      
+      // Load saved data for each professional
+      const professionals = realProfessionals.map(pro => {
+        const savedData = localStorage.getItem(`professionalData_${pro.loginUsername}`);
+        const saved = savedData ? JSON.parse(savedData) : {};
+        
+        return {
+          name: saved.name || pro.name,
+          email: saved.email || pro.email,
+          phone: saved.phone || '',
+          address: saved.address || '',
+          cf: saved.cf || '',
+          piva: saved.piva || '',
+          specialty: saved.specialty || pro.specialty,
+          services: saved.services || pro.services,
+          price: saved.price || pro.price,
+          desc: saved.desc || pro.desc || '',
+          career: saved.career || pro.career || ''
+        };
+      });
+      
+      // Prepare data
+      const data = professionals.map(pro => ({
+        'Nome': pro.name || '',
+        'Email': pro.email || '',
+        'Telefono': pro.phone || '',
+        'Indirizzo': pro.address || '',
+        'Codice Fiscale': pro.cf || '',
+        'Partita IVA': pro.piva || '',
+        'Specialità': pro.specialty || '',
+        'Servizi': pro.services || '',
+        'Tariffa (€)': pro.price || '',
+        'Descrizione': pro.desc || '',
+        'Carriera': pro.career || ''
+      }));
+      
+      // Create workbook
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Professionisti');
+      
+      // Export
+      XLSX.writeFile(wb, `professionisti_${new Date().toISOString().split('T')[0]}.xlsx`);
+      console.log('✅ Excel esportato:', professionals.length, 'professionisti');
+    } catch (e) {
+      console.error('Errore esportazione Excel:', e);
+      alert('Errore durante l\'esportazione Excel. Riprova.');
+    }
+  },
+  
+  /**
+   * Export professionals to PDF
+   */
+  exportProfessionalsPDF: () => {
+    try {
+      if (typeof window.jspdf === 'undefined') {
+        alert('Libreria PDF non caricata. Riprova a ricaricare la pagina.');
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      
+      // Get all professionals with login credentials (real professionals)
+      const realProfessionals = PROFESSIONALS_DATA.filter(pro => pro.loginUsername && pro.loginPassword);
+      
+      if (realProfessionals.length === 0) {
+        alert('Nessun professionista da esportare.');
+        return;
+      }
+      
+      // Load saved data for each professional
+      const professionals = realProfessionals.map(pro => {
+        const savedData = localStorage.getItem(`professionalData_${pro.loginUsername}`);
+        const saved = savedData ? JSON.parse(savedData) : {};
+        
+        return {
+          name: saved.name || pro.name,
+          email: saved.email || pro.email,
+          phone: saved.phone || '',
+          address: saved.address || '',
+          cf: saved.cf || '',
+          piva: saved.piva || '',
+          specialty: saved.specialty || pro.specialty,
+          services: saved.services || pro.services,
+          price: saved.price || pro.price,
+          desc: saved.desc || pro.desc || '',
+          career: saved.career || pro.career || ''
+        };
+      });
+      
+      const doc = new jsPDF();
+      let yPosition = 20;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 15;
+      
+      // Header
+      doc.setFontSize(18);
+      doc.text('Professionisti - Debito Zero Solvo', margin, yPosition);
+      yPosition += 10;
+      doc.setFontSize(10);
+      doc.text(`Data export: ${new Date().toLocaleDateString('it-IT')}`, margin, yPosition);
+      yPosition += 15;
+      
+      // Professional data
+      professionals.forEach((pro, index) => {
+        // Check if new page needed
+        if (yPosition > pageHeight - 80) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text(`Professionista #${index + 1}`, margin, yPosition);
+        yPosition += 7;
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Nome: ${pro.name || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Email: ${pro.email || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Telefono: ${pro.phone || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Indirizzo: ${pro.address || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Codice Fiscale: ${pro.cf || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Partita IVA: ${pro.piva || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Specialità: ${pro.specialty || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Servizi: ${pro.services || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Tariffa: € ${pro.price || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        
+        if (pro.desc) {
+          const desc = doc.splitTextToSize(`Descrizione: ${pro.desc}`, 180);
+          doc.text(desc, margin, yPosition);
+          yPosition += desc.length * 5;
+        }
+        
+        if (pro.career) {
+          const career = doc.splitTextToSize(`Carriera: ${pro.career}`, 180);
+          doc.text(career, margin, yPosition);
+          yPosition += career.length * 5;
+        }
+        
+        yPosition += 10;
+        
+        // Draw line separator
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, yPosition, 195, yPosition);
+        yPosition += 5;
+      });
+      
+      // Footer
+      const totalPages = doc.internal.pages.length - 1;
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Pagina ${i} di ${totalPages}`, 195, 285, { align: 'right' });
+      }
+      
+      doc.save(`professionisti_${new Date().toISOString().split('T')[0]}.pdf`);
+      console.log('✅ PDF esportato:', professionals.length, 'professionisti');
+    } catch (e) {
+      console.error('Errore esportazione PDF:', e);
+      alert('Errore durante l\'esportazione PDF. Riprova.');
+    }
+  },
+  
+  /**
+   * Load and display statistics
+   */
+  loadStatistics: () => {
+    const container = document.getElementById('statistics-content');
+    if (!container) return;
+    
+    try {
+      const requests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+      
+      // Calculate statistics
+      const totalRequests = requests.length;
+      const totalDebtAmount = requests.reduce((sum, req) => {
+        const amount = parseFloat(req.totalAmount?.replace(/[€\s,]/g, '').replace('.', '') || '0');
+        return sum + amount;
+      }, 0);
+      
+      // Debt types distribution
+      const debtTypesCount = {};
+      requests.forEach(req => {
+        const types = req.debtTypes?.split(', ') || [];
+        types.forEach(type => {
+          debtTypesCount[type] = (debtTypesCount[type] || 0) + 1;
+        });
+      });
+      
+      // Monthly trend (last 6 months)
+      const monthlyData = {};
+      const now = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(now);
+        date.setMonth(date.getMonth() - i);
+        const monthKey = date.toLocaleDateString('it-IT', { year: 'numeric', month: 'long' });
+        monthlyData[monthKey] = 0;
+      }
+      
+      requests.forEach(req => {
+        try {
+          const reqDate = new Date(req.date);
+          const monthKey = reqDate.toLocaleDateString('it-IT', { year: 'numeric', month: 'long' });
+          if (monthlyData.hasOwnProperty(monthKey)) {
+            monthlyData[monthKey]++;
+          }
+        } catch (e) {
+          // Ignore invalid dates
+        }
+      });
+      
+      // Calculate average debt amount
+      const avgDebtAmount = totalRequests > 0 ? totalDebtAmount / totalRequests : 0;
+      
+      // Top debt types
+      const sortedDebtTypes = Object.entries(debtTypesCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+      
+      // Generate HTML
+      const statsHTML = `
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-value">${totalRequests}</div>
+          <div class="stat-label">Richieste Totali</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-value">€ ${totalDebtAmount.toLocaleString('it-IT', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+          <div class="stat-label">Debito Totale Gestito</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">📈</div>
+          <div class="stat-value">€ ${avgDebtAmount.toLocaleString('it-IT', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+          <div class="stat-label">Debito Medio per Cliente</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value">${Object.keys(debtTypesCount).length}</div>
+          <div class="stat-label">Tipologie Debiti Diverse</div>
+        </div>
+        
+        <div class="stat-card-wide">
+          <h3 style="margin-top: 0; margin-bottom: var(--spacing-lg);">Distribuzione Tipologie Debiti</h3>
+          ${sortedDebtTypes.length > 0 ? sortedDebtTypes.map(([type, count]) => {
+            const percentage = totalRequests > 0 ? (count / totalRequests) * 100 : 0;
+            return `
+              <div class="stat-bar-item">
+                <div class="stat-bar-label">
+                  <span>${type}</span>
+                  <span class="stat-bar-count">${count} (${percentage.toFixed(1)}%)</span>
+                </div>
+                <div class="stat-bar-container">
+                  <div class="stat-bar-fill" style="width: ${percentage}%"></div>
+                </div>
+              </div>
+            `;
+          }).join('') : '<p style="color: var(--text-muted);">Nessun dato disponibile</p>'}
+        </div>
+        
+        <div class="stat-card-wide">
+          <h3 style="margin-top: 0; margin-bottom: var(--spacing-lg);">Andamento Mensile (Ultimi 6 Mesi)</h3>
+          ${Object.keys(monthlyData).length > 0 ? Object.entries(monthlyData).map(([month, count]) => {
+            const maxCount = Math.max(...Object.values(monthlyData), 1);
+            const percentage = (count / maxCount) * 100;
+            return `
+              <div class="stat-bar-item">
+                <div class="stat-bar-label">
+                  <span>${month}</span>
+                  <span class="stat-bar-count">${count} richieste</span>
+                </div>
+                <div class="stat-bar-container">
+                  <div class="stat-bar-fill stat-bar-fill-secondary" style="width: ${percentage}%"></div>
+                </div>
+              </div>
+            `;
+          }).join('') : '<p style="color: var(--text-muted);">Nessun dato disponibile</p>'}
+        </div>
+      `;
+      
+      container.innerHTML = statsHTML;
+    } catch (e) {
+      console.error('Errore caricamento statistiche:', e);
+      container.innerHTML = '<p style="color: #f56565;">Errore nel caricamento delle statistiche.</p>';
+    }
+  },
+  
+  /**
+   * Logout
+   */
+  logout: () => {
+    localStorage.removeItem('adminLoggedIn');
+    Navigation.goToHome();
+  }
+};
+
+// ==================== LOGIN HANDLER ====================
+const LoginHandler = {
+  /**
+   * Handle login form submission
+   */
+  handleLogin: () => {
+    const username = document.getElementById('username')?.value.trim();
+    const password = document.getElementById('password')?.value;
+    const errorEl = document.getElementById('login-error');
+    
+    if (!username || !password) {
+      if (errorEl) {
+        errorEl.textContent = 'Inserisci username e password';
+        errorEl.style.display = 'block';
+      }
+      return;
+    }
+    
+    // Check credentials
+    // Find professional by login credentials
+    const professional = PROFESSIONALS_DATA.find(pro => 
+      pro.loginUsername === username && pro.loginPassword === password
+    );
+    
+    if (professional) {
+      // Professional login
+      localStorage.setItem('professionalLoggedIn', 'true');
+      localStorage.setItem('currentProfessional', JSON.stringify({
+        name: professional.name,
+        email: professional.email,
+        username: username
+      }));
+      Navigation.hideProfessionalLogin();
+      ProfessionalDashboard.show();
+      ProfessionalDashboard.loadData(professional);
+    } else if (username === 'admin' && password === 'admin') {
+      // Admin login (for owner)
+      localStorage.setItem('adminLoggedIn', 'true');
+      Navigation.hideProfessionalLogin();
+      AdminDashboard.show();
+    } else {
+      if (errorEl) {
+        errorEl.textContent = 'Username o password non corretti';
+        errorEl.style.display = 'block';
+      }
+    }
+  },
+  
+  /**
+   * Initialize login handlers
+   */
+  init: () => {
+    const submitBtn = document.getElementById('submitLogin');
+    const closeBtn = document.getElementById('closeLoginModal');
+    const modal = document.getElementById('professionalLoginModal');
+    
+    if (submitBtn) {
+      submitBtn.addEventListener('click', LoginHandler.handleLogin);
+    }
+    
+    if (closeBtn) {
+      closeBtn.addEventListener('click', Navigation.hideProfessionalLogin);
+    }
+    
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          Navigation.hideProfessionalLogin();
+        }
+      });
+      
+      // Enter key to submit
+      document.getElementById('loginForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        LoginHandler.handleLogin();
+      });
+    }
+  }
+};
+
+// ==================== APP INITIALIZATION ====================
+const App = {
+  init: () => {
+    EmailService.init();
+    Wizard.init();
+    Modal.init();
+    Professionals.init();
+    LoginHandler.init();
+    
+    // Ensure the app always starts from the home wizard
+    Navigation.goToHome();
+    
+    // Avoid automatic redirects to reserved areas on refresh
+    localStorage.removeItem('professionalLoggedIn');
+    localStorage.removeItem('adminLoggedIn');
+    localStorage.removeItem('currentProfessional');
+    
+    console.log('✅ Debito Zero - Solvo app initialized');
+  }
+};
+
+// Start app when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', App.init);
+} else {
+  App.init();
+}
+

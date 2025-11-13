@@ -1,0 +1,10 @@
+[build]
+  publish = "."
+  command = "echo 'Site ready'"
+
+# Redirect tutte le richieste a index.html (SPA routing)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+

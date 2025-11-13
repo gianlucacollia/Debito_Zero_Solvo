@@ -1,0 +1,124 @@
+════════════════════════════════════════════════════════════
+   TEMPLATE EMAIL PRENOTAZIONE - Debito Zero - Solvo
+════════════════════════════════════════════════════════════
+
+📧 Template da usare in EmailJS per le notifiche di prenotazione
+   per i professionisti (es. Gianluca Collia)
+
+════════════════════════════════════════════════════════════
+📝 OGGETTO EMAIL (Subject):
+════════════════════════════════════════════════════════════
+
+{{subject}}
+
+OPPURE:
+
+Nuova prenotazione: {{appointment_date}} alle {{appointment_time}}
+
+
+════════════════════════════════════════════════════════════
+📄 CORPO EMAIL (Body):
+════════════════════════════════════════════════════════════
+
+🔔 NUOVA PRENOTAZIONE - Debito Zero - Solvo
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Hai ricevuto una nuova prenotazione tramite la piattaforma!
+
+📋 DETTAGLI APPUNTAMENTO:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Professionista: {{appointment_professional}}
+• Data: {{appointment_date}}
+• Orario: {{appointment_time}}
+• Durata: {{appointment_duration}}
+
+👤 DATI CLIENTE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Nome completo: {{client_name}}
+• Telefono: {{client_phone}}
+• Email: {{client_email}}
+
+📅 AGGIUNGI AL CALENDARIO:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Clicca qui per aggiungere l'appuntamento al tuo calendario:
+{{calendar_link}}
+
+📝 NOTE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{{appointment_details}}
+
+⏰ Prenotazione effettuata il: {{booking_date}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Questo messaggio è stato inviato automaticamente da
+Debito Zero - Solvo (piattaforma gestione debiti)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+════════════════════════════════════════════════════════════
+🔧 COME CONFIGURARE:
+════════════════════════════════════════════════════════════
+
+1. Vai su EmailJS: https://www.emailjs.com
+
+2. Crea un NUOVO template email (o modifica quello esistente)
+
+3. Nel campo "Subject" inserisci:
+   {{subject}}
+
+4. Nel campo "Content" copia e incolla il template sopra
+
+5. Salva il template e copia il "Template ID"
+
+6. Nel file app.js, assicurati che EMAIL_CONFIG.templateId
+   sia corretto (puoi usare lo stesso template per entrambi
+   i tipi di email, o crearne uno separato)
+
+7. IMPORTANTE: Assicurati che l'email del professionista
+   sia corretta in PROFESSIONALS_DATA:
+   
+   email: "gianluca.collia@gmail.com"
+
+
+════════════════════════════════════════════════════════════
+💡 SUGGERIMENTI:
+════════════════════════════════════════════════════════════
+
+• Puoi personalizzare il template come preferisci
+• Aggiungi il tuo logo o branding
+• Personalizza i colori e lo stile HTML
+• Aggiungi link diretti a Google Calendar
+• Include informazioni aggiuntive se necessario
+
+
+════════════════════════════════════════════════════════════
+✅ VARIABILI DISPONIBILI:
+════════════════════════════════════════════════════════════
+
+{{subject}}                  → Oggetto email
+{{appointment_professional}} → Nome professionista
+{{appointment_date}}         → Data appuntamento (formato esteso)
+{{appointment_time}}         → Orario (es. "09:00 - 10:00")
+{{appointment_duration}}    → Durata (es. "1 ora")
+{{client_name}}              → Nome completo cliente
+{{client_phone}}             → Telefono cliente
+{{client_email}}             → Email cliente
+{{appointment_details}}      → Dettagli appuntamento
+{{calendar_link}}            → Link per aggiungere al calendario
+{{booking_date}}             → Data/ora della prenotazione
+
+
+════════════════════════════════════════════════════════════
+🎯 TEST:
+════════════════════════════════════════════════════════════
+
+Dopo aver configurato:
+1. Vai sulla sezione "Professionisti"
+2. Seleziona "Gianluca Collia"
+3. Scegli una data e un orario
+4. Conferma la prenotazione
+5. Controlla gianluca.collia@gmail.com!
+
+
+Buon lavoro! 🚀
+

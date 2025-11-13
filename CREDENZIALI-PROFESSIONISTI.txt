@@ -1,0 +1,67 @@
+════════════════════════════════════════════════════════════
+   CREDENZIALI ACCESSO PROFESSIONISTI
+   Debito Zero - Solvo
+════════════════════════════════════════════════════════════
+
+🔐 ACCESSO DASHBOARD PROFESSIONISTI
+
+Per accedere alla dashboard professionale:
+1. Clicca "Area Professionisti" in alto a destra
+2. Inserisci username e password
+
+════════════════════════════════════════════════════════════
+📋 PROFESSIONISTI REGISTRATI
+════════════════════════════════════════════════════════════
+
+1. GIANLUCA COLLIA
+   ──────────────────────────────────────────────
+   Username: gianluca90
+   Password: gianluca90
+   
+   Email: gianluca.collia@gmail.com
+   Specialità: Consulente Gestione Crisi Debitoria
+   Tariffa: € 400
+
+────────────────────────────────────────────────────────────
+
+2. AVV. ELENA ROSSI
+   ──────────────────────────────────────────────
+   Username: elenarossi
+   Password: elena2024
+   
+   Email: elena.rossi@studiolegale.it
+   Specialità: Avvocato Specializzato in Diritto Tributario e Fallimentare
+   Tariffa: € 550
+   
+   Descrizione:
+   Avvocato con consolidata esperienza in diritto tributario e 
+   procedure concorsuali. Supporta privati e imprese nella 
+   risoluzione di situazioni debitorie complesse attraverso 
+   percorsi legali strutturati.
+   
+   Carriera:
+   Laureata in Giurisprudenza con lode, iscritta all'Albo degli 
+   Avvocati. Specializzata in diritto tributario e fallimentare, 
+   ha maturato oltre 15 anni di esperienza nel contenzioso con 
+   Agenzia delle Entrate, Equitalia e procedure concorsuali. 
+   Ha assistito centinaia di clienti in procedure di saldo e 
+   stralcio, composizione delle crisi e rinegoziazione debiti.
+
+════════════════════════════════════════════════════════════
+👤 ACCESSO ADMIN
+════════════════════════════════════════════════════════════
+
+Username: admin
+Password: admin
+
+════════════════════════════════════════════════════════════
+📝 NOTE
+════════════════════════════════════════════════════════════
+
+- Ogni professionista ha la propria dashboard personalizzata
+- I dati vengono salvati separatamente per ogni professionista
+- Le modifiche si riflettono automaticamente nella lista pubblica
+- I professionisti sono visibili sia nella lista clienti che admin
+
+════════════════════════════════════════════════════════════
+

@@ -1,0 +1,166 @@
+════════════════════════════════════════════════════════════
+   SETUP GIT E GITHUB - Debito Zero - Solvo
+════════════════════════════════════════════════════════════
+
+Questa guida ti aiuta a collegare il progetto direttamente a GitHub
+per caricare automaticamente gli aggiornamenti.
+
+════════════════════════════════════════════════════════════
+📋 OPZIONE 1: GITHUB DESKTOP (CONSIGLIATO - PIÙ SEMPLICE)
+════════════════════════════════════════════════════════════
+
+1. SCARICA GITHUB DESKTOP
+   ──────────────────────────────────────────────
+   • Vai su: https://desktop.github.com
+   • Scarica e installa GitHub Desktop
+   • Accedi con il tuo account GitHub
+
+2. COLLEGA IL PROGETTO
+   ──────────────────────────────────────────────
+   • Apri GitHub Desktop
+   • File → Add Local Repository
+   • Seleziona la cartella: "C:\Users\gianl\OneDrive\Desktop\Debito Zero"
+   • Se ti chiede se inizializzare un repository, clicca "Sì"
+
+3. PUBBLICA SU GITHUB
+   ──────────────────────────────────────────────
+   • Se il repository non è ancora su GitHub:
+     - File → Publish Repository
+     - Scegli nome: "Debito Zero" (o come preferisci)
+     - Deseleziona "Keep this code private" se vuoi pubblico
+     - Clicca "Publish Repository"
+   
+   • Se il repository esiste già su GitHub:
+     - GitHub Desktop si collegherà automaticamente
+     - Clicca "Fetch origin" per sincronizzare
+
+4. CARICA AGGIORNAMENTI
+   ──────────────────────────────────────────────
+   • Ogni volta che modifichi i file:
+     - GitHub Desktop mostra i file modificati
+     - Scrivi un messaggio di commit (es. "Aggiunto nuova funzionalità")
+     - Clicca "Commit to main"
+     - Clicca "Push origin" per caricare su GitHub
+
+════════════════════════════════════════════════════════════
+💻 OPZIONE 2: GIT DA TERMINALE (PIÙ AVANZATO)
+════════════════════════════════════════════════════════════
+
+1. INSTALLA GIT
+   ──────────────────────────────────────────────
+   • Scarica da: https://git-scm.com/download/win
+   • Installa Git (usa le impostazioni predefinite)
+   • Riavvia il terminale
+
+2. CONFIGURA GIT (PRIMA VOLTA)
+   ──────────────────────────────────────────────
+   Apri PowerShell o CMD nella cartella del progetto e esegui:
+   
+   git config --global user.name "Tuo Nome"
+   git config --global user.email "tua.email@example.com"
+
+3. COLLEGA IL PROGETTO A GITHUB
+   ──────────────────────────────────────────────
+   
+   A) Se il repository NON esiste ancora su GitHub:
+   
+      cd "C:\Users\gianl\OneDrive\Desktop\Debito Zero"
+      git init
+      git add .
+      git commit -m "Primo commit - Debito Zero Solvo"
+      
+      # Crea un nuovo repository su GitHub (vai su github.com → New Repository)
+      # Poi collega:
+      git remote add origin https://github.com/TUO-USERNAME/DEBITO-ZERO.git
+      git branch -M main
+      git push -u origin main
+   
+   B) Se il repository ESISTE già su GitHub:
+   
+      cd "C:\Users\gianl\OneDrive\Desktop\Debito Zero"
+      git init
+      git remote add origin https://github.com/TUO-USERNAME/DEBITO-ZERO.git
+      git branch -M main
+      git pull origin main --allow-unrelated-histories
+      git add .
+      git commit -m "Aggiornamento progetto"
+      git push -u origin main
+
+4. CARICA AGGIORNAMENTI (OGNI VOLTA)
+   ──────────────────────────────────────────────
+   
+   cd "C:\Users\gianl\OneDrive\Desktop\Debito Zero"
+   git add .
+   git commit -m "Descrizione delle modifiche"
+   git push origin main
+
+════════════════════════════════════════════════════════════
+🔐 AUTENTICAZIONE GITHUB (IMPORTANTE)
+════════════════════════════════════════════════════════════
+
+GitHub non accetta più password. Devi usare:
+
+1. PERSONAL ACCESS TOKEN (per Git da terminale)
+   ──────────────────────────────────────────────
+   • Vai su: https://github.com/settings/tokens
+   • Generate new token → Generate new token (classic)
+   • Dai un nome (es. "Debito Zero")
+   • Seleziona scadenza (90 giorni o senza scadenza)
+   • Seleziona permessi: repo (tutti i permessi repo)
+   • Generate token
+   • COPIA IL TOKEN (lo vedi solo una volta!)
+   
+   Quando fai push, usa il token come password:
+   Username: il tuo username GitHub
+   Password: il token copiato
+
+2. GITHUB DESKTOP (automatico)
+   ──────────────────────────────────────────────
+   GitHub Desktop gestisce l'autenticazione automaticamente.
+   Devi solo accedere una volta.
+
+════════════════════════════════════════════════════════════
+⚡ COMANDI RAPIDI (se hai già Git configurato)
+════════════════════════════════════════════════════════════
+
+# Vedi stato file modificati
+git status
+
+# Aggiungi tutti i file modificati
+git add .
+
+# Crea commit con messaggio
+git commit -m "Messaggio descrittivo"
+
+# Carica su GitHub
+git push origin main
+
+# Scarica aggiornamenti da GitHub
+git pull origin main
+
+════════════════════════════════════════════════════════════
+❓ DOMANDE FREQUENTI
+════════════════════════════════════════════════════════════
+
+Q: Quale metodo è meglio?
+A: GitHub Desktop è più semplice e visuale. Git da terminale è più potente.
+
+Q: Posso usare entrambi?
+A: Sì! Puoi usare GitHub Desktop per il lavoro quotidiano e Git da terminale per operazioni avanzate.
+
+Q: Cosa succede se non ho ancora un repository su GitHub?
+A: GitHub Desktop può crearlo automaticamente. Oppure vai su github.com → New Repository.
+
+Q: I miei file sono al sicuro?
+A: Sì, GitHub è sicuro. Puoi anche rendere il repository privato se vuoi.
+
+════════════════════════════════════════════════════════════
+📞 SUPPORTO
+════════════════════════════════════════════════════════════
+
+• Documentazione GitHub Desktop: https://docs.github.com/en/desktop
+• Documentazione Git: https://git-scm.com/doc
+• Guida GitHub: https://guides.github.com
+
+════════════════════════════════════════════════════════════
+

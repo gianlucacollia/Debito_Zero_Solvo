@@ -1,0 +1,79 @@
+════════════════════════════════════════════════════════════
+   AGGIORNA GITHUB - Debito Zero - Solvo
+════════════════════════════════════════════════════════════
+
+📅 Data aggiornamento: $(Get-Date -Format "dd/MM/yyyy HH:mm")
+
+════════════════════════════════════════════════════════════
+📝 FILE MODIFICATI (da caricare su GitHub)
+════════════════════════════════════════════════════════════
+
+✅ app.js - Aggiunto secondo professionista, modal appuntamento, export multipli
+✅ styles.css - Stili per modal appuntamento, miglioramento stile "invio email"
+✅ index.html - Aggiunte librerie jsPDF e XLSX
+✅ README.md - Aggiornato con nuove funzionalità
+✅ AGGIORNAMENTI-RECENTI.txt - File con changelog
+✅ CREDENZIALI-PROFESSIONISTI.txt - Credenziali professionisti
+
+════════════════════════════════════════════════════════════
+🚀 METODO 1: GITHUB DESKTOP (CONSIGLIATO)
+════════════════════════════════════════════════════════════
+
+1. Apri GitHub Desktop
+2. Seleziona il repository "Debito Zero" (o il nome del tuo repo)
+3. Vedrai tutti i file modificati nell'elenco
+4. Scrivi un messaggio di commit:
+   "Aggiunto secondo professionista, scelta modalità incontro, export multipli"
+5. Clicca "Commit to main" (o al branch che stai usando)
+6. Clicca "Push origin" per caricare su GitHub
+
+════════════════════════════════════════════════════════════
+🌐 METODO 2: GITHUB WEB (se non hai GitHub Desktop)
+════════════════════════════════════════════════════════════
+
+1. Vai su https://github.com
+2. Apri il tuo repository "Debito Zero"
+3. Clicca "Add file" → "Upload files"
+4. Trascina i file modificati:
+   - app.js
+   - styles.css
+   - index.html
+   - README.md (se modificato)
+   - AGGIORNAMENTI-RECENTI.txt
+   - CREDENZIALI-PROFESSIONISTI.txt
+5. Scrivi un messaggio di commit:
+   "Aggiunto secondo professionista, scelta modalità incontro, export multipli"
+6. Clicca "Commit changes"
+
+════════════════════════════════════════════════════════════
+📦 METODO 3: GIT DA TERMINALE (se hai Git installato)
+════════════════════════════════════════════════════════════
+
+cd "C:\Users\gianl\OneDrive\Desktop\Debito Zero"
+git add .
+git commit -m "Aggiunto secondo professionista, scelta modalità incontro, export multipli"
+git push origin main
+
+════════════════════════════════════════════════════════════
+✨ NUOVE FUNZIONALITÀ DA TESTARE
+════════════════════════════════════════════════════════════
+
+1. ✅ Secondo professionista "Avv. Elena Rossi"
+   - Login: elenarossi / elena2024
+   - Visibile nella lista professionisti
+   - Dashboard professionale separata
+
+2. ✅ Scelta modalità incontro
+   - Modal di conferma con scelta "In Presenza" o "Remoto"
+   - Informazione inclusa nell'email al professionista
+
+3. ✅ Export multipli (CSV, Excel, PDF)
+   - Disponibile nella Dashboard Admin
+   - Funziona per richieste e professionisti
+
+4. ✅ Stile migliorato "Invio email in corso"
+   - Gradiente blu elegante
+   - Animazione pulse
+
+════════════════════════════════════════════════════════════
+

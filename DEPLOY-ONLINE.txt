@@ -1,0 +1,67 @@
+════════════════════════════════════════════════════════════
+   PUBBLICA IL SITO ONLINE - Debito Zero - Solvo
+════════════════════════════════════════════════════════════
+
+🚀 METODO RAPIDO: Netlify Drop (2 minuti)
+════════════════════════════════════════════════════════════
+
+1. Vai su: https://app.netlify.com/drop
+
+2. NON serve registrazione (puoi farla dopo)
+
+3. Trascina la cartella "Debito Zero" nella pagina
+
+4. Aspetta 1-2 minuti mentre Netlify carica i file
+
+5. Ottieni il link automatico tipo:
+   https://random-name-123.netlify.app
+
+✅ FATTO! Il sito è online e funzionante!
+
+⚠️ IMPORTANTE:
+   - Il link sarà attivo finché non chiudi la pagina
+   - Per renderlo permanente, crea un account gratuito
+   - Puoi anche rinominare il link in: https://debito-zero-solvo.netlify.app
+
+
+════════════════════════════════════════════════════════════
+🌐 METODO ALTERNATIVO: Vercel (altrettanto veloce)
+════════════════════════════════════════════════════════════
+
+1. Vai su: https://vercel.com
+
+2. Clicca "Sign Up" (puoi usare Google/GitHub)
+
+3. Clicca "Add New" > "Import Project"
+
+4. Seleziona la cartella "Debito Zero"
+
+5. Clicca "Deploy"
+
+6. Ottieni il link tipo: https://debito-zero-solvo.vercel.app
+
+
+════════════════════════════════════════════════════════════
+📦 METODO AVANZATO: GitHub Pages
+════════════════════════════════════════════════════════════
+
+Se hai già caricato su GitHub:
+1. Vai su: https://github.com/tuonome/debito-zero
+2. Settings > Pages
+3. Source: main branch
+4. Ottieni: https://tuonome.github.io/debito-zero
+
+
+════════════════════════════════════════════════════════════
+💡 CONSIGLIO
+════════════════════════════════════════════════════════════
+
+Netlify Drop è il metodo PIÙ VELOCE:
+✅ Zero configurazione
+✅ Nessuna registrazione obbligatoria
+✅ Link in 1-2 minuti
+✅ HTTPS automatico
+✅ Funziona subito
+
+Buon deploy! 🚀
+

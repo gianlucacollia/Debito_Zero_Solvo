@@ -1,0 +1,84 @@
+═══════════════════════════════════════════════════════════════════════
+   🔧 RISOLVI ERRORE 404 "Page not found" SU NETLIFY (RAPIDO)
+═══════════════════════════════════════════════════════════════════════
+
+❌ PROBLEMA: Netlify mostra "Page not found" dopo il deploy.
+
+═══════════════════════════════════════════════════════════════════════
+✅ SOLUZIONE RAPIDA (3 PASSI)
+═══════════════════════════════════════════════════════════════════════
+
+🔹 PASSO 1: VERIFICA SU GITHUB
+   → Vai su GitHub: https://github.com
+   → Apri il repository (es. debito-zero-solvo)
+   → Verifica che index.html sia nella ROOT del repository
+   → NON deve essere in una sottocartella (es. src/index.html)
+   → Deve essere direttamente nella root
+
+🔹 PASSO 2: VERIFICA CONFIGURAZIONE NETLIFY
+   → Vai su Netlify: https://app.netlify.com
+   → Clicca sul tuo sito
+   → Vai su "Site settings" → "Build & deploy"
+   → Sezione "Build settings":
+     • Base directory: (lascia vuoto)
+     • Build command: (lascia vuoto)
+     • Publish directory: (lascia vuoto o metti /)
+   → Se "Publish directory" è configurato (es. /dist):
+     • Cambialo in vuoto o /
+     • Clicca "Save"
+
+🔹 PASSO 3: CLEAR CACHE E REDEPLOY
+   → Vai su "Deploys" (in alto)
+   → Clicca "Trigger deploy" → "Clear cache and deploy site"
+   → Attendi il deploy (1-2 minuti)
+   → Verifica che il sito funzioni
+
+═══════════════════════════════════════════════════════════════════════
+🔍 VERIFICA STRUTTURA FILE SU GITHUB
+═══════════════════════════════════════════════════════════════════════
+
+La struttura corretta dovrebbe essere:
+
+debito-zero-solvo/
+├── index.html       ← DEVE essere qui (ROOT)
+├── app.js
+├── styles.css
+├── netlify.toml
+├── README.md
+└── ...
+
+❌ SBAGLIATO:
+debito-zero-solvo/
+└── src/
+    └── index.html   ← NON qui!
+
+✅ GIUSTO:
+debito-zero-solvo/
+├── index.html       ← Qui nella ROOT
+├── app.js
+└── styles.css
+
+═══════════════════════════════════════════════════════════════════════
+🔧 SE IL PROBLEMA PERSISTE
+═══════════════════════════════════════════════════════════════════════
+
+1. Verifica che index.html sia nella root di GitHub
+2. Controlla i log di deploy su Netlify (Deploys → View logs)
+3. Assicurati che netlify.toml sia nella root
+4. Prova a rimuovere netlify.toml temporaneamente e configura manualmente
+
+═══════════════════════════════════════════════════════════════════════
+✅ CHECKLIST
+═══════════════════════════════════════════════════════════════════════
+
+☑ index.html è nella root di GitHub
+☑ netlify.toml è nella root di GitHub
+☑ Publish directory su Netlify è vuoto o /
+☑ Build command su Netlify è vuoto
+☑ Cache cleared e redeploy fatto
+☑ Deploy completato con successo
+
+═══════════════════════════════════════════════════════════════════════
+
+Buona fortuna! 🚀
+

@@ -1,0 +1,103 @@
+════════════════════════════════════════════════════════════
+   ACCESSO DASHBOARD - Debito Zero - Solvo
+════════════════════════════════════════════════════════════
+
+🔐 CREDENZIALI DI ACCESSO
+════════════════════════════════════════════════════════════
+
+📍 AREA PROFESSIONISTI:
+   Username: gianluca90
+   Password: gianluca90
+   
+   → Clicca "Area Professionisti" in alto a destra
+   → Inserisci le credenziali
+   → Accedi alla dashboard per modificare i tuoi dati
+
+📍 AREA AMMINISTRAZIONE (Proprietario):
+   Username: admin
+   Password: admin
+   
+   → Clicca "Area Professionisti" in alto a destra
+   → Inserisci le credenziali admin
+   → Accedi alla dashboard per vedere tutte le richieste
+
+════════════════════════════════════════════════════════════
+📋 FUNZIONALITÀ DASHBOARD PROFESSIONISTA
+════════════════════════════════════════════════════════════
+
+✅ Dati Anagrafici:
+   - Nome Completo (non modificabile)
+   - Email (non modificabile)
+   - Telefono (modificabile)
+   - Indirizzo (modificabile)
+   - Codice Fiscale (modificabile)
+   - Partita IVA (modificabile)
+
+✅ Dati Professionali:
+   - Specialità (modificabile)
+   - Servizi Offerti (modificabile)
+   - Tariffa Base (modificabile)
+   - Descrizione (modificabile)
+   - Carriera (modificabile)
+
+✅ Salvataggio:
+   - Clicca "Salva Modifiche" per salvare
+   - I dati vengono salvati in LocalStorage
+   - Vengono visualizzati anche nella dashboard admin
+
+════════════════════════════════════════════════════════════
+📊 FUNZIONALITÀ DASHBOARD ADMIN
+════════════════════════════════════════════════════════════
+
+✅ Tab "Richieste Clienti":
+   - Vedi tutte le richieste inviate dai clienti
+   - Dati anagrafici completi
+   - Tipi di debito e importi
+   - Dettagli creditori
+   - Data e ora della richiesta
+
+✅ Tab "Professionisti":
+   - Lista di tutti i professionisti iscritti
+   - Dati anagrafici e professionali
+   - Tariffe e servizi
+
+════════════════════════════════════════════════════════════
+💾 DOVE SONO SALVATI I DATI
+════════════════════════════════════════════════════════════
+
+Tutti i dati vengono salvati nel LocalStorage del browser:
+
+📁 clientRequests → Array con tutte le richieste clienti
+📁 professionalData → Dati del professionista loggato
+📁 professionalLoggedIn → Flag login professionista
+📁 adminLoggedIn → Flag login admin
+
+⚠️ NOTA: I dati sono salvati localmente nel browser.
+   Se vuoi un backup permanente, considera di esportare
+   i dati periodicamente o implementare un backend.
+
+════════════════════════════════════════════════════════════
+🔧 COME FUNZIONA
+════════════════════════════════════════════════════════════
+
+1. Cliente compila il wizard
+2. Invia la richiesta
+3. La richiesta viene salvata automaticamente in clientRequests
+4. Tu (admin) accedi con admin/admin
+5. Vedi tutte le richieste nel tab "Richieste Clienti"
+
+Ogni volta che un cliente invia una richiesta, viene aggiunta
+automaticamente alla lista visibile nella dashboard admin.
+
+════════════════════════════════════════════════════════════
+🚀 PROSSIMI PASSI (Opzionali)
+════════════════════════════════════════════════════════════
+
+Per migliorare il sistema puoi:
+- Aggiungere esportazione dati in CSV/Excel
+- Implementare un backend per salvataggio permanente
+- Aggiungere filtri e ricerca nella dashboard admin
+- Aggiungere statistiche e grafici
+
+Buon lavoro! 🚀
+

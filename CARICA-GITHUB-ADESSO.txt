@@ -1,0 +1,112 @@
+════════════════════════════════════════════════════════════
+   CARICARE SU GITHUB - Debito Zero - Solvo
+════════════════════════════════════════════════════════════
+
+📦 TUTTI I FILE SONO GIÀ SALVATI LOCALMENTE!
+   Cartella: C:\Users\gianl\OneDrive\Desktop\Debito Zero
+
+════════════════════════════════════════════════════════════
+🚀 METODO 1: GitHub Desktop (PIÙ SEMPLICE)
+════════════════════════════════════════════════════════════
+
+1. Scarica GitHub Desktop (se non ce l'hai):
+   https://desktop.github.com/
+
+2. Installa e accedi con il tuo account GitHub
+
+3. Clicca "File" > "Add Local Repository"
+
+4. Seleziona la cartella:
+   C:\Users\gianl\OneDrive\Desktop\Debito Zero
+
+5. Se non è un repository Git:
+   - Clicca "Create a repository"
+   - Nome: "Debito-Zero-Solvo" (o come preferisci)
+   - Cartella: C:\Users\gianl\OneDrive\Desktop\Debito Zero
+   - Clicca "Create repository"
+
+6. Nel pannello sinistro vedrai tutti i file modificati
+
+7. In basso, scrivi un messaggio di commit:
+   "Aggiornamento completo: dashboard, login, UX migliorata"
+
+8. Clicca "Commit to main"
+
+9. Clicca "Publish repository" (se non ancora pubblicato)
+   oppure "Push origin" (se già pubblicato)
+
+✅ FATTO! Il tuo codice è su GitHub!
+
+
+════════════════════════════════════════════════════════════
+🌐 METODO 2: GitHub Web (Senza installare nulla)
+════════════════════════════════════════════════════════════
+
+1. Vai su: https://github.com
+
+2. Accedi al tuo account
+
+3. Clicca il pulsante "+" in alto a destra > "New repository"
+
+4. Nome repository: "Debito-Zero-Solvo"
+   (o come preferisci)
+
+5. Descrizione: "Piattaforma per gestione debiti con wizard e dashboard professionisti"
+
+6. Scegli "Public" o "Private"
+
+7. NON spuntare "Initialize with README"
+
+8. Clicca "Create repository"
+
+9. GitHub ti mostrerà le istruzioni
+
+10. Scarica GitHub Desktop (come sopra) oppure usa Git Bash
+
+11. Se usi Git Bash:
+    cd "c:\Users\gianl\OneDrive\Desktop\Debito Zero"
+    git init
+    git add .
+    git commit -m "Aggiornamento completo: dashboard, login, UX migliorata"
+    git branch -M main
+    git remote add origin https://github.com/TUO-USERNAME/Debito-Zero-Solvo.git
+    git push -u origin main
+
+    (Sostituisci TUO-USERNAME con il tuo username GitHub)
+
+
+════════════════════════════════════════════════════════════
+📋 FILE DA CARICARE
+════════════════════════════════════════════════════════════
+
+Tutti questi file sono pronti nella cartella:
+
+✅ index.html           → Pagina principale
+✅ styles.css           → Stili completi
+✅ app.js               → Logica JavaScript
+✅ README.md            → Documentazione
+✅ CONFIG-EMAIL.txt     → Guida configurazione email
+✅ ACCESSO-DASHBOARD.txt → Credenziali dashboard
+✅ Altri file di supporto
+
+════════════════════════════════════════════════════════════
+💡 CONSIGLIO
+════════════════════════════════════════════════════════════
+
+Usa GitHub Desktop: è il metodo più semplice e veloce!
+
+Se hai già un repository GitHub esistente:
+1. Apri GitHub Desktop
+2. File > Add Local Repository
+3. Seleziona la cartella
+4. Commit e Push
+
+════════════════════════════════════════════════════════════
+✅ TUTTO SALVATO LOCALMENTE!
+════════════════════════════════════════════════════════════
+
+Tutti i file sono già salvati in:
+C:\Users\gianl\OneDrive\Desktop\Debito Zero
+
+Puoi procedere con GitHub quando vuoi! 🚀
+

@@ -1,0 +1,104 @@
+════════════════════════════════════════════════════════════
+   SETUP RAPIDO - EmailJS + Supabase
+   Debito Zero - Solvo
+════════════════════════════════════════════════════════════
+
+🚀 GUIDA RAPIDA PER CONFIGURARE TUTTO (10 minuti)
+
+════════════════════════════════════════════════════════════
+STEP 1: EMAILJS (5 minuti)
+════════════════════════════════════════════════════════════
+
+1. Vai su https://www.emailjs.com/ e accedi
+
+2. Crea Service:
+   - Email Services → Add New Service
+   - Scegli Gmail (o altro)
+   - Connetti account
+   - COPIA il Service ID (es. service_abc123)
+
+3. Crea Template:
+   - Email Templates → Create New Template
+   - Subject: Nuova richiesta - {{from_name}}
+   - Body:
+     Nome: {{from_name}}
+     Email: {{from_email}}
+     Telefono: {{phone}}
+     Debiti: {{debt_types}}
+     Importo: {{debt_amount}}
+     Dettagli: {{debt_details}}
+     Data: {{submission_date}}
+   - COPIA il Template ID (es. template_xyz789)
+
+4. Ottieni Public Key:
+   - Account → General
+   - COPIA la Public Key
+
+5. Aggiorna app.js (riga 3-8):
+   const EMAIL_CONFIG = {
+     serviceId: 'service_abc123',  // ← Incolla qui
+     templateId: 'template_xyz789', // ← Incolla qui
+     publicKey: 'xxxxxxxx',         // ← Incolla qui
+     recipientEmail: 'tuaemail@gmail.com'  // ← Tua email
+   };
+
+════════════════════════════════════════════════════════════
+STEP 2: SUPABASE (5 minuti)
+════════════════════════════════════════════════════════════
+
+1. Vai su https://supabase.com/ e accedi
+
+2. Crea Progetto:
+   - New Project
+   - Nome: "Debito Zero Solvo"
+   - Password database: (crea una sicura)
+   - Regione: Europe West
+   - Create
+
+3. Ottieni Chiavi:
+   - Settings → API
+   - COPIA:
+     * Project URL (es. https://xxxxx.supabase.co)
+     * anon public key (lunga stringa che inizia con eyJ...)
+
+4. Crea Storage Bucket:
+   - Storage → New Bucket
+   - Nome: "professional-documents"
+   - Public: NO (privato)
+   - Create
+
+5. Aggiorna index.html (riga 89-95):
+   window.SUPABASE_CONFIG = {
+     url: 'https://xxxxx.supabase.co',  // ← Incolla Project URL
+     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'  // ← Incolla anon key
+   };
+
+════════════════════════════════════════════════════════════
+✅ TEST
+════════════════════════════════════════════════════════════
+
+1. Apri index.html nel browser
+2. Compila wizard e invia
+3. Controlla email (dovresti riceverla)
+4. Vai dashboard professionale → Carica documento
+5. Vai Supabase → Storage → professional-documents
+6. Verifica che il file sia stato caricato
+
+════════════════════════════════════════════════════════════
+⚠️ PROBLEMI?
+════════════════════════════════════════════════════════════
+
+EmailJS non funziona:
+- Verifica di aver inserito tutte le chiavi in app.js
+- Controlla Console browser (F12) per errori
+- Verifica che Gmail sia autorizzato in EmailJS
+
+Supabase non funziona:
+- Verifica di aver creato il bucket "professional-documents"
+- Controlla che le chiavi siano corrette in index.html
+- Verifica Console browser (F12) per errori
+
+════════════════════════════════════════════════════════════
+
+FATTO! 🎉
+
