@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Primary Meta Tags -->
+  <title>Gestione Debiti - Consulenza Professionale | Debito Zero Solvo</title>
+  <meta name="title" content="Gestione Debiti - Consulenza Professionale | Debito Zero Solvo">
+  <meta name="description" content="Risolvi i tuoi debiti con professionisti qualificati. Avvocati, commercialisti e consulenti esperti in gestione debiti. Supporto per famiglie e imprese. Inizia ora gratuitamente.">
+  <meta name="keywords" content="gestione debiti, consulenza debiti, risolvere debiti, aiuto debiti, saldo e stralcio, mediazione crediti, avvocato debiti, commercialista debiti, sovraindebitamento">
+  <meta name="author" content="Debito Zero - Solvo">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="Italian">
+  <meta name="revisit-after" content="7 days">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://debitozero-solvo.it/">
+  <meta property="og:title" content="Gestione Debiti - Consulenza Professionale | Debito Zero Solvo">
+  <meta property="og:description" content="Risolvi i tuoi debiti con professionisti qualificati. Avvocati, commercialisti e consulenti esperti. Supporto gratuito per famiglie e imprese.">
+  <meta property="og:image" content="https://debitozero-solvo.it/og-image.jpg">
+  <meta property="og:locale" content="it_IT">
+  <meta property="og:site_name" content="Debito Zero - Solvo">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://debitozero-solvo.it/">
+  <meta property="twitter:title" content="Gestione Debiti - Consulenza Professionale | Debito Zero Solvo">
+  <meta property="twitter:description" content="Risolvi i tuoi debiti con professionisti qualificati. Avvocati, commercialisti e consulenti esperti. Supporto gratuito per famiglie e imprese.">
+  <meta property="twitter:image" content="https://debitozero-solvo.it/og-image.jpg">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Structured Data - Organization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Debito Zero - Solvo",
+    "description": "Piattaforma per assistenza nella gestione dei debiti con professionisti qualificati",
+    "url": "https://debitozero-solvo.it",
+    "logo": "https://debitozero-solvo.it/logo.png",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "Customer Service",
+      "areaServed": "IT",
+      "availableLanguage": "Italian"
+    },
+    "sameAs": []
+  }
+  </script>
+  
+  <!-- Structured Data - WebApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Debito Zero - Solvo",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR"
+    }
+  }
+  </script>
+  
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Libraries per Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
+  <!-- Configurazione Supabase (AGGIORNA CON LE TUE CHIAVI) -->
+  <script>
+    // ⚠️ SOSTITUISCI CON I TUOI VALORI DA SUPABASE
+    window.SUPABASE_CONFIG = {
+      url: 'https://xxxxx.supabase.co',  // ← Project URL da Supabase Settings > API
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'  // ← anon public key da Supabase
+    };
+  </script>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav" role="navigation" aria-label="Navigazione principale">
+    <div class="nav-brand" onclick="Navigation.goToHome()" onkeydown="if(event.key==='Enter'||event.key===' ') { Navigation.goToHome(); event.preventDefault(); }" role="link" tabindex="0">
+      <div class="logotype">
+        <span class="logotype-main">Solvo</span>
+        <span class="logotype-sub">Debito Zero</span>
+        <span class="logotype-tagline">Professionisti qualificati, soluzioni sostenibili</span>
+      </div>
+    </div>
+    <div class="spacer"></div>
+        <div class="nav-actions">
+          <button class="nav-btn" onclick="Navigation.scrollToClient()">Richiedi aiuto</button>
+          <button class="nav-btn" onclick="Navigation.showAdminLogin()">🔐 Dashboard Admin</button>
+          <button class="nav-btn nav-btn-secondary" onclick="Navigation.showProfessionalLogin()">Area Professionisti</button>
+        </div>
+  </nav>
+
+  <!-- WIZARD -->
+  <section class="page active" id="page-wizard" aria-labelledby="wizard-title">
+    <div class="container">
+      <h1 id="wizard-title">Risolvi i tuoi debiti in modo semplice</h1>
+      <p class="lead">In 3 passi ti colleghiamo con i professionisti giusti per la tua situazione</p>
+
+      <!-- Progress Bar -->
+      <div class="prog" role="progressbar" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso wizard">
+        <span id="bar"></span>
+      </div>
+      
+      <!-- Steps Indicator -->
+      <div class="steps">
+        <div class="step active" data-step="1">
+          <span class="num" aria-hidden="true">1</span>
+          <span>Tipi di debito</span>
+        </div>
+        <div class="step" data-step="2">
+          <span class="num" aria-hidden="true">2</span>
+          <span>Dati personali</span>
+        </div>
+        <div class="step" data-step="3">
+          <span class="num" aria-hidden="true">3</span>
+          <span>Riepilogo</span>
+        </div>
+      </div>
+
+      <!-- Step 1: Debt Type Selection -->
+      <section id="step1" class="card">
+        <h2 class="question">Quali debiti vuoi risolvere?</h2>
+        <p class="subtle">Seleziona tutte le tipologie che ti riguardano e indica gli importi</p>
+
+        <div class="options" role="group" aria-label="Selezione tipo di debito">
+          <div class="opt-wrapper">
+            <button type="button" class="opt" data-value="banche_finanziarie" aria-pressed="false">
+              <span class="opt-step-badge">1</span>
+              <span class="check" aria-hidden="true">✓</span>
+              <span class="label">
+                Debiti bancari e finanziari
+                <small>Mutui, prestiti personali, leasing, carte revolving</small>
+              </span>
+            </button>
+            <div class="debt-details" id="details-banche_finanziarie" style="display:none;">
+              <div class="debt-items"></div>
+              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('banche_finanziarie')">+ Aggiungi voce</button>
+            </div>
+          </div>
+          
+          <div class="opt-wrapper">
+            <button type="button" class="opt" data-value="fiscali_tributari" aria-pressed="false">
+              <span class="opt-step-badge">2</span>
+              <span class="check" aria-hidden="true">✓</span>
+              <span class="label">
+                Debiti fiscali e tributari
+                <small>IVA, IRPEF/IRES, IMU, cartelle esattoriali</small>
+              </span>
+            </button>
+            <div class="debt-details" id="details-fiscali_tributari" style="display:none;">
+              <div class="debt-items"></div>
+              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('fiscali_tributari')">+ Aggiungi voce</button>
+            </div>
+          </div>
+          
+          <div class="opt-wrapper">
+            <button type="button" class="opt" data-value="previdenziali" aria-pressed="false">
+              <span class="opt-step-badge">3</span>
+              <span class="check" aria-hidden="true">✓</span>
+              <span class="label">
+                Debiti contributivi e previdenziali
+                <small>INPS, INAIL, casse professionali, fondi pensione</small>
+              </span>
+            </button>
+            <div class="debt-details" id="details-previdenziali" style="display:none;">
+              <div class="debt-items"></div>
+              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('previdenziali')">+ Aggiungi voce</button>
+            </div>
+          </div>
+          
+          <div class="opt-wrapper">
+            <button type="button" class="opt" data-value="utenze_servizi" aria-pressed="false">
+              <span class="opt-step-badge">4</span>
+              <span class="check" aria-hidden="true">✓</span>
+              <span class="label">
+                Utenze e servizi ricorrenti
+                <small>Energia, acqua, telefonia, servizi digitali</small>
+              </span>
+            </button>
+            <div class="debt-details" id="details-utenze_servizi" style="display:none;">
+              <div class="debt-items"></div>
+              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('utenze_servizi')">+ Aggiungi voce</button>
+            </div>
+          </div>
+          
+          <div class="opt-wrapper">
+            <button type="button" class="opt" data-value="procedure_esecutive" aria-pressed="false">
+              <span class="opt-step-badge">5</span>
+              <span class="check" aria-hidden="true">✓</span>
+              <span class="label">
+                Procedure esecutive e recupero crediti
+                <small>Pignoramenti, decreti ingiuntivi, crediti gestiti da servicer</small>
+              </span>
+            </button>
+            <div class="debt-details" id="details-procedure_esecutive" style="display:none;">
+              <div class="debt-items"></div>
+              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('procedure_esecutive')">+ Aggiungi voce</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="total-amount" style="display:none; margin-top:24px; padding:20px; background:#e6f4ff; border-radius:12px;">
+          <div style="font-size:0.875rem; color:var(--text-muted); margin-bottom:8px;">Totale debiti:</div>
+          <div style="font-size:2rem; font-weight:800; color:var(--accent);" id="total-display">€ 0,00</div>
+        </div>
+
+        <div class="actions">
+          <span class="subtle" aria-live="polite">Seleziona almeno un'opzione.</span>
+          <button type="button" id="to2" class="btn" disabled>Avanti</button>
+        </div>
+      </section>
+
+      <!-- Step 2: Personal Data -->
+      <section id="step2" class="card" hidden>
+        <h2 class="question">Come possiamo contattarti?</h2>
+        <p class="subtle">Per collegarti ai professionisti abbiamo bisogno di alcuni dati: <span id="chips"></span></p>
+
+        <form id="form" novalidate>
+          <div class="row">
+            <div class="field">
+              <label for="nome">Nome</label>
+              <div class="input-wrapper">
+                <input type="text" id="nome" name="nome" autocomplete="given-name" required>
+                <span class="field-icon" id="icon-nome" aria-hidden="true"></span>
+              </div>
+              <div class="error-text" id="err-nome" role="alert">Inserisci almeno 3 caratteri.</div>
+            </div>
+            <div class="field">
+              <label for="cognome">Cognome</label>
+              <div class="input-wrapper">
+                <input type="text" id="cognome" name="cognome" autocomplete="family-name" required>
+                <span class="field-icon" id="icon-cognome" aria-hidden="true"></span>
+              </div>
+              <div class="error-text" id="err-cognome" role="alert">Inserisci almeno 3 caratteri.</div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="telefono">Numero di cellulare</label>
+              <div class="input-wrapper">
+                <input type="tel" id="telefono" name="telefono" inputmode="tel" placeholder="+39 333 1234567" autocomplete="tel" required>
+                <span class="field-icon" id="icon-telefono" aria-hidden="true"></span>
+              </div>
+              <div class="error-text" id="err-telefono" role="alert">Inserisci almeno 9 cifre (es. +39 333 1234567).</div>
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <div class="input-wrapper">
+                <input type="email" id="email" name="email" autocomplete="email" required>
+                <span class="field-icon" id="icon-email" aria-hidden="true"></span>
+              </div>
+              <div class="error-text" id="err-email" role="alert">Inserisci un'email valida (es. nome@example.com).</div>
+            </div>
+          </div>
+          <div class="row">
+          </div>
+        </form>
+
+        <div class="actions">
+          <button type="button" id="back1" class="btn ghost">Indietro</button>
+          <button type="button" id="to3" class="btn">Avanti</button>
+        </div>
+      </section>
+
+      <!-- Step 3: Review -->
+      <section id="step3" class="card" hidden>
+        <h2 class="question">Verifica i tuoi dati</h2>
+        <p class="subtle">Controlla che tutto sia corretto prima di inviare</p>
+        <div class="review" id="review"></div>
+        <div class="actions">
+          <button type="button" id="back2" class="btn ghost">Indietro</button>
+          <button type="button" id="submit" class="btn">Invia</button>
+        </div>
+        <div id="ok" class="success" role="status" aria-live="polite">
+          ✅ Dati confermati! Stiamo indirizzandoti ai professionisti adatti…
+        </div>
+        <div id="sending" class="sending" role="status" aria-live="polite">
+          ⏳ Invio email in corso...
+        </div>
+        <div id="email-error" class="email-error" role="alert">
+          ❌ Errore nell'invio email. Riprova o contattaci direttamente.
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- PROFESSIONISTI -->
+  <section class="page" id="page-pro" aria-labelledby="pro-title">
+    <div class="container">
+      <h1 id="pro-title">Trova il professionista ideale</h1>
+      <p class="lead">Avvocati, commercialisti e consulenti esperti per risolvere la tua situazione debitoria</p>
+
+      <!-- Toolbar: Search & Filters -->
+      <div class="toolbar">
+        <div class="search">
+          <input type="search" id="search" placeholder="Cerca (es. 'fiscale', 'saldo e stralcio')" aria-label="Cerca professionisti">
+        </div>
+        <button type="button" class="chip active" data-filter="all">Tutti</button>
+        <button type="button" class="chip" data-filter="bancari">Bancari</button>
+        <button type="button" class="chip" data-filter="fiscali">Fiscali/Tributari</button>
+        <button type="button" class="chip" data-filter="aziende">Aziende</button>
+        <button type="button" class="chip" data-filter="privati">Privati</button>
+      </div>
+
+      <!-- Professionals Grid -->
+      <div class="grid" id="pro-grid"></div>
+    </div>
+  </section>
+
+  <!-- Professional Login Modal -->
+  <div id="professionalLoginModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <div class="modal">
+      <h3 id="loginTitle">Accesso Area Professionisti</h3>
+      <div class="body">
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autocomplete="username">
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+          </div>
+          <div id="login-error" class="error-text" role="alert" style="display: none;"></div>
+        </form>
+      </div>
+      <div class="actions">
+        <button type="button" id="closeLoginModal" class="m-btn m-ghost">Annulla</button>
+        <button type="button" id="submitLogin" class="m-btn m-primary">Accedi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Professional Dashboard (hidden by default) -->
+  <section class="page" id="page-professional" aria-labelledby="professional-title" hidden>
+    <div class="container">
+      <h1 id="professional-title">Dashboard Professionista</h1>
+      <div class="professional-dashboard">
+        <div class="dashboard-section">
+          <h2>Dati Anagrafici</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Nome Completo</label>
+              <input type="text" id="pro-name" value="Gianluca Collia" readonly>
+            </div>
+            <div class="info-item">
+              <label>Email</label>
+              <input type="email" id="pro-email" value="gianluca.collia@gmail.com" readonly>
+            </div>
+            <div class="info-item">
+              <label>Telefono</label>
+              <input type="tel" id="pro-phone" placeholder="Inserisci telefono">
+            </div>
+            <div class="info-item">
+              <label>Indirizzo</label>
+              <input type="text" id="pro-address" placeholder="Inserisci indirizzo">
+            </div>
+            <div class="info-item">
+              <label>Codice Fiscale</label>
+              <input type="text" id="pro-cf" placeholder="Inserisci CF">
+            </div>
+            <div class="info-item">
+              <label>Partita IVA</label>
+              <input type="text" id="pro-piva" placeholder="Inserisci P.IVA">
+            </div>
+          </div>
+        </div>
+        
+        <div class="dashboard-section">
+          <h2>Dati Professionali</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Specialità</label>
+              <input type="text" id="pro-specialty" value="Consulente Gestione Crisi Debitoria">
+            </div>
+            <div class="info-item">
+              <label>Servizi Offerti</label>
+              <textarea id="pro-services" rows="3">Analisi debito • Piani personalizzati • Mediazione crediti</textarea>
+            </div>
+            <div class="info-item">
+              <label>Tariffa Base (€)</label>
+              <input type="number" id="pro-price" value="400" min="0">
+            </div>
+            <div class="info-item">
+              <label>Descrizione</label>
+              <textarea id="pro-desc" rows="4">Consulente esperto in analisi situazioni debitorie e progettazione soluzioni personalizzate per famiglie e imprese.</textarea>
+            </div>
+            <div class="info-item">
+              <label>Carriera</label>
+              <textarea id="pro-career" rows="4">Consulente specializzato nella gestione delle crisi debitorie, con anni di esperienza nel supporto a famiglie e aziende. Approccio personalizzato per trovare soluzioni sostenibili.</textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="dashboard-section">
+          <h2>Documenti Professionalità e Onorabilità</h2>
+          <p style="color: var(--text-muted); margin-bottom: var(--spacing-lg); font-size: 0.875rem;">
+            Carica documenti che attestano la tua professionalità (es. CV, certificazioni, attestati, iscrizioni ad albi, ecc.)
+          </p>
+          
+          <div class="documents-upload-area">
+            <input type="file" id="document-upload" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display: none;" onchange="ProfessionalDashboard.handleFileUpload(event)">
+            <button type="button" class="btn" onclick="document.getElementById('document-upload').click()" style="width: auto; margin-bottom: var(--spacing-lg);">
+              📄 Carica Documento
+            </button>
+            
+            <div id="documents-list" class="documents-list">
+              <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: var(--spacing-xl);">
+                Nessun documento caricato
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="dashboard-actions">
+          <button class="btn" onclick="ProfessionalDashboard.saveData()">Salva Modifiche</button>
+          <button class="btn ghost" onclick="ProfessionalDashboard.logout()">Esci</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Admin Dashboard (hidden by default) -->
+  <section class="page" id="page-admin" aria-labelledby="admin-title" hidden>
+    <div class="container">
+      <h1 id="admin-title">Dashboard Amministrazione</h1>
+      <div class="admin-dashboard">
+        <div class="dashboard-tabs">
+          <button class="tab-btn active" onclick="AdminDashboard.showTab('requests')">Richieste Clienti</button>
+          <button class="tab-btn" onclick="AdminDashboard.showTab('professionals')">Professionisti</button>
+          <button class="tab-btn" onclick="AdminDashboard.showTab('statistics')">Statistiche</button>
+        </div>
+        
+            <div id="admin-requests" class="tab-content active">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); flex-wrap: wrap; gap: var(--spacing-md);">
+                <h2 style="margin: 0;">Richieste dai Clienti</h2>
+                <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
+                  <button class="btn" onclick="AdminDashboard.exportRequestsCSV()" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
+                    📥 CSV
+                  </button>
+                  <button class="btn" onclick="AdminDashboard.exportRequestsExcel()" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
+                    📊 Excel
+                  </button>
+                  <button class="btn" onclick="AdminDashboard.exportRequestsPDF()" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
+                    📄 PDF
+                  </button>
+                </div>
+              </div>
+              <div id="requests-list" class="data-list"></div>
+            </div>
+
+            <div id="admin-professionals" class="tab-content">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); flex-wrap: wrap; gap: var(--spacing-md);">
+                <h2 style="margin: 0;">Professionisti Iscritti</h2>
+                <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
+                  <button class="btn" onclick="AdminDashboard.exportProfessionalsCSV()" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
+                    📥 CSV
+                  </button>
+                  <button class="btn" onclick="AdminDashboard.exportProfessionalsExcel()" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
+                    📊 Excel
+                  </button>
+                  <button class="btn" onclick="AdminDashboard.exportProfessionalsPDF()" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
+                    📄 PDF
+                  </button>
+                </div>
+              </div>
+              <div id="professionals-list" class="data-list"></div>
+            </div>
+
+            <div id="admin-statistics" class="tab-content">
+              <h2 style="margin-bottom: var(--spacing-lg);">Statistiche e Analisi</h2>
+              <div id="statistics-content" class="statistics-grid"></div>
+            </div>
+        
+        <div class="dashboard-actions">
+          <button class="btn ghost" onclick="AdminDashboard.logout()">Esci</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GDPR Modal -->
+  <div id="gdprModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="gdprTitle">
+    <div class="modal">
+      <h3 id="gdprTitle">Informativa sul trattamento dei dati</h3>
+      <div class="body">
+        <p>Ai sensi del GDPR, Debito Zero - Solvo utilizza i dati per prendere in carico la tua richiesta e, se necessario, condividerli con professionisti abilitati (avvocati, OCC, consulenti) per lo svolgimento dell'incarico.</p>
+        <p>Base giuridica: misure precontrattuali e legittimo interesse. Conservazione: tempo necessario alla gestione della pratica e obblighi di legge.</p>
+      </div>
+      <div class="actions">
+        <label class="consent-label">
+          <input type="checkbox" id="consentChk">
+          Acconsento alla comunicazione dei dati ai professionisti
+        </label>
+        <button type="button" id="closeModal" class="m-btn m-ghost">Annulla</button>
+        <button type="button" id="confirmSend" class="m-btn m-primary" disabled>Conferma</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>Debito Zero - Solvo</h3>
+          <p>Professionisti qualificati, soluzioni sostenibili</p>
+        </div>
+        <div class="footer-section">
+          <h4>Link Utili</h4>
+          <ul>
+            <li><a href="#page-wizard" onclick="Navigation.goToHome()">Richiedi aiuto</a></li>
+            <li><a href="#page-pro" onclick="Navigation.showProfessionals()">Professionisti</a></li>
+            <li><a href="#privacy-policy" onclick="Navigation.showPrivacyPolicy()">Privacy Policy</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Contatti</h4>
+          <p>Per informazioni: contattaci tramite il form</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 Debito Zero - Solvo. Tutti i diritti riservati.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Privacy Policy Page -->
+  <section class="page" id="privacy-policy" aria-labelledby="privacy-title" hidden>
+    <div class="container">
+      <button class="back-btn" onclick="Navigation.goBack()" style="margin-bottom: var(--spacing-lg);">← Indietro</button>
+      <h1 id="privacy-title">Privacy Policy</h1>
+      <div class="privacy-content">
+        <p class="last-updated">Ultimo aggiornamento: <strong>Gennaio 2024</strong></p>
+        
+        <section>
+          <h2>1. Informativa sulla Privacy</h2>
+          <p>Debito Zero - Solvo ("noi", "nostro", "sito") rispetta la tua privacy e si impegna a proteggere i tuoi dati personali. La presente Privacy Policy spiega come raccogliamo, utilizziamo e proteggiamo le informazioni che ci fornisci quando utilizzi il nostro sito web.</p>
+        </section>
+
+        <section>
+          <h2>2. Dati Raccolti</h2>
+          <p>Raccogliamo i seguenti dati personali quando utilizzi il nostro servizio:</p>
+          <ul>
+            <li><strong>Dati identificativi:</strong> Nome, cognome</li>
+            <li><strong>Dati di contatto:</strong> Email, numero di telefono</li>
+            <li><strong>Dati finanziari:</strong> Tipologie di debiti, importi, creditori (dati forniti volontariamente)</li>
+            <li><strong>Dati tecnici:</strong> Indirizzo IP, tipo di browser, sistema operativo (raccolti automaticamente)</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>3. Finalità del Trattamento</h2>
+          <p>Utilizziamo i tuoi dati personali per:</p>
+          <ul>
+            <li>Fornire il servizio di collegamento con professionisti qualificati</li>
+            <li>Inviare le tue richieste ai professionisti disponibili</li>
+            <li>Gestire le prenotazioni di appuntamenti</li>
+            <li>Inviare email di conferma e notifiche</li>
+            <li>Migliorare il nostro servizio e l'esperienza utente</li>
+            <li>Rispettare gli obblighi di legge</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>4. Base Giuridica</h2>
+          <p>Il trattamento dei dati personali si basa su:</p>
+          <ul>
+            <li><strong>Consenso:</strong> Fornisci i dati volontariamente per utilizzare il servizio</li>
+            <li><strong>Esecuzione del contratto:</strong> I dati sono necessari per fornire il servizio richiesto</li>
+            <li><strong>Interesse legittimo:</strong> Miglioramento del servizio e sicurezza</li>
+            <li><strong>Obblighi di legge:</strong> Rispetto delle normative vigenti</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>5. Conservazione dei Dati</h2>
+          <p>Conserviamo i tuoi dati personali:</p>
+          <ul>
+            <li>Per il tempo necessario a fornire il servizio richiesto</li>
+            <li>Per un massimo di 24 mesi dalla tua ultima interazione, salvo obblighi di legge diversi</li>
+            <li>I dati possono essere conservati più a lungo se necessario per adempiere a obblighi legali o risolvere controversie</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>6. Condivisione dei Dati</h2>
+          <p>I tuoi dati possono essere condivisi con:</p>
+          <ul>
+            <li><strong>Professionisti qualificati:</strong> Inviamo i dati necessari ai professionisti che hai selezionato per permettere loro di contattarti</li>
+            <li><strong>Fornitori di servizi:</strong> Utilizziamo EmailJS per l'invio di email (servizio terzo conforme GDPR)</li>
+            <li><strong>Autorità competenti:</strong> Se richiesto dalla legge</li>
+          </ul>
+          <p><strong>Non vendiamo né affittiamo i tuoi dati a terzi.</strong></p>
+        </section>
+
+        <section>
+          <h2>7. I Tuoi Diritti (GDPR)</h2>
+          <p>Hai il diritto di:</p>
+          <ul>
+            <li><strong>Accesso:</strong> Ottenere informazioni sui dati che conserviamo</li>
+            <li><strong>Rettifica:</strong> Correggere dati inesatti o incompleti</li>
+            <li><strong>Cancellazione:</strong> Richiedere la cancellazione dei tuoi dati ("diritto all'oblio")</li>
+            <li><strong>Limitazione:</strong> Limitare il trattamento dei dati in determinate circostanze</li>
+            <li><strong>Portabilità:</strong> Ricevere i tuoi dati in formato strutturato</li>
+            <li><strong>Opposizione:</strong> Opporti al trattamento per motivi legittimi</li>
+            <li><strong>Revoca del consenso:</strong> Revocare il consenso in qualsiasi momento</li>
+          </ul>
+          <p>Per esercitare questi diritti, contattaci tramite il form del sito.</p>
+        </section>
+
+        <section>
+          <h2>8. Sicurezza</h2>
+          <p>Adottiamo misure tecniche e organizzative appropriate per proteggere i tuoi dati personali:</p>
+          <ul>
+            <li>Crittografia HTTPS per le comunicazioni</li>
+            <li>Accesso limitato ai dati solo a personale autorizzato</li>
+            <li>Backup regolari e sistemi di sicurezza</li>
+            <li>Aggiornamenti costanti per prevenire vulnerabilità</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>9. Cookie e Tecnologie Simili</h2>
+          <p>Utilizziamo LocalStorage del browser per:</p>
+          <ul>
+            <li>Salvare temporaneamente i dati del wizard (24 ore)</li>
+            <li>Gestire le sessioni di login</li>
+            <li>Migliorare l'esperienza utente</li>
+          </ul>
+          <p>Puoi disabilitare LocalStorage nelle impostazioni del browser, ma alcune funzionalità potrebbero non funzionare.</p>
+        </section>
+
+        <section>
+          <h2>10. Trasferimenti Internazionali</h2>
+          <p>I tuoi dati sono trattati principalmente in Italia e nell'Unione Europea. Alcuni servizi terzi (EmailJS) possono operare in paesi extra-UE. In tal caso, assicuriamo che siano conformi al GDPR.</p>
+        </section>
+
+        <section>
+          <h2>11. Minori</h2>
+          <p>Il nostro servizio è destinato a persone maggiorenni. Non raccogliamo consapevolmente dati di minori. Se scopriamo di aver raccolto dati di un minore, li cancelleremo immediatamente.</p>
+        </section>
+
+        <section>
+          <h2>12. Modifiche alla Privacy Policy</h2>
+          <p>Ci riserviamo il diritto di modificare questa Privacy Policy. Le modifiche saranno pubblicate su questa pagina con la data di "Ultimo aggiornamento". Ti consigliamo di consultare periodicamente questa pagina.</p>
+        </section>
+
+        <section>
+          <h2>13. Contatti</h2>
+          <p>Per domande, richieste o esercizio dei tuoi diritti riguardo alla privacy, contattaci tramite il form del sito.</p>
+          <p><strong>Titolare del Trattamento:</strong> Debito Zero - Solvo</p>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- Structured Data for Professionals (generated dynamically) -->
+  <script type="application/ld+json" id="professionals-structured-data">
+  </script>
+
+  <script src="app.js"></script>
+  
+  <!-- Generate structured data for professionals -->
+  <script>
+    // Generate structured data after professionals are rendered
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const professionalsData = [
+          {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "itemListElement": window.PROFESSIONALS_DATA?.map((pro, index) => ({
+              "@type": "ListItem",
+              "position": index + 1,
+              "item": {
+                "@type": "ProfessionalService",
+                "name": pro.name,
+                "description": pro.desc || pro.career,
+                "serviceType": pro.specialty,
+                "areaServed": "IT",
+                "provider": {
+                  "@type": pro.name.includes('Avv.') || pro.name.includes('Avvocato') ? "LegalService" : "ProfessionalService",
+                  "name": pro.name
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "price": pro.price,
+                  "priceCurrency": "EUR"
+                }
+              }
+            })) || []
+          }
+        ];
+        
+        const structuredDataEl = document.getElementById('professionals-structured-data');
+        if (structuredDataEl && professionalsData[0].itemListElement.length > 0) {
+          structuredDataEl.textContent = JSON.stringify(professionalsData[0], null, 2);
+        }
+      }, 500);
+    });
+  </script>
+</body>
+</html>
+
