@@ -117,7 +117,7 @@
     </button>
     <div class="nav-menu" id="navMenu" role="menu">
       <button class="nav-menu-link" role="menuitem" onclick="Navigation.scrollToClient()">Richiedi aiuto</button>
-      <button class="nav-menu-link" role="menuitem" onclick="Navigation.scrollToJoinProfessionals()">Diventa un professionista</button>
+      <button class="nav-menu-link" role="menuitem" onclick="Navigation.showJoinProfessionals()">Diventa un professionista</button>
       <button class="nav-menu-link" role="menuitem" onclick="Navigation.showProfessionalLogin()">Area Professionisti</button>
       <button class="nav-menu-link" role="menuitem" onclick="Navigation.showAdminLogin()">Dashboard Admin</button>
     </div>
@@ -341,11 +341,53 @@
         </div>
       </section>
       
-      <!-- JOIN PROFESSIONAL SECTION -->
-      <section class="join-pro-section" id="join-pro-section" aria-labelledby="join-pro-title">
-        <div class="container">
-          <div class="join-pro-card">
-            <div class="join-pro-content">
+    </div>
+  </section>
+
+  <!-- PROFESSIONISTI -->
+  <section class="page" id="page-pro" aria-labelledby="pro-title">
+    <div class="container">
+      <h1 id="pro-title">Trova il professionista ideale</h1>
+      <p class="lead">Avvocati, commercialisti e consulenti esperti per risolvere la tua situazione debitoria</p>
+
+      <!-- Toolbar: Search & Filters -->
+      <div class="toolbar">
+        <div class="toolbar-top">
+          <div class="search">
+            <input type="search" id="search" placeholder="Cerca (es. 'fiscale', 'saldo e stralcio')" aria-label="Cerca professionisti">
+          </div>
+          <div class="sorter">
+            <label for="sortSelect">Ordina</label>
+            <select id="sortSelect" aria-label="Ordina professionisti">
+              <option value="default">Consigliati</option>
+              <option value="price-asc">Prezzo crescente</option>
+              <option value="price-desc">Prezzo decrescente</option>
+              <option value="distance">Vicinanza (CAP)</option>
+            </select>
+          </div>
+        </div>
+        <div class="toolbar-filters" role="group" aria-label="Filtra professionisti">
+          <button type="button" class="chip active" data-filter="all">Tutti</button>
+          <button type="button" class="chip" data-filter="bancari">Bancari</button>
+          <button type="button" class="chip" data-filter="fiscali">Fiscali/Tributari</button>
+          <button type="button" class="chip" data-filter="aziende">Aziende</button>
+          <button type="button" class="chip" data-filter="privati">Privati</button>
+        </div>
+      </div>
+      <p class="sort-hint" id="sortHint">Inserisci il tuo CAP nel modulo per ordinare per vicinanza.</p>
+
+      <!-- Professionals Grid -->
+      <div class="grid" id="pro-grid"></div>
+    </div>
+  </section>
+  
+  <!-- JOIN PROFESSIONAL PAGE -->
+  <section class="page" id="page-join-pro" aria-labelledby="join-pro-title" hidden>
+    <div class="container">
+      <button class="back-btn" onclick="Navigation.goBack()" style="margin-bottom: var(--spacing-lg);">← Indietro</button>
+      <section class="join-pro-section" aria-label="Candidatura professionisti">
+        <div class="join-pro-card">
+          <div class="join-pro-content">
             <div class="join-pro-text">
               <p class="eyebrow">Collabora con noi</p>
               <h2 id="join-pro-title">Diventa un nostro professionista di fiducia</h2>
@@ -357,7 +399,7 @@
                 <li>Supporto del team Solvo in ogni fase</li>
               </ul>
             </div>
-            <details class="join-pro-details">
+            <details class="join-pro-details" open>
               <summary>Apri il modulo di candidatura</summary>
               <form id="proApplicationForm" class="join-pro-form" novalidate>
                 <div class="two-columns">
@@ -420,42 +462,8 @@
               </form>
             </details>
           </div>
-          </div>
         </div>
       </section>
-    </div>
-  </section>
-
-  <!-- PROFESSIONISTI -->
-  <section class="page" id="page-pro" aria-labelledby="pro-title">
-    <div class="container">
-      <h1 id="pro-title">Trova il professionista ideale</h1>
-      <p class="lead">Avvocati, commercialisti e consulenti esperti per risolvere la tua situazione debitoria</p>
-
-      <!-- Toolbar: Search & Filters -->
-      <div class="toolbar">
-        <div class="search">
-          <input type="search" id="search" placeholder="Cerca (es. 'fiscale', 'saldo e stralcio')" aria-label="Cerca professionisti">
-        </div>
-        <div class="sorter">
-          <label for="sortSelect">Ordina</label>
-          <select id="sortSelect" aria-label="Ordina professionisti">
-            <option value="default">Consigliati</option>
-            <option value="price-asc">Prezzo crescente</option>
-            <option value="price-desc">Prezzo decrescente</option>
-            <option value="distance">Vicinanza (CAP)</option>
-          </select>
-        </div>
-        <button type="button" class="chip active" data-filter="all">Tutti</button>
-        <button type="button" class="chip" data-filter="bancari">Bancari</button>
-        <button type="button" class="chip" data-filter="fiscali">Fiscali/Tributari</button>
-        <button type="button" class="chip" data-filter="aziende">Aziende</button>
-        <button type="button" class="chip" data-filter="privati">Privati</button>
-      </div>
-      <p class="sort-hint" id="sortHint">Inserisci il tuo CAP nel modulo per ordinare per vicinanza.</p>
-
-      <!-- Professionals Grid -->
-      <div class="grid" id="pro-grid"></div>
     </div>
   </section>
 

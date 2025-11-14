@@ -426,6 +426,7 @@ const DOM = {
   // Pages
   pageWizard: document.getElementById('page-wizard'),
   pagePro: document.getElementById('page-pro'),
+  pageJoin: document.getElementById('page-join-pro'),
   navMenu: document.getElementById('navMenu'),
   navToggle: document.getElementById('navToggle'),
   
@@ -592,6 +593,7 @@ const Navigation = {
     const privacyPage = document.getElementById('privacy-policy');
     const professionalPage = document.getElementById('page-professional');
     const adminPage = document.getElementById('page-admin');
+    const joinPage = DOM.pageJoin;
     
     // Handle privacy policy
     if (privacyPage && privacyPage.classList.contains('active')) {
@@ -609,6 +611,12 @@ const Navigation = {
     
     // Handle admin dashboard - go to home
     if (adminPage && adminPage.classList.contains('active')) {
+      Navigation.goToHome();
+      return;
+    }
+    
+    // Handle join professionals page
+    if (joinPage && joinPage.classList.contains('active')) {
       Navigation.goToHome();
       return;
     }
@@ -661,18 +669,20 @@ const Navigation = {
   },
   
   /**
-   * Scroll to "Diventa professionista" section
+   * Show join professionals page
    */
-  scrollToJoinProfessionals: () => {
+  showJoinProfessionals: () => {
     Navigation.closeMenu();
-    Navigation.goToHome();
-    setTimeout(() => {
-      const section = document.getElementById('join-pro-section');
-      if (section) {
-        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        window.scrollBy(0, -80);
-      }
-    }, 300);
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.remove('active');
+      page.hidden = true;
+    });
+    if (DOM.pageJoin) {
+      DOM.pageJoin.hidden = false;
+      DOM.pageJoin.classList.add('active');
+      Navigation.updateGlobalBackButton(true);
+      Utils.scrollToTop();
+    }
   },
   
   /**

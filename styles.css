@@ -1364,15 +1364,26 @@ select:focus {
 /* ==================== PROFESSIONALS SECTION ==================== */
 .toolbar {
   display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin: var(--spacing-md) 0 var(--spacing-lg);
+}
+
+.toolbar-top {
+  display: flex;
   gap: var(--spacing-md);
   flex-wrap: wrap;
-  margin: var(--spacing-md) 0 var(--spacing-lg);
-  align-items: center;
+}
+
+.toolbar-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
 }
 
 .search {
   flex: 1;
-  min-width: 200px;
+  min-width: 240px;
 }
 
 .search input {
@@ -1380,7 +1391,7 @@ select:focus {
 }
 
 .sorter {
-  min-width: 180px;
+  min-width: 200px;
   display: flex;
   flex-direction: column;
   gap: 4px;
