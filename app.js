@@ -5,6 +5,7 @@ const EMAIL_CONFIG = {
   templateId: 'template_1p0r597',    // ← Template ID da EmailJS per richieste clienti
   templateIdConfirmation: 'template_1p0r597',  // ← Template ID per email conferma cliente (usa lo stesso o crea uno separato)
   templateIdAppointment: 'template_1p0r597',    // ← Template ID per prenotazioni (usa lo stesso o crea uno separato)
+  templateIdProApplication: 'template_1p0r597', // ← Template ID per candidature professionisti
   publicKey: 'wrPtIJWjgaySCJWjZ',      // ← Public Key da EmailJS
   recipientEmail: 'gianluca.collia@gmail.com'  // ← Email dove ricevere le richieste
 };
@@ -79,6 +80,144 @@ const DEBT_SUBCATEGORIES = {
     { value: 'decreto_ingiuntivo', label: 'Decreto ingiuntivo' },
     { value: 'crediti_servicer', label: 'Crediti gestiti da servicer' }
   ]
+};
+
+const ITALIAN_PROVINCES = [
+  { code: 'AG', name: 'Agrigento' },
+  { code: 'AL', name: 'Alessandria' },
+  { code: 'AN', name: 'Ancona' },
+  { code: 'AO', name: 'Aosta' },
+  { code: 'AQ', name: "L'Aquila" },
+  { code: 'AR', name: 'Arezzo' },
+  { code: 'AP', name: 'Ascoli Piceno' },
+  { code: 'AT', name: 'Asti' },
+  { code: 'AV', name: 'Avellino' },
+  { code: 'BA', name: 'Bari' },
+  { code: 'BT', name: 'Barletta-Andria-Trani' },
+  { code: 'BL', name: 'Belluno' },
+  { code: 'BN', name: 'Benevento' },
+  { code: 'BG', name: 'Bergamo' },
+  { code: 'BI', name: 'Biella' },
+  { code: 'BO', name: 'Bologna' },
+  { code: 'BZ', name: 'Bolzano' },
+  { code: 'BS', name: 'Brescia' },
+  { code: 'BR', name: 'Brindisi' },
+  { code: 'CA', name: 'Cagliari' },
+  { code: 'CL', name: 'Caltanissetta' },
+  { code: 'CB', name: 'Campobasso' },
+  { code: 'CE', name: 'Caserta' },
+  { code: 'CT', name: 'Catania' },
+  { code: 'CZ', name: 'Catanzaro' },
+  { code: 'CH', name: 'Chieti' },
+  { code: 'CO', name: 'Como' },
+  { code: 'CS', name: 'Cosenza' },
+  { code: 'CR', name: 'Cremona' },
+  { code: 'KR', name: 'Crotone' },
+  { code: 'CN', name: 'Cuneo' },
+  { code: 'EN', name: 'Enna' },
+  { code: 'FM', name: 'Fermo' },
+  { code: 'FE', name: 'Ferrara' },
+  { code: 'FI', name: 'Firenze' },
+  { code: 'FG', name: 'Foggia' },
+  { code: 'FC', name: 'Forlì-Cesena' },
+  { code: 'FR', name: 'Frosinone' },
+  { code: 'GE', name: 'Genova' },
+  { code: 'GO', name: 'Gorizia' },
+  { code: 'GR', name: 'Grosseto' },
+  { code: 'IM', name: 'Imperia' },
+  { code: 'IS', name: 'Isernia' },
+  { code: 'SP', name: 'La Spezia' },
+  { code: 'LT', name: 'Latina' },
+  { code: 'LE', name: 'Lecce' },
+  { code: 'LC', name: 'Lecco' },
+  { code: 'LI', name: 'Livorno' },
+  { code: 'LO', name: 'Lodi' },
+  { code: 'LU', name: 'Lucca' },
+  { code: 'MC', name: 'Macerata' },
+  { code: 'MN', name: 'Mantova' },
+  { code: 'MS', name: 'Massa-Carrara' },
+  { code: 'MT', name: 'Matera' },
+  { code: 'ME', name: 'Messina' },
+  { code: 'MI', name: 'Milano' },
+  { code: 'MB', name: 'Monza e Brianza' },
+  { code: 'MO', name: 'Modena' },
+  { code: 'NA', name: 'Napoli' },
+  { code: 'NO', name: 'Novara' },
+  { code: 'NU', name: 'Nuoro' },
+  { code: 'OR', name: 'Oristano' },
+  { code: 'PD', name: 'Padova' },
+  { code: 'PA', name: 'Palermo' },
+  { code: 'PR', name: 'Parma' },
+  { code: 'PV', name: 'Pavia' },
+  { code: 'PG', name: 'Perugia' },
+  { code: 'PU', name: 'Pesaro e Urbino' },
+  { code: 'PE', name: 'Pescara' },
+  { code: 'PC', name: 'Piacenza' },
+  { code: 'PI', name: 'Pisa' },
+  { code: 'PT', name: 'Pistoia' },
+  { code: 'PN', name: 'Pordenone' },
+  { code: 'PZ', name: 'Potenza' },
+  { code: 'PO', name: 'Prato' },
+  { code: 'RG', name: 'Ragusa' },
+  { code: 'RA', name: 'Ravenna' },
+  { code: 'RC', name: 'Reggio Calabria' },
+  { code: 'RE', name: 'Reggio Emilia' },
+  { code: 'RI', name: 'Rieti' },
+  { code: 'RN', name: 'Rimini' },
+  { code: 'RM', name: 'Roma' },
+  { code: 'RO', name: 'Rovigo' },
+  { code: 'SA', name: 'Salerno' },
+  { code: 'SS', name: 'Sassari' },
+  { code: 'SV', name: 'Savona' },
+  { code: 'SI', name: 'Siena' },
+  { code: 'SR', name: 'Siracusa' },
+  { code: 'SO', name: 'Sondrio' },
+  { code: 'SU', name: 'Sud Sardegna' },
+  { code: 'TA', name: 'Taranto' },
+  { code: 'TE', name: 'Teramo' },
+  { code: 'TR', name: 'Terni' },
+  { code: 'TO', name: 'Torino' },
+  { code: 'TP', name: 'Trapani' },
+  { code: 'TN', name: 'Trento' },
+  { code: 'TV', name: 'Treviso' },
+  { code: 'TS', name: 'Trieste' },
+  { code: 'UD', name: 'Udine' },
+  { code: 'VA', name: 'Varese' },
+  { code: 'VE', name: 'Venezia' },
+  { code: 'VB', name: 'Verbano-Cusio-Ossola' },
+  { code: 'VC', name: 'Vercelli' },
+  { code: 'VR', name: 'Verona' },
+  { code: 'VV', name: 'Vibo Valentia' },
+  { code: 'VI', name: 'Vicenza' },
+  { code: 'VT', name: 'Viterbo' }
+];
+
+const Geo = {
+  getProvinceLabel: (code) => {
+    if (!code) return '';
+    const province = ITALIAN_PROVINCES.find(p => p.code === code);
+    return province ? `${province.name} (${province.code})` : code;
+  },
+  
+  getProvinceOptions: () => {
+    const options = ['<option value="">Seleziona provincia</option>'];
+    ITALIAN_PROVINCES.forEach(province => {
+      options.push(`<option value="${province.code}">${province.name} (${province.code})</option>`);
+    });
+    return options.join('');
+  },
+  
+  populateProvinceSelects: () => {
+    const options = Geo.getProvinceOptions();
+    document.querySelectorAll('[data-province-select]').forEach(select => {
+      if (!select) return;
+      const previousValue = select.value;
+      select.innerHTML = options;
+      if (previousValue) {
+        select.value = previousValue;
+      }
+    });
+  }
 };
 
 // ==================== UTILITY: Generate Availability ====================
@@ -174,7 +313,10 @@ const PROFESSIONALS_DATA = [
     calendarLink: "https://calendar.google.com/calendar/u/0?cid=Z2lhbmx1Y2EuY29sbGlhQGdvYnJhdm8uaXQ",
     email: "gianluca.collia@gmail.com",
     loginUsername: "gianluca90",
-    loginPassword: "gianluca90"
+    loginPassword: "gianluca90",
+    city: "Milano",
+    province: "MI",
+    cap: "20124"
   },
   { 
     name: "Avv. Elena Rossi",
@@ -188,7 +330,10 @@ const PROFESSIONALS_DATA = [
     calendarLink: "https://calendar.google.com/calendar/u/0?cid=ZWxlbmEucm9zc2lAZXhhbXBsZS5jb20",
     email: "elena.rossi@studiolegale.it",
     loginUsername: "elenarossi",
-    loginPassword: "elena2024"
+    loginPassword: "elena2024",
+    city: "Roma",
+    province: "RM",
+    cap: "00186"
   },
   { 
     name: "Avv. Marco Rossi", 
@@ -252,6 +397,26 @@ const PROFESSIONALS_DATA = [
   { name: "Dott.ssa Roberta Piras", specialty: "Commercialista", services: "Rottamazione cartelle", price: 450, desc: "Definizioni agevolate debiti con Agenzia Riscossione.", tags: ["fiscali", "privati", "aziende"] }
 ];
 
+const DEFAULT_LOCATIONS = [
+  { city: "Milano", province: "MI", cap: "20100" },
+  { city: "Roma", province: "RM", cap: "00100" },
+  { city: "Napoli", province: "NA", cap: "80100" },
+  { city: "Torino", province: "TO", cap: "10100" },
+  { city: "Firenze", province: "FI", cap: "50100" },
+  { city: "Bologna", province: "BO", cap: "40100" },
+  { city: "Bari", province: "BA", cap: "70121" },
+  { city: "Cagliari", province: "CA", cap: "09124" },
+  { city: "Palermo", province: "PA", cap: "90100" },
+  { city: "Verona", province: "VR", cap: "37100" }
+];
+
+PROFESSIONALS_DATA.forEach((pro, index) => {
+  const fallback = DEFAULT_LOCATIONS[index % DEFAULT_LOCATIONS.length];
+  if (!pro.city) pro.city = fallback.city;
+  if (!pro.province) pro.province = fallback.province;
+  if (!pro.cap) pro.cap = fallback.cap;
+});
+
 // Make available globally for structured data
 window.PROFESSIONALS_DATA = PROFESSIONALS_DATA;
 
@@ -261,6 +426,8 @@ const DOM = {
   // Pages
   pageWizard: document.getElementById('page-wizard'),
   pagePro: document.getElementById('page-pro'),
+  navMenu: document.getElementById('navMenu'),
+  navToggle: document.getElementById('navToggle'),
   
   // Progress
   progressBar: document.getElementById('bar'),
@@ -298,7 +465,9 @@ const DOM = {
   // Professionals
   searchInput: document.getElementById('search'),
   filterChips: document.querySelectorAll('.chip'),
-  proGrid: document.getElementById('pro-grid')
+  proGrid: document.getElementById('pro-grid'),
+  sortSelect: document.getElementById('sortSelect'),
+  sortHint: document.getElementById('sortHint')
 };
 
 // ==================== UTILITIES ====================
@@ -340,10 +509,52 @@ const Utils = {
 
 // ==================== NAVIGATION ====================
 const Navigation = {
+  initMenu: () => {
+    const toggle = DOM.navToggle;
+    const menu = DOM.navMenu;
+    if (!toggle || !menu) return;
+    
+    toggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      Navigation.toggleMenu();
+    });
+    
+    document.addEventListener('click', (event) => {
+      if (!menu.contains(event.target) && !toggle.contains(event.target)) {
+        Navigation.closeMenu();
+      }
+    });
+    
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        Navigation.closeMenu();
+      }
+    });
+  },
+  
+  toggleMenu: (forceState = null) => {
+    const menu = DOM.navMenu;
+    const toggle = DOM.navToggle;
+    if (!menu || !toggle) return;
+    
+    const shouldOpen = forceState === null ? !menu.classList.contains('open') : forceState;
+    menu.classList.toggle('open', shouldOpen);
+    toggle.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+    document.body.classList.toggle('nav-menu-open', shouldOpen);
+  },
+  
+  closeMenu: () => {
+    const menu = DOM.navMenu;
+    if (menu && menu.classList.contains('open')) {
+      Navigation.toggleMenu(false);
+    }
+  },
+  
   /**
    * Show professionals page
    */
   showProfessionals: () => {
+    Navigation.closeMenu();
     // Hide all pages first
     document.querySelectorAll('.page').forEach(page => {
       page.classList.remove('active');
@@ -360,6 +571,7 @@ const Navigation = {
    * Go to home (wizard page)
    */
   goToHome: () => {
+    Navigation.closeMenu();
     // Hide all pages first
     document.querySelectorAll('.page').forEach(page => {
       page.classList.remove('active');
@@ -436,6 +648,7 @@ const Navigation = {
    * Scroll to client section (wizard step 1)
    */
   scrollToClient: () => {
+    Navigation.closeMenu();
     Navigation.goToHome();
     setTimeout(() => {
       const step1Element = document.getElementById('step1');
@@ -448,9 +661,25 @@ const Navigation = {
   },
   
   /**
+   * Scroll to "Diventa professionista" section
+   */
+  scrollToJoinProfessionals: () => {
+    Navigation.closeMenu();
+    Navigation.goToHome();
+    setTimeout(() => {
+      const section = document.getElementById('join-pro-section');
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.scrollBy(0, -80);
+      }
+    }, 300);
+  },
+  
+  /**
    * Show admin login modal
    */
   showAdminLogin: () => {
+    Navigation.closeMenu();
     const modal = document.getElementById('professionalLoginModal');
     if (modal) {
       modal.classList.add('show');
@@ -465,6 +694,7 @@ const Navigation = {
    * Show professional login modal
    */
   showProfessionalLogin: () => {
+    Navigation.closeMenu();
     const modal = document.getElementById('professionalLoginModal');
     if (modal) {
       modal.classList.add('show');
@@ -843,6 +1073,18 @@ const Wizard = {
       case 'email':
         isValid = Utils.isValidEmail(value);
         break;
+      
+      case 'citta':
+        isValid = value.trim().length >= 2;
+        break;
+      
+      case 'provincia':
+        isValid = value.trim().length === 2;
+        break;
+      
+      case 'cap':
+        isValid = Utils.extractDigits(value).length === 5;
+        break;
     }
     
     if (showFeedback) {
@@ -882,7 +1124,7 @@ const Wizard = {
    * Validate all form fields
    */
   validateAllFields: () => {
-    const fields = ['nome', 'cognome', 'telefono', 'email'];
+    const fields = ['nome', 'cognome', 'telefono', 'email', 'citta', 'provincia', 'cap'];
     let allValid = true;
     
     fields.forEach(fieldId => {
@@ -942,6 +1184,9 @@ const Wizard = {
       cognome: document.getElementById('cognome').value.trim(),
       telefono: document.getElementById('telefono').value.trim(),
       email: document.getElementById('email').value.trim(),
+      citta: document.getElementById('citta').value.trim(),
+      provincia: document.getElementById('provincia').value.trim(),
+      cap: document.getElementById('cap').value.trim(),
       totalAmount: totalAmount
     };
     
@@ -972,6 +1217,7 @@ const Wizard = {
         <li><b>Nome:</b> ${state.formData.nome} ${state.formData.cognome}</li>
         <li><b>Cellulare:</b> ${state.formData.telefono}</li>
         <li><b>Email:</b> ${state.formData.email}</li>
+        <li><b>Località:</b> ${state.formData.citta || 'N/D'} ${state.formData.provincia ? `- ${Geo.getProvinceLabel(state.formData.provincia)}` : ''} ${state.formData.cap ? `(CAP ${state.formData.cap})` : ''}</li>
       </ul>
       <h3 style="margin-top:24px; margin-bottom:12px;">Dettaglio Debiti:</h3>
       <ul>
@@ -1003,7 +1249,7 @@ const Wizard = {
    */
   initStep2: () => {
     // Real-time validation on input (debounced)
-    ['nome', 'cognome', 'telefono', 'email'].forEach(fieldId => {
+    ['nome', 'cognome', 'telefono', 'email', 'citta', 'provincia', 'cap'].forEach(fieldId => {
       const input = document.getElementById(fieldId);
       if (input) {
         let timeout;
@@ -1014,6 +1260,9 @@ const Wizard = {
           timeout = setTimeout(() => {
             Wizard.validateField(fieldId, input.value, true);
           }, 300);
+          
+          state.formData[fieldId] = input.value.trim();
+          Wizard.saveStateToStorage();
         });
         
         // Immediate validation on blur
@@ -1022,10 +1271,14 @@ const Wizard = {
           Wizard.validateField(fieldId, input.value, true);
         });
         
-        // Save on change
-        input.addEventListener('input', () => {
+        // Ensure selects trigger validation on change
+        input.addEventListener('change', () => {
+          Wizard.validateField(fieldId, input.value, true);
+          state.formData[fieldId] = input.value.trim();
           Wizard.saveStateToStorage();
         });
+        
+        // Save on change already handled above
       }
     });
     
@@ -1070,7 +1323,7 @@ const Wizard = {
       
       // Restore form fields
       if (saveData.formData) {
-        const fields = ['nome', 'cognome', 'telefono', 'email'];
+        const fields = ['nome', 'cognome', 'telefono', 'email', 'citta', 'provincia', 'cap'];
         fields.forEach(fieldId => {
           const input = document.getElementById(fieldId);
           if (input && saveData.formData[fieldId]) {
@@ -1228,6 +1481,9 @@ const EmailService = {
         from_name: `${state.formData.nome} ${state.formData.cognome}`,
         from_email: state.formData.email,
         phone: state.formData.telefono,
+        client_city: state.formData.citta || '',
+        client_province: state.formData.provincia || '',
+        client_cap: state.formData.cap || '',
         debt_types: state.selections.map(s => DEBT_LABELS[s] || s).join(', '),
         debt_details: debtsDetail.trim(),
         debt_amount: `€ ${state.formData.totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2})}`,
@@ -1252,6 +1508,9 @@ const EmailService = {
           surname: state.formData.cognome,
           email: state.formData.email,
           phone: state.formData.telefono,
+          city: state.formData.citta,
+          province: state.formData.provincia,
+          cap: state.formData.cap,
           debtTypes: state.selections.map(s => DEBT_LABELS[s] || s).join(', '),
           totalAmount: `€ ${state.formData.totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2})}`,
           debtDetails: debtsDetail.trim(),
@@ -1273,6 +1532,9 @@ const EmailService = {
             from_name: 'Debito Zero - Solvo',
             subject: '✅ Richiesta ricevuta - Debito Zero Solvo',
             client_name: `${state.formData.nome} ${state.formData.cognome}`,
+            client_city: state.formData.citta || '',
+            client_province: state.formData.provincia || '',
+            client_cap: state.formData.cap || '',
             debt_types: state.selections.map(s => DEBT_LABELS[s] || s).join(', '),
             debt_amount: `€ ${state.formData.totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2})}`,
             submission_date: new Date().toLocaleString('it-IT'),
@@ -1287,6 +1549,7 @@ Nel frattempo, puoi esplorare i professionisti disponibili sulla piattaforma.
 Dettagli della richiesta:
 - Tipologie debiti: ${state.selections.map(s => DEBT_LABELS[s] || s).join(', ')}
 - Importo totale: € ${state.formData.totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2})}
+- Località: ${state.formData.citta || 'N/D'} ${state.formData.provincia ? `(${state.formData.provincia})` : ''} ${state.formData.cap ? `- CAP ${state.formData.cap}` : ''}
 - Data richiesta: ${new Date().toLocaleString('it-IT')}
 
 Cordiali saluti,
@@ -1409,6 +1672,7 @@ const Modal = {
 const Professionals = {
   currentFilter: 'all',
   currentSearch: '',
+  currentSort: 'default',
   
   /**
    * Generate HTML for a professional card
@@ -1426,6 +1690,10 @@ const Professionals = {
       const tagLabels = { bancari: 'Bancari', fiscali: 'Fiscali/Tributari', aziende: 'Aziende', privati: 'Privati' };
       return `<span class="tag">${tagLabels[tag] || tag}</span>`;
     }).join('');
+    const locationText = pro.city
+      ? `${pro.city}${pro.province ? ` (${pro.province})` : ''}${pro.cap ? ` • CAP ${pro.cap}` : ''}`
+      : 'Località non specificata';
+    const locationSearch = `${(pro.city || '').toLowerCase()} ${(pro.province || '').toLowerCase()} ${(pro.cap || '')}`;
     
     // Generate availability preview (next 3 days)
     const availabilityPreview = pro.availability.slice(0, 3).map(day => {
@@ -1440,11 +1708,12 @@ const Professionals = {
     }).join('');
     
     return `
-      <article class="pro-card" data-tags="${pro.tags.join(' ')}" data-searchtext="${pro.name.toLowerCase()} ${pro.specialty.toLowerCase()} ${pro.services.toLowerCase()} ${pro.desc.toLowerCase()}" data-pro-index="${index}">
+      <article class="pro-card" data-tags="${pro.tags.join(' ')}" data-searchtext="${pro.name.toLowerCase()} ${pro.specialty.toLowerCase()} ${pro.services.toLowerCase()} ${pro.desc.toLowerCase()} ${locationSearch}" data-pro-index="${index}">
         <h3 class="pro-title">${pro.name}</h3>
         <div class="pro-sub">${pro.specialty}</div>
         <div class="pro-sub" style="margin-top:4px; font-size:0.85rem;">${pro.services}</div>
         <div class="pro-price">da € ${pro.price}</div>
+        <div class="pro-location">📍 ${locationText}</div>
         <p class="pro-desc">${pro.desc}</p>
         
         <div class="availability-preview">
@@ -1462,8 +1731,9 @@ const Professionals = {
    * Render all professionals
    */
   render: () => {
-    const html = PROFESSIONALS_DATA.map((pro, index) => Professionals.createCard(pro, index)).join('');
+    const html = Professionals.getSortedData().map(({ pro, index }) => Professionals.createCard(pro, index)).join('');
     DOM.proGrid.innerHTML = html;
+    Professionals.applyFilters();
   },
   
   /**
@@ -1534,11 +1804,15 @@ const Professionals = {
     }
     
     const content = modal.querySelector('.pro-modal-content');
+    const locationText = pro.city
+      ? `${pro.city}${pro.province ? ` (${Geo.getProvinceLabel(pro.province)})` : ''}${pro.cap ? ` • CAP ${pro.cap}` : ''}`
+      : 'Località non disponibile';
     content.innerHTML = `
       <div class="pro-modal-header">
         <h2>${pro.name}</h2>
         <div class="pro-modal-specialty">${pro.specialty}</div>
         <div class="pro-modal-price">da € ${pro.price}</div>
+        <div class="pro-modal-location">📍 ${locationText}</div>
       </div>
       
       <div class="pro-modal-section">
@@ -1582,6 +1856,61 @@ const Professionals = {
       }
     };
     document.addEventListener('keydown', escapeHandler);
+  },
+  
+  getUserCap: () => {
+    const capField = document.getElementById('cap');
+    const rawValue = (capField?.value || state.formData.cap || '').trim();
+    return Utils.extractDigits(rawValue);
+  },
+  
+  getSortedData: () => {
+    const data = PROFESSIONALS_DATA.map((pro, index) => ({ pro, index }));
+    switch (Professionals.currentSort) {
+      case 'price-asc':
+        return data.sort((a, b) => (a.pro.price || 0) - (b.pro.price || 0));
+      case 'price-desc':
+        return data.sort((a, b) => (b.pro.price || 0) - (a.pro.price || 0));
+      case 'distance': {
+        const userCapDigits = Professionals.getUserCap();
+        if (userCapDigits.length !== 5) return data;
+        const userCapNum = Number(userCapDigits);
+        return data.sort((a, b) => {
+          const capA = Number(Utils.extractDigits(a.pro.cap || ''));
+          const capB = Number(Utils.extractDigits(b.pro.cap || ''));
+          const distanceA = Number.isFinite(capA) ? Math.abs(userCapNum - capA) : Number.MAX_SAFE_INTEGER;
+          const distanceB = Number.isFinite(capB) ? Math.abs(userCapNum - capB) : Number.MAX_SAFE_INTEGER;
+          return distanceA - distanceB;
+        });
+      }
+      default:
+        return data;
+    }
+  },
+  
+  handleSortChange: () => {
+    if (!DOM.sortSelect) return;
+    const newSort = DOM.sortSelect.value;
+    if (newSort === 'distance') {
+      const userCapDigits = Professionals.getUserCap();
+      if (userCapDigits.length !== 5) {
+        alert('Per ordinare per vicinanza, completa il campo CAP nella pagina dei tuoi dati.');
+        DOM.sortSelect.value = Professionals.currentSort;
+        return;
+      }
+    }
+    Professionals.currentSort = newSort;
+    Professionals.render();
+  },
+  
+  updateSortHint: () => {
+    if (!DOM.sortHint) return;
+    const userCapDigits = Professionals.getUserCap();
+    if (userCapDigits.length === 5) {
+      DOM.sortHint.textContent = `CAP impostato: ${userCapDigits}. Ora puoi ordinare per vicinanza.`;
+    } else {
+      DOM.sortHint.textContent = 'Inserisci il tuo CAP nel modulo dati per ordinare i professionisti per vicinanza.';
+    }
   },
   
   /**
@@ -1946,6 +2275,10 @@ const Professionals = {
     // Search input
     DOM.searchInput.addEventListener('input', Professionals.applySearch);
     
+    if (DOM.sortSelect) {
+      DOM.sortSelect.addEventListener('change', Professionals.handleSortChange);
+    }
+    
     // Filter chips
     DOM.filterChips.forEach(chip => {
       chip.addEventListener('click', () => {
@@ -1955,6 +2288,146 @@ const Professionals = {
     
     // Initialize with 'all' filter
     Professionals.applyFilter('all');
+    Professionals.updateSortHint();
+  }
+};
+
+// ==================== PROFESSIONAL APPLICATION FORM ====================
+const ProfessionalApplication = {
+  init: () => {
+    const form = document.getElementById('proApplicationForm');
+    if (!form) return;
+    form.addEventListener('submit', ProfessionalApplication.handleSubmit);
+  },
+  
+  setStatus: (type, message) => {
+    const statusEl = document.getElementById('pro-application-status');
+    if (!statusEl) return;
+    statusEl.textContent = message || '';
+    statusEl.className = `form-status ${type || ''}`;
+    statusEl.style.display = message ? 'block' : 'none';
+  },
+  
+  uploadDocuments: async (files, folderId) => {
+    const uploads = [];
+    if (!files || files.length === 0) return uploads;
+    
+    for (const file of files) {
+      const maxSize = 5 * 1024 * 1024;
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png'];
+      
+      if (file.size > maxSize) {
+        uploads.push({ name: file.name, note: 'File troppo grande (max 5MB)' });
+        continue;
+      }
+      
+      if (!allowedTypes.includes(file.type)) {
+        uploads.push({ name: file.name, note: 'Formato non supportato' });
+        continue;
+      }
+      
+      if (supabase) {
+        try {
+          const safeName = file.name.replace(/\s+/g, '-').toLowerCase();
+          const path = `applications/${folderId}/${safeName}`;
+          const { error } = await supabase.storage
+            .from('professional-documents')
+            .upload(path, file, { cacheControl: '3600', upsert: false });
+          
+          if (error) {
+            uploads.push({ name: file.name, note: 'Errore upload Supabase' });
+            continue;
+          }
+          
+          const { data } = supabase.storage
+            .from('professional-documents')
+            .getPublicUrl(path);
+          
+          uploads.push({ name: file.name, url: data?.publicUrl });
+        } catch (e) {
+          console.error('Errore upload candidatura:', e);
+          uploads.push({ name: file.name, note: 'Upload non riuscito' });
+        }
+      } else {
+        uploads.push({ name: file.name, note: 'Supabase non configurato - allegato non caricato' });
+      }
+    }
+    
+    return uploads;
+  },
+  
+  handleSubmit: async (event) => {
+    event.preventDefault();
+    const form = event.target;
+    
+    const data = {
+      nome: document.getElementById('pro-app-nome')?.value.trim(),
+      cognome: document.getElementById('pro-app-cognome')?.value.trim(),
+      email: document.getElementById('pro-app-email')?.value.trim(),
+      telefono: document.getElementById('pro-app-telefono')?.value.trim(),
+      citta: document.getElementById('pro-app-citta')?.value.trim(),
+      provincia: document.getElementById('pro-app-provincia')?.value.trim(),
+      cap: document.getElementById('pro-app-cap')?.value.trim(),
+      specialty: document.getElementById('pro-app-specialty')?.value.trim(),
+      experience: document.getElementById('pro-app-experience')?.value.trim(),
+      note: document.getElementById('pro-app-notes')?.value.trim()
+    };
+    
+    if (!data.nome || !data.cognome || !Utils.isValidEmail(data.email) || Utils.extractDigits(data.telefono).length < 9 || !data.citta || data.provincia.length !== 2 || Utils.extractDigits(data.cap).length !== 5 || !data.specialty) {
+      ProfessionalApplication.setStatus('error', 'Compila tutti i campi obbligatori con valori validi.');
+      return;
+    }
+    
+    ProfessionalApplication.setStatus('loading', 'Invio candidatura in corso...');
+    
+    const folderId = `${Date.now()}-${(data.nome || 'pro').toLowerCase().replace(/\s+/g, '-')}`;
+    const fileInput = document.getElementById('pro-app-docs');
+    const uploads = await ProfessionalApplication.uploadDocuments(fileInput?.files, folderId);
+    const attachmentsSummary = uploads.length > 0
+      ? uploads.map(u => `${u.name} ${u.url ? `→ ${u.url}` : u.note ? `(${u.note})` : ''}`).join('\n')
+      : 'Nessun allegato fornito';
+    
+    if (EMAIL_CONFIG.publicKey === 'YOUR_PUBLIC_KEY' || typeof emailjs === 'undefined') {
+      console.warn('EmailJS non configurato per candidatura professionisti.');
+      ProfessionalApplication.setStatus('success', 'Candidatura ricevuta (modalità demo). Configura EmailJS per inviare le email.');
+      form.reset();
+      Professionals.updateSortHint();
+      return;
+    }
+    
+    try {
+      const emailData = {
+        to_email: EMAIL_CONFIG.recipientEmail,
+        from_name: `${data.nome} ${data.cognome}`,
+        from_email: data.email,
+        phone: data.telefono,
+        candidate_name: `${data.nome} ${data.cognome}`,
+        candidate_email: data.email,
+        candidate_phone: data.telefono,
+        candidate_city: data.citta,
+        candidate_province: data.provincia,
+        candidate_cap: data.cap,
+        candidate_specialty: data.specialty,
+        candidate_experience: data.experience || 'Non indicata',
+        candidate_notes: data.note || 'Non specificate',
+        attachment_links: attachmentsSummary,
+        submission_date: new Date().toLocaleString('it-IT'),
+        subject: 'Nuova candidatura professionista'
+      };
+      
+      await emailjs.send(
+        EMAIL_CONFIG.serviceId,
+        EMAIL_CONFIG.templateIdProApplication || EMAIL_CONFIG.templateId,
+        emailData
+      );
+      
+      ProfessionalApplication.setStatus('success', '✅ Grazie! La tua candidatura è stata inviata con successo. Ti contatteremo a breve.');
+      form.reset();
+      Professionals.updateSortHint();
+    } catch (e) {
+      console.error('Errore invio candidatura:', e);
+      ProfessionalApplication.setStatus('error', '❌ Errore durante l’invio. Riprova più tardi.');
+    }
   }
 };
 
@@ -1990,6 +2463,9 @@ const ProfessionalDashboard = {
       email: document.getElementById('pro-email')?.value || '',
       phone: document.getElementById('pro-phone')?.value || '',
       address: document.getElementById('pro-address')?.value || '',
+      city: document.getElementById('pro-city')?.value || '',
+      province: document.getElementById('pro-province')?.value || '',
+      cap: document.getElementById('pro-cap')?.value || '',
       cf: document.getElementById('pro-cf')?.value || '',
       piva: document.getElementById('pro-piva')?.value || '',
       specialty: document.getElementById('pro-specialty')?.value || '',
@@ -2022,7 +2498,10 @@ const ProfessionalDashboard = {
           career: data.career || PROFESSIONALS_DATA[proIndex].career,
           email: data.email || PROFESSIONALS_DATA[proIndex].email,
           phone: data.phone || PROFESSIONALS_DATA[proIndex].phone,
-          address: data.address || PROFESSIONALS_DATA[proIndex].address
+          address: data.address || PROFESSIONALS_DATA[proIndex].address,
+          city: data.city || PROFESSIONALS_DATA[proIndex].city,
+          province: data.province || PROFESSIONALS_DATA[proIndex].province,
+          cap: data.cap || PROFESSIONALS_DATA[proIndex].cap
         };
         
         // Re-render professionals list to show updated data
@@ -2311,6 +2790,9 @@ const ProfessionalDashboard = {
       }
       if (document.getElementById('pro-phone')) document.getElementById('pro-phone').value = savedData.phone || '';
       if (document.getElementById('pro-address')) document.getElementById('pro-address').value = savedData.address || '';
+      if (document.getElementById('pro-city')) document.getElementById('pro-city').value = savedData.city || proData.city || '';
+      if (document.getElementById('pro-province')) document.getElementById('pro-province').value = savedData.province || proData.province || '';
+      if (document.getElementById('pro-cap')) document.getElementById('pro-cap').value = savedData.cap || proData.cap || '';
       if (document.getElementById('pro-cf')) document.getElementById('pro-cf').value = savedData.cf || '';
       if (document.getElementById('pro-piva')) document.getElementById('pro-piva').value = savedData.piva || '';
       if (document.getElementById('pro-specialty')) document.getElementById('pro-specialty').value = savedData.specialty || proData.specialty || '';
@@ -2420,6 +2902,9 @@ const AdminDashboard = {
             <div class="data-row">
               <strong>Telefono:</strong> ${request.phone || 'N/A'}
             </div>
+            ${(request.city || request.province || request.cap) ? `<div class="data-row">
+              <strong>Località:</strong> ${request.city || 'N/D'} ${request.province ? `(${request.province})` : ''} ${request.cap ? `- CAP ${request.cap}` : ''}
+            </div>` : ''}
             <div class="data-row">
               <strong>Tipi di debito:</strong> ${request.debtTypes || 'N/A'}
             </div>
@@ -2462,6 +2947,9 @@ const AdminDashboard = {
           name: saved.name || pro.name,
           email: saved.email || pro.email,
           phone: saved.phone || '',
+          city: saved.city || pro.city || '',
+          province: saved.province || pro.province || '',
+          cap: saved.cap || pro.cap || '',
           specialty: saved.specialty || pro.specialty,
           services: saved.services || pro.services,
           price: saved.price || pro.price
@@ -2479,6 +2967,9 @@ const AdminDashboard = {
               <div class="data-row">
                 <strong>Telefono:</strong> ${finalPro.phone || 'N/A'}
               </div>
+              ${(finalPro.city || finalPro.province || finalPro.cap) ? `<div class="data-row">
+                <strong>Località:</strong> ${finalPro.city || 'N/D'} ${finalPro.province ? `(${finalPro.province})` : ''} ${finalPro.cap ? `- CAP ${finalPro.cap}` : ''}
+              </div>` : ''}
               <div class="data-row">
                 <strong>Specialità:</strong> ${finalPro.specialty || 'N/A'}
               </div>
@@ -2509,7 +3000,7 @@ const AdminDashboard = {
       }
       
       // CSV headers
-      const headers = ['Nome', 'Cognome', 'Email', 'Telefono', 'Tipologie Debiti', 'Importo Totale', 'Dettagli Debiti', 'Data Richiesta'];
+      const headers = ['Nome', 'Cognome', 'Email', 'Telefono', 'Città', 'Provincia', 'CAP', 'Tipologie Debiti', 'Importo Totale', 'Dettagli Debiti', 'Data Richiesta'];
       
       // CSV rows
       const rows = requests.map(req => [
@@ -2517,6 +3008,9 @@ const AdminDashboard = {
         req.surname || '',
         req.email || '',
         req.phone || '',
+        req.city || '',
+        req.province || '',
+        req.cap || '',
         req.debtTypes || '',
         req.totalAmount || '',
         (req.debtDetails || '').replace(/"/g, '""'), // Escape quotes
@@ -2572,6 +3066,9 @@ const AdminDashboard = {
           email: saved.email || pro.email,
           phone: saved.phone || '',
           address: saved.address || '',
+          city: saved.city || pro.city || '',
+          province: saved.province || pro.province || '',
+          cap: saved.cap || pro.cap || '',
           cf: saved.cf || '',
           piva: saved.piva || '',
           specialty: saved.specialty || pro.specialty,
@@ -2583,7 +3080,7 @@ const AdminDashboard = {
       });
       
       // CSV headers
-      const headers = ['Nome', 'Email', 'Telefono', 'Indirizzo', 'Codice Fiscale', 'Partita IVA', 'Specialità', 'Servizi', 'Tariffa (€)', 'Descrizione', 'Carriera'];
+      const headers = ['Nome', 'Email', 'Telefono', 'Indirizzo', 'Città', 'Provincia', 'CAP', 'Codice Fiscale', 'Partita IVA', 'Specialità', 'Servizi', 'Tariffa (€)', 'Descrizione', 'Carriera'];
       
       // CSV rows
       const rows = professionals.map(pro => [
@@ -2591,6 +3088,9 @@ const AdminDashboard = {
         pro.email || '',
         pro.phone || '',
         pro.address || '',
+        pro.city || '',
+        pro.province || '',
+        pro.cap || '',
         pro.cf || '',
         pro.piva || '',
         pro.specialty || '',
@@ -2649,6 +3149,9 @@ const AdminDashboard = {
         'Cognome': req.surname || '',
         'Email': req.email || '',
         'Telefono': req.phone || '',
+        'Città': req.city || '',
+        'Provincia': req.province || '',
+        'CAP': req.cap || '',
         'Tipologie Debiti': req.debtTypes || '',
         'Importo Totale': req.totalAmount || '',
         'Dettagli Debiti': req.debtDetails || '',
@@ -2723,6 +3226,10 @@ const AdminDashboard = {
         yPosition += 5;
         doc.text(`Telefono: ${req.phone || 'N/A'}`, margin, yPosition);
         yPosition += 5;
+        if (req.city || req.province || req.cap) {
+          doc.text(`Località: ${req.city || 'N/D'} ${req.province ? `(${req.province})` : ''} ${req.cap ? `- CAP ${req.cap}` : ''}`, margin, yPosition);
+          yPosition += 5;
+        }
         doc.text(`Tipi di debito: ${req.debtTypes || 'N/A'}`, margin, yPosition);
         yPosition += 5;
         doc.text(`Importo totale: ${req.totalAmount || 'N/A'}`, margin, yPosition);
@@ -2786,6 +3293,9 @@ const AdminDashboard = {
           email: saved.email || pro.email,
           phone: saved.phone || '',
           address: saved.address || '',
+          city: saved.city || pro.city || '',
+          province: saved.province || pro.province || '',
+          cap: saved.cap || pro.cap || '',
           cf: saved.cf || '',
           piva: saved.piva || '',
           specialty: saved.specialty || pro.specialty,
@@ -2802,6 +3312,9 @@ const AdminDashboard = {
         'Email': pro.email || '',
         'Telefono': pro.phone || '',
         'Indirizzo': pro.address || '',
+        'Città': pro.city || '',
+        'Provincia': pro.province || '',
+        'CAP': pro.cap || '',
         'Codice Fiscale': pro.cf || '',
         'Partita IVA': pro.piva || '',
         'Specialità': pro.specialty || '',
@@ -2855,6 +3368,9 @@ const AdminDashboard = {
           email: saved.email || pro.email,
           phone: saved.phone || '',
           address: saved.address || '',
+          city: saved.city || pro.city || '',
+          province: saved.province || pro.province || '',
+          cap: saved.cap || pro.cap || '',
           cf: saved.cf || '',
           piva: saved.piva || '',
           specialty: saved.specialty || pro.specialty,
@@ -2901,6 +3417,10 @@ const AdminDashboard = {
         yPosition += 5;
         doc.text(`Indirizzo: ${pro.address || 'N/A'}`, margin, yPosition);
         yPosition += 5;
+        if (pro.city || pro.province || pro.cap) {
+          doc.text(`Località: ${pro.city || 'N/D'} ${pro.province ? `(${pro.province})` : ''} ${pro.cap ? `- CAP ${pro.cap}` : ''}`, margin, yPosition);
+          yPosition += 5;
+        }
         doc.text(`Codice Fiscale: ${pro.cf || 'N/A'}`, margin, yPosition);
         yPosition += 5;
         doc.text(`Partita IVA: ${pro.piva || 'N/A'}`, margin, yPosition);
@@ -3171,6 +3691,14 @@ const App = {
     Wizard.init();
     Modal.init();
     Professionals.init();
+    Geo.populateProvinceSelects();
+    Navigation.initMenu();
+    ProfessionalApplication.init();
+    const capField = document.getElementById('cap');
+    if (capField) {
+      capField.addEventListener('input', () => Professionals.updateSortHint());
+    }
+    Professionals.updateSortHint();
     LoginHandler.init();
     
     // Ensure the app always starts from the home wizard

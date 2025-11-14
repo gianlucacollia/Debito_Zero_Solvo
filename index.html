@@ -110,11 +110,17 @@
       </div>
     </div>
     <div class="spacer"></div>
-        <div class="nav-actions">
-          <button class="nav-btn" onclick="Navigation.scrollToClient()">Richiedi aiuto</button>
-          <button class="nav-btn" onclick="Navigation.showAdminLogin()">🔐 Dashboard Admin</button>
-          <button class="nav-btn nav-btn-secondary" onclick="Navigation.showProfessionalLogin()">Area Professionisti</button>
-        </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Apri menu principale" aria-expanded="false">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="nav-menu" id="navMenu" role="menu">
+      <button class="nav-menu-link" role="menuitem" onclick="Navigation.scrollToClient()">Richiedi aiuto</button>
+      <button class="nav-menu-link" role="menuitem" onclick="Navigation.scrollToJoinProfessionals()">Diventa un professionista</button>
+      <button class="nav-menu-link" role="menuitem" onclick="Navigation.showProfessionalLogin()">Area Professionisti</button>
+      <button class="nav-menu-link" role="menuitem" onclick="Navigation.showAdminLogin()">Dashboard Admin</button>
+    </div>
   </nav>
 
   <!-- WIZARD -->
@@ -280,6 +286,32 @@
             </div>
           </div>
           <div class="row">
+            <div class="field">
+              <label for="citta">Città</label>
+              <div class="input-wrapper">
+                <input type="text" id="citta" name="citta" placeholder="Es. Milano" required>
+                <span class="field-icon" id="icon-citta" aria-hidden="true"></span>
+              </div>
+              <div class="error-text" id="err-citta" role="alert">Inserisci almeno 2 caratteri.</div>
+            </div>
+            <div class="field">
+              <label for="provincia">Provincia</label>
+              <div class="input-wrapper">
+                <select id="provincia" name="provincia" data-province-select required>
+                  <option value="">Seleziona provincia</option>
+                </select>
+                <span class="field-icon" id="icon-provincia" aria-hidden="true"></span>
+              </div>
+              <div class="error-text" id="err-provincia" role="alert">Seleziona una provincia.</div>
+            </div>
+            <div class="field">
+              <label for="cap">CAP</label>
+              <div class="input-wrapper">
+                <input type="text" id="cap" name="cap" inputmode="numeric" maxlength="5" placeholder="Es. 20100" required>
+                <span class="field-icon" id="icon-cap" aria-hidden="true"></span>
+              </div>
+              <div class="error-text" id="err-cap" role="alert">Inserisci 5 cifre.</div>
+            </div>
           </div>
         </form>
 
@@ -308,6 +340,89 @@
           ❌ Errore nell'invio email. Riprova o contattaci direttamente.
         </div>
       </section>
+      
+      <!-- JOIN PROFESSIONAL SECTION -->
+      <section class="join-pro-section" id="join-pro-section" aria-labelledby="join-pro-title">
+        <div class="container">
+          <div class="join-pro-card">
+            <div class="join-pro-content">
+            <div class="join-pro-text">
+              <p class="eyebrow">Collabora con noi</p>
+              <h2 id="join-pro-title">Diventa un nostro professionista di fiducia</h2>
+              <p>Se sei un avvocato, un commercialista, un gestore OCC o un consulente esperto nel debito, puoi entrare nella rete Solvo e ricevere richieste qualificate da clienti selezionati.</p>
+              <ul class="join-pro-list">
+                <li>Flusso costante di richieste profilate</li>
+                <li>Dashboard dedicata per gestire i tuoi dati</li>
+                <li>Documenti certificati per attestare professionalità e onorabilità</li>
+                <li>Supporto del team Solvo in ogni fase</li>
+              </ul>
+            </div>
+            <details class="join-pro-details">
+              <summary>Apri il modulo di candidatura</summary>
+              <form id="proApplicationForm" class="join-pro-form" novalidate>
+                <div class="two-columns">
+                  <div class="field">
+                    <label for="pro-app-nome">Nome</label>
+                    <input type="text" id="pro-app-nome" required>
+                  </div>
+                  <div class="field">
+                    <label for="pro-app-cognome">Cognome</label>
+                    <input type="text" id="pro-app-cognome" required>
+                  </div>
+                </div>
+                <div class="two-columns">
+                  <div class="field">
+                    <label for="pro-app-email">Email professionale</label>
+                    <input type="email" id="pro-app-email" required>
+                  </div>
+                  <div class="field">
+                    <label for="pro-app-telefono">Telefono</label>
+                    <input type="tel" id="pro-app-telefono" inputmode="tel" placeholder="+39 333 1234567" required>
+                  </div>
+                </div>
+                <div class="three-columns">
+                  <div class="field">
+                    <label for="pro-app-citta">Città</label>
+                    <input type="text" id="pro-app-citta" required>
+                  </div>
+                  <div class="field">
+                    <label for="pro-app-provincia">Provincia</label>
+                    <select id="pro-app-provincia" data-province-select required>
+                      <option value="">Seleziona provincia</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="pro-app-cap">CAP</label>
+                    <input type="text" id="pro-app-cap" inputmode="numeric" maxlength="5" required>
+                  </div>
+                </div>
+                <div class="two-columns">
+                  <div class="field">
+                    <label for="pro-app-specialty">Specializzazione principale</label>
+                    <input type="text" id="pro-app-specialty" placeholder="Es. Diritto tributario" required>
+                  </div>
+                  <div class="field">
+                    <label for="pro-app-experience">Anni di esperienza</label>
+                    <input type="number" id="pro-app-experience" min="0" placeholder="Es. 10">
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="pro-app-notes">Messaggio / Note aggiuntive</label>
+                  <textarea id="pro-app-notes" rows="4" placeholder="Raccontaci come aiuti i tuoi clienti e quali attestati possiedi."></textarea>
+                </div>
+                <div class="field">
+                  <label for="pro-app-docs">Allega attestati o certificazioni (PDF, JPG, PNG)</label>
+                  <input type="file" id="pro-app-docs" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                  <small>Dimensione massima 5 MB per file. Se Supabase non è configurato, i documenti verranno richiesti in un secondo momento.</small>
+                </div>
+                <div id="pro-application-status" class="form-status" aria-live="polite"></div>
+                <button type="submit" class="btn full">Invia candidatura</button>
+              </form>
+            </details>
+          </div>
+          </div>
+        </div>
+      </section>
     </div>
   </section>
 
@@ -322,12 +437,22 @@
         <div class="search">
           <input type="search" id="search" placeholder="Cerca (es. 'fiscale', 'saldo e stralcio')" aria-label="Cerca professionisti">
         </div>
+        <div class="sorter">
+          <label for="sortSelect">Ordina</label>
+          <select id="sortSelect" aria-label="Ordina professionisti">
+            <option value="default">Consigliati</option>
+            <option value="price-asc">Prezzo crescente</option>
+            <option value="price-desc">Prezzo decrescente</option>
+            <option value="distance">Vicinanza (CAP)</option>
+          </select>
+        </div>
         <button type="button" class="chip active" data-filter="all">Tutti</button>
         <button type="button" class="chip" data-filter="bancari">Bancari</button>
         <button type="button" class="chip" data-filter="fiscali">Fiscali/Tributari</button>
         <button type="button" class="chip" data-filter="aziende">Aziende</button>
         <button type="button" class="chip" data-filter="privati">Privati</button>
       </div>
+      <p class="sort-hint" id="sortHint">Inserisci il tuo CAP nel modulo per ordinare per vicinanza.</p>
 
       <!-- Professionals Grid -->
       <div class="grid" id="pro-grid"></div>
@@ -381,6 +506,20 @@
             <div class="info-item">
               <label>Indirizzo</label>
               <input type="text" id="pro-address" placeholder="Inserisci indirizzo">
+            </div>
+            <div class="info-item">
+              <label>Città</label>
+              <input type="text" id="pro-city" placeholder="Es. Milano">
+            </div>
+            <div class="info-item">
+              <label>Provincia</label>
+              <select id="pro-province" data-province-select>
+                <option value="">Seleziona provincia</option>
+              </select>
+            </div>
+            <div class="info-item">
+              <label>CAP</label>
+              <input type="text" id="pro-cap" placeholder="Es. 20100" maxlength="5">
             </div>
             <div class="info-item">
               <label>Codice Fiscale</label>
