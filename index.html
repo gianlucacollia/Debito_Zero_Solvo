@@ -402,7 +402,6 @@
       <div class="grid" id="pro-grid"></div>
     </div>
   </section>
-  
   <!-- JOIN PROFESSIONAL PAGE -->
   <section class="page" id="page-join-pro" aria-labelledby="join-pro-title" hidden>
     <div class="container">
@@ -625,6 +624,7 @@
           <button class="tab-btn active" onclick="AdminDashboard.showTab('requests')">Richieste Clienti</button>
           <button class="tab-btn" onclick="AdminDashboard.showTab('professionals')">Professionisti</button>
           <button class="tab-btn" onclick="AdminDashboard.showTab('statistics')">Statistiche</button>
+          <button class="tab-btn" onclick="AdminDashboard.showTab('review')">Verifica Professionisti</button>
         </div>
         
             <div id="admin-requests" class="tab-content active">
@@ -667,6 +667,47 @@
               <h2 style="margin-bottom: var(--spacing-lg);">Statistiche e Analisi</h2>
               <div id="statistics-content" class="statistics-grid"></div>
             </div>
+            
+            <div id="admin-review" class="tab-content">
+              <h2 style="margin-bottom: var(--spacing-lg);">Verifica e feedback professionisti</h2>
+              <div class="review-card">
+                <div class="field">
+                  <label for="review-pro-select">Seleziona professionista</label>
+                  <select id="review-pro-select">
+                    <option value="">Seleziona un professionista</option>
+                  </select>
+                </div>
+                
+                <div id="review-details" class="review-details" aria-live="polite">
+                  <p style="color: var(--text-muted);">Seleziona un professionista per visualizzare i dettagli.</p>
+                </div>
+                
+                <div class="field">
+                  <label>Esito verifica</label>
+                  <div class="review-options">
+                    <label>
+                      <input type="radio" name="review-type" value="positive" checked>
+                      Feedback positivo
+                    </label>
+                    <label>
+                      <input type="radio" name="review-type" value="negative">
+                      Feedback da rivedere
+                    </label>
+                  </div>
+                </div>
+                
+                <div class="field">
+                  <label for="review-message">Messaggio da inviare</label>
+                  <textarea id="review-message" rows="4" placeholder="Scrivi il tuo feedback per il professionista."></textarea>
+                </div>
+                
+                <div id="review-status" class="review-status" aria-live="polite"></div>
+                
+                <div class="review-actions">
+                  <button type="button" class="btn" id="review-send">Invia feedback</button>
+                </div>
+              </div>
+            </div>
         
         <div class="dashboard-actions">
           <button class="btn ghost" onclick="AdminDashboard.logout()">Esci</button>
@@ -678,18 +719,27 @@
   <!-- GDPR Modal -->
   <div id="gdprModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="gdprTitle">
     <div class="modal">
-      <h3 id="gdprTitle">Informativa sul trattamento dei dati</h3>
-      <div class="body">
-        <p>Ai sensi del GDPR, Debito Zero - Solvo utilizza i dati per prendere in carico la tua richiesta e, se necessario, condividerli con professionisti abilitati (avvocati, OCC, consulenti) per lo svolgimento dell'incarico.</p>
-        <p>Base giuridica: misure precontrattuali e legittimo interesse. Conservazione: tempo necessario alla gestione della pratica e obblighi di legge.</p>
+      <h3 id="gdprTitle">Informativa privacy</h3>
+      <div class="privacy-body">
+        <p>L'interessato, acquisite le informazioni dal Titolare, presta il consenso per le finalità sotto riportate:</p>
+        <p class="privacy-note">I campi contrassegnati dall'asterisco sono obbligatori*</p>
+        
+        <label class="privacy-option">
+          <input type="checkbox" id="consentServiceChk">
+          <span>per essere contattato per il servizio richiesto <b>*</b></span>
+        </label>
+        <label class="privacy-option">
+          <input type="checkbox" id="consentMarketingChk">
+          <span>per attività di marketing diretto e indiretto e ricerche di mercato</span>
+        </label>
+        <label class="privacy-option">
+          <input type="checkbox" id="consentProfilingChk">
+          <span>per attività di profilazione al fine di migliorare l’offerta di prodotti e servizi</span>
+        </label>
       </div>
       <div class="actions">
-        <label class="consent-label">
-          <input type="checkbox" id="consentChk">
-          Acconsento alla comunicazione dei dati ai professionisti
-        </label>
         <button type="button" id="closeModal" class="m-btn m-ghost">Annulla</button>
-        <button type="button" id="confirmSend" class="m-btn m-primary" disabled>Conferma</button>
+        <button type="button" id="confirmSend" class="m-btn m-primary" disabled>Invia</button>
       </div>
     </div>
   </div>

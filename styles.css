@@ -1279,6 +1279,44 @@ select:focus {
   color: #fecdd3;
 }
 
+.privacy-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  color: var(--text-muted);
+}
+
+.privacy-note {
+  font-size: 0.85rem;
+  color: #a855f7;
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+}
+
+.privacy-option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border var(--transition-fast), background var(--transition-fast);
+}
+
+.privacy-option input {
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+}
+
+.privacy-option:hover {
+  border-color: var(--accent);
+  background: rgba(93, 173, 226, 0.08);
+}
+
 /* ==================== JOIN PROFESSIONAL SECTION ==================== */
 .join-pro-section {
   padding: var(--spacing-xl) var(--spacing-lg);
@@ -1387,6 +1425,76 @@ select:focus {
   padding: var(--spacing-sm);
   border-radius: var(--radius-md);
   background: #fff;
+}
+
+/* ==================== REVIEW PAGE ==================== */
+.review-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: clamp(20px, 4vw, 40px);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.review-details {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  background: rgba(248, 249, 250, 0.7);
+  line-height: 1.6;
+}
+
+.review-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.review-options {
+  display: flex;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.review-options label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.review-status {
+  display: none;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+}
+
+.review-status.success {
+  display: block;
+  background: rgba(56, 178, 172, 0.15);
+  color: #0f766e;
+}
+
+.review-status.error {
+  display: block;
+  background: rgba(245, 101, 101, 0.1);
+  color: #c53030;
+}
+
+.review-status.loading {
+  display: block;
+  background: rgba(66, 153, 225, 0.12);
+  color: #2b6cb0;
+}
+
+.review-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .form-status {

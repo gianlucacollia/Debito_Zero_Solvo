@@ -5,6 +5,7 @@ const EMAIL_CONFIG = {
   templateId: 'template_1p0r597',    // ← Template ID da EmailJS per richieste clienti
   templateIdConfirmation: 'template_1p0r597',  // ← Template ID per email conferma cliente (usa lo stesso o crea uno separato)
   templateIdAppointment: 'template_1p0r597',    // ← Template ID per prenotazioni (usa lo stesso o crea uno separato)
+  templateIdReview: 'template_1p0r597', // ← Template per feedback verifica professionisti
   templateIdProApplication: 'template_1p0r597', // ← Template ID per candidature professionisti
   publicKey: 'wrPtIJWjgaySCJWjZ',      // ← Public Key da EmailJS
   recipientEmail: 'gianluca.collia@gmail.com'  // ← Email dove ricevere le richieste
@@ -525,7 +526,9 @@ const DOM = {
   
   // Modal
   modal: document.getElementById('gdprModal'),
-  consentChk: document.getElementById('consentChk'),
+  consentServiceChk: document.getElementById('consentServiceChk'),
+  consentMarketingChk: document.getElementById('consentMarketingChk'),
+  consentProfilingChk: document.getElementById('consentProfilingChk'),
   closeModalBtn: document.getElementById('closeModal'),
   confirmSendBtn: document.getElementById('confirmSend'),
   
@@ -534,7 +537,15 @@ const DOM = {
   filterChips: document.querySelectorAll('.chip'),
   proGrid: document.getElementById('pro-grid'),
   sortSelect: document.getElementById('sortSelect'),
-  sortHint: document.getElementById('sortHint')
+  sortHint: document.getElementById('sortHint'),
+  
+  // Professional review
+  reviewSelect: document.getElementById('review-pro-select'),
+  reviewDetails: document.getElementById('review-details'),
+  reviewMessage: document.getElementById('review-message'),
+  reviewTypeRadios: document.querySelectorAll('input[name="review-type"]'),
+  reviewStatus: document.getElementById('review-status'),
+  reviewSendBtn: document.getElementById('review-send')
 };
 
 // ==================== UTILITIES ====================
@@ -858,9 +869,9 @@ const Wizard = {
     state.currentStep = step;
     setTimeout(() => {
       nextStepElement.hidden = false;
-      Wizard.updateProgress(step);
+    Wizard.updateProgress(step);
       Navigation.updateGlobalBackButton();
-      Utils.scrollToTop();
+    Utils.scrollToTop();
       
       // Restore saved data if available
       if (step === 2) {
@@ -913,15 +924,15 @@ const Wizard = {
         
         requestAnimationFrame(animate);
       } else if (totalDisplay) {
-        totalDisplay.textContent = `€ ${total.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      totalDisplay.textContent = `€ ${total.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
       }
       
       if (totalSection) {
-        totalSection.style.display = 'block';
+      totalSection.style.display = 'block';
       }
     } else {
       if (totalSection) {
-        totalSection.style.display = 'none';
+      totalSection.style.display = 'none';
       }
     }
   },
@@ -1346,7 +1357,7 @@ const Wizard = {
         });
         
         // Immediate validation on blur
-        input.addEventListener('blur', () => {
+      input.addEventListener('blur', () => {
           clearTimeout(timeout);
           Wizard.validateField(fieldId, input.value, true);
         });
@@ -1494,7 +1505,7 @@ const Wizard = {
         Wizard.showStep(savedData.currentStep);
       } else {
         localStorage.removeItem('debitoZeroWizard');
-        Wizard.showStep(1);
+    Wizard.showStep(1);
       }
     } else {
       Wizard.showStep(1);
@@ -1555,6 +1566,10 @@ const EmailService = {
         }
       });
       
+      const consentData = state.formData.privacyConsents || { service: false, marketing: false, profiling: false };
+      const consentSummaryText = `Servizio richiesto: ${consentData.service ? 'SI' : 'NO'} | Marketing: ${consentData.marketing ? 'SI' : 'NO'} | Profilazione: ${consentData.profiling ? 'SI' : 'NO'}`;
+      const storageDebtDetails = `${debtsDetail.trim()}\n\nConsensi privacy:\n- Servizio richiesto: ${consentData.service ? 'SI' : 'NO'}\n- Marketing: ${consentData.marketing ? 'SI' : 'NO'}\n- Profilazione: ${consentData.profiling ? 'SI' : 'NO'}`;
+      
       // Prepare email data
       const emailData = {
         to_email: EMAIL_CONFIG.recipientEmail,
@@ -1567,7 +1582,8 @@ const EmailService = {
         debt_types: state.selections.map(s => DEBT_LABELS[s] || s).join(', '),
         debt_details: debtsDetail.trim(),
         debt_amount: `€ ${state.formData.totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2})}`,
-        submission_date: new Date().toLocaleString('it-IT')
+        submission_date: new Date().toLocaleString('it-IT'),
+        consent_summary: consentSummaryText
       };
       
       // Send via EmailJS
@@ -1595,7 +1611,8 @@ const EmailService = {
           debtTypes: state.selections.map(s => DEBT_LABELS[s] || s).join(', '),
           totalAmount: `€ ${state.formData.totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2})}`,
           totalAmountNumber: state.formData.totalAmount,
-          debtDetails: debtsDetail.trim(),
+          debtDetails: storageDebtDetails,
+          consentSummary: consentSummaryText,
           date: requestDate.toLocaleString('it-IT'),
           dateISO: requestDate.toISOString()
         };
@@ -1688,7 +1705,10 @@ const Modal = {
    * Open GDPR modal
    */
   open: () => {
-    DOM.consentChk.checked = false;
+    if (DOM.consentServiceChk) DOM.consentServiceChk.checked = false;
+    if (DOM.consentMarketingChk) DOM.consentMarketingChk.checked = false;
+    if (DOM.consentProfilingChk) DOM.consentProfilingChk.checked = false;
+    state.formData.privacyConsents = { service: false, marketing: false, profiling: false };
     DOM.confirmSendBtn.disabled = true;
     DOM.modal.classList.add('show');
   },
@@ -1704,6 +1724,13 @@ const Modal = {
    * Handle form submission
    */
   handleSubmit: async () => {
+    const consentData = {
+      service: DOM.consentServiceChk?.checked || false,
+      marketing: DOM.consentMarketingChk?.checked || false,
+      profiling: DOM.consentProfilingChk?.checked || false
+    };
+    state.formData.privacyConsents = consentData;
+    
     Modal.close();
     
     // Send email
@@ -1732,8 +1759,13 @@ const Modal = {
    * Initialize modal event listeners
    */
   init: () => {
-    DOM.consentChk.addEventListener('change', () => {
-      DOM.confirmSendBtn.disabled = !DOM.consentChk.checked;
+    const checkboxes = [DOM.consentServiceChk, DOM.consentMarketingChk, DOM.consentProfilingChk];
+    checkboxes.forEach(chk => {
+      if (chk) {
+        chk.addEventListener('change', () => {
+          DOM.confirmSendBtn.disabled = !(DOM.consentServiceChk && DOM.consentServiceChk.checked);
+        });
+      }
     });
     
     DOM.closeModalBtn.addEventListener('click', Modal.close);
@@ -2379,6 +2411,162 @@ const Professionals = {
   }
 };
 
+// ==================== PROFESSIONAL REVIEW ====================
+const ProfessionalReview = {
+  currentProfessional: null,
+  
+  init: () => {
+    if (!DOM.reviewSelect) return;
+    ProfessionalReview.refreshOptions();
+    
+    DOM.reviewSelect.addEventListener('change', ProfessionalReview.handleSelection);
+    if (DOM.reviewTypeRadios) {
+      DOM.reviewTypeRadios.forEach(radio => {
+        radio.addEventListener('change', ProfessionalReview.setDefaultMessage);
+      });
+    }
+    if (DOM.reviewSendBtn) {
+      DOM.reviewSendBtn.addEventListener('click', ProfessionalReview.sendFeedback);
+    }
+    if (DOM.reviewMessage) {
+      DOM.reviewMessage.addEventListener('input', () => {
+        DOM.reviewMessage.dataset.autofill = 'false';
+      });
+    }
+  },
+  
+  refreshOptions: () => {
+    if (!DOM.reviewSelect) return;
+    const options = ['<option value="">Seleziona un professionista</option>'];
+    PROFESSIONALS_DATA.forEach((pro, index) => {
+      options.push(`<option value="${index}">${pro.name} — ${pro.specialty || ''}</option>`);
+    });
+    DOM.reviewSelect.innerHTML = options.join('');
+    ProfessionalReview.currentProfessional = null;
+    if (DOM.reviewDetails) {
+      DOM.reviewDetails.innerHTML = '<p style="color: var(--text-muted);">Seleziona un professionista per visualizzare i dettagli.</p>';
+    }
+    if (DOM.reviewMessage) {
+      DOM.reviewMessage.value = '';
+      DOM.reviewMessage.dataset.autofill = 'false';
+    }
+    if (DOM.reviewStatus) DOM.reviewStatus.className = 'review-status';
+  },
+  
+  handleSelection: () => {
+    const idx = Number(DOM.reviewSelect.value);
+    if (Number.isNaN(idx)) {
+      ProfessionalReview.currentProfessional = null;
+      if (DOM.reviewDetails) {
+        DOM.reviewDetails.innerHTML = '<p style="color: var(--text-muted);">Seleziona un professionista per visualizzare i dettagli.</p>';
+      }
+      return;
+    }
+    const pro = PROFESSIONALS_DATA[idx];
+    ProfessionalReview.currentProfessional = pro;
+    ProfessionalReview.renderDetails(pro);
+    ProfessionalReview.setDefaultMessage();
+  },
+  
+  renderDetails: (pro) => {
+    if (!DOM.reviewDetails || !pro) return;
+    DOM.reviewDetails.innerHTML = `
+      <div class="review-detail-grid">
+        <p><strong>Nome:</strong> ${pro.name || '-'}</p>
+        <p><strong>Email:</strong> ${pro.email || 'N/A'}</p>
+        <p><strong>Telefono:</strong> ${pro.phone || 'N/A'}</p>
+        <p><strong>Specialità:</strong> ${pro.specialty || 'N/A'}</p>
+        <p><strong>Città:</strong> ${pro.city || 'N/D'} ${pro.province ? `(${pro.province})` : ''}</p>
+        <p><strong>CAP:</strong> ${pro.cap || 'N/D'}</p>
+      </div>
+      <p><strong>Descrizione:</strong> ${pro.desc || '—'}</p>
+      ${pro.services ? `<p><strong>Servizi:</strong> ${pro.services}</p>` : ''}
+    `;
+  },
+  
+  setDefaultMessage: () => {
+    if (!DOM.reviewMessage || !ProfessionalReview.currentProfessional) return;
+    const type = document.querySelector('input[name="review-type"]:checked')?.value || 'positive';
+    const pro = ProfessionalReview.currentProfessional;
+    if (DOM.reviewMessage.value.trim().length === 0 || DOM.reviewMessage.dataset.autofill === 'true') {
+      if (type === 'positive') {
+        DOM.reviewMessage.value = `Ciao ${pro.name},\n\nabbiamo verificato i tuoi documenti e la tua candidatura è stata approvata. Da ora puoi operare sulla piattaforma.\n\nGrazie per la collaborazione!\nTeam Debito Zero - Solvo`;
+      } else {
+        DOM.reviewMessage.value = `Ciao ${pro.name},\n\nabbiamo analizzato la tua candidatura ma sono necessarie alcune integrazioni. Ti invitiamo a inviarci documenti aggiuntivi o chiarimenti per completare la valutazione.\n\nRestiamo a disposizione.\nTeam Debito Zero - Solvo`;
+      }
+      DOM.reviewMessage.dataset.autofill = 'true';
+    }
+  },
+  
+  sendFeedback: async () => {
+    if (EMAIL_CONFIG.publicKey === 'YOUR_PUBLIC_KEY' || typeof emailjs === 'undefined') {
+      if (DOM.reviewStatus) {
+        DOM.reviewStatus.className = 'review-status error';
+        DOM.reviewStatus.textContent = 'Configura EmailJS per inviare i feedback.';
+      }
+      return;
+    }
+    
+    const proIndex = Number(DOM.reviewSelect?.value);
+    const pro = PROFESSIONALS_DATA[proIndex];
+    if (!pro) {
+      if (DOM.reviewStatus) {
+        DOM.reviewStatus.className = 'review-status error';
+        DOM.reviewStatus.textContent = 'Seleziona un professionista prima di inviare.';
+      }
+      return;
+    }
+    
+    const type = document.querySelector('input[name="review-type"]:checked')?.value || 'positive';
+    const message = DOM.reviewMessage?.value.trim();
+    if (!message) {
+      if (DOM.reviewStatus) {
+        DOM.reviewStatus.className = 'review-status error';
+        DOM.reviewStatus.textContent = 'Scrivi un messaggio da inviare.';
+      }
+      return;
+    }
+    
+    if (!pro.email) {
+      if (DOM.reviewStatus) {
+        DOM.reviewStatus.className = 'review-status error';
+        DOM.reviewStatus.textContent = 'Il professionista non ha un indirizzo email valido.';
+      }
+      return;
+    }
+    
+    if (DOM.reviewStatus) {
+      DOM.reviewStatus.className = 'review-status loading';
+      DOM.reviewStatus.textContent = 'Invio del feedback in corso...';
+    }
+    
+    try {
+      await emailjs.send(
+        EMAIL_CONFIG.serviceId,
+        EMAIL_CONFIG.templateIdReview || EMAIL_CONFIG.templateId,
+        {
+          to_email: pro.email,
+          professional_name: pro.name,
+          review_result: type === 'positive' ? 'Positivo' : 'Da integrare',
+          review_message: message,
+          subject: type === 'positive' ? 'Esito positivo verifica Debito Zero - Solvo' : 'Esito verifica: integrazioni richieste'
+        }
+      );
+      if (DOM.reviewStatus) {
+        DOM.reviewStatus.className = 'review-status success';
+        DOM.reviewStatus.textContent = 'Feedback inviato correttamente.';
+      }
+      DOM.reviewMessage.dataset.autofill = 'false';
+    } catch (error) {
+      console.error('Errore invio feedback professionista:', error);
+      if (DOM.reviewStatus) {
+        DOM.reviewStatus.className = 'review-status error';
+        DOM.reviewStatus.textContent = 'Errore durante l\'invio del feedback. Riprova più tardi.';
+      }
+    }
+  }
+};
+
 // ==================== PROFESSIONAL APPLICATION FORM ====================
 const ProfessionalApplication = {
   init: () => {
@@ -2977,6 +3165,8 @@ const AdminDashboard = {
       AdminDashboard.loadProfessionals();
     } else if (AdminDashboard.currentTab === 'statistics') {
       AdminDashboard.loadStatistics();
+    } else if (AdminDashboard.currentTab === 'review') {
+      ProfessionalReview.refreshOptions();
     }
   },
   
@@ -3000,6 +3190,7 @@ const AdminDashboard = {
             ? `€ ${Number(item.total_amount).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             : '',
           debtDetails: item.debt_details || '',
+          consentSummary: item.consent_summary || '',
           date: item.submission_date ? new Date(item.submission_date).toLocaleString('it-IT') : '',
           dateISO: item.submission_date || ''
         }));
@@ -3049,6 +3240,9 @@ const AdminDashboard = {
             <div class="data-row">
               <strong>Totale debiti:</strong> ${request.totalAmount || 'N/A'}
             </div>
+            ${request.consentSummary ? `<div class="data-row">
+              <strong>Consensi privacy:</strong> ${request.consentSummary}
+            </div>` : ''}
             ${request.debtDetails ? `<div class="data-row"><strong>Dettagli:</strong><pre style="white-space: pre-wrap; margin-top: 8px;">${request.debtDetails}</pre></div>` : ''}
           </div>
         </div>
@@ -3138,7 +3332,7 @@ const AdminDashboard = {
       }
       
       // CSV headers
-      const headers = ['Nome', 'Cognome', 'Email', 'Telefono', 'Città', 'Provincia', 'CAP', 'Tipologie Debiti', 'Importo Totale', 'Dettagli Debiti', 'Data Richiesta'];
+      const headers = ['Nome', 'Cognome', 'Email', 'Telefono', 'Città', 'Provincia', 'CAP', 'Tipologie Debiti', 'Importo Totale', 'Dettagli Debiti', 'Consensi Privacy', 'Data Richiesta'];
       
       // CSV rows
       const rows = requests.map(req => [
@@ -3152,6 +3346,7 @@ const AdminDashboard = {
         req.debtTypes || '',
         req.totalAmount || '',
         (req.debtDetails || '').replace(/"/g, '""'), // Escape quotes
+        req.consentSummary || '',
         req.date || ''
       ]);
       
@@ -3293,6 +3488,7 @@ const AdminDashboard = {
         'Tipologie Debiti': req.debtTypes || '',
         'Importo Totale': req.totalAmount || '',
         'Dettagli Debiti': req.debtDetails || '',
+        'Consensi Privacy': req.consentSummary || '',
         'Data Richiesta': req.date || ''
       }));
       
@@ -3370,6 +3566,11 @@ const AdminDashboard = {
         }
         doc.text(`Tipi di debito: ${req.debtTypes || 'N/A'}`, margin, yPosition);
         yPosition += 5;
+        if (req.consentSummary) {
+          const consentLines = doc.splitTextToSize(`Consensi privacy: ${req.consentSummary}`, 180);
+          doc.text(consentLines, margin, yPosition);
+          yPosition += consentLines.length * 5;
+        }
         doc.text(`Importo totale: ${req.totalAmount || 'N/A'}`, margin, yPosition);
         yPosition += 5;
         
@@ -3832,6 +4033,7 @@ const App = {
     Geo.populateProvinceSelects();
     Navigation.initMenu();
     ProfessionalApplication.init();
+    ProfessionalReview.init();
     const capField = document.getElementById('cap');
     if (capField) {
       capField.addEventListener('input', () => Professionals.updateSortHint());
