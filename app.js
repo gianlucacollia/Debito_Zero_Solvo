@@ -6,6 +6,7 @@ const EMAIL_CONFIG = {
   templateIdConfirmation: 'template_1p0r597',  // ← Template ID per email conferma cliente (usa lo stesso o crea uno separato)
   templateIdAppointment: 'template_1p0r597',    // ← Template ID per prenotazioni (usa lo stesso o crea uno separato)
   templateIdReview: 'template_1p0r597', // ← Template per feedback verifica professionisti
+  templateIdProAutoReply: 'template_1p0r597', // ← Template auto-reply candidature professionisti
   templateIdProApplication: 'template_1p0r597', // ← Template ID per candidature professionisti
   publicKey: 'wrPtIJWjgaySCJWjZ',      // ← Public Key da EmailJS
   recipientEmail: 'gianluca.collia@gmail.com'  // ← Email dove ricevere le richieste
@@ -83,11 +84,41 @@ const SupabaseService = {
         experience: application.experience || null,
         notes: application.notes || '',
         attachment_links: application.attachmentLinks || '',
+        status: application.status || 'in_review',
+        review_feedback: application.reviewFeedback || '',
+        reviewed_at: application.reviewedAt || null,
         submission_date: application.dateISO || new Date().toISOString()
       };
       return await supabase.from('professional_applications').insert([payload]);
     } catch (error) {
       console.error('Errore salvataggio Supabase (professional_applications):', error);
+      return { error };
+    }
+  },
+  
+  fetchProfessionalApplications: async () => {
+    if (!supabase) return { data: null, error: 'Supabase non disponibile' };
+    try {
+      const { data, error } = await supabase
+        .from('professional_applications')
+        .select('*')
+        .order('submission_date', { ascending: false });
+      return { data, error };
+    } catch (error) {
+      console.error('Errore lettura Supabase (professional_applications):', error);
+      return { data: null, error };
+    }
+  },
+  
+  updateProfessionalApplication: async (id, updates) => {
+    if (!supabase) return { error: 'Supabase non disponibile' };
+    try {
+      return await supabase
+        .from('professional_applications')
+        .update(updates)
+        .eq('id', id);
+    } catch (error) {
+      console.error('Errore aggiornamento Supabase (professional_applications):', error);
       return { error };
     }
   }
@@ -2413,11 +2444,12 @@ const Professionals = {
 
 // ==================== PROFESSIONAL REVIEW ====================
 const ProfessionalReview = {
-  currentProfessional: null,
+  applications: [],
+  currentApplication: null,
   
   init: () => {
     if (!DOM.reviewSelect) return;
-    ProfessionalReview.refreshOptions();
+    ProfessionalReview.loadApplications();
     
     DOM.reviewSelect.addEventListener('change', ProfessionalReview.handleSelection);
     if (DOM.reviewTypeRadios) {
@@ -2435,14 +2467,70 @@ const ProfessionalReview = {
     }
   },
   
-  refreshOptions: () => {
+  loadApplications: async () => {
+    let applications = [];
+    if (SupabaseService.isReady()) {
+      const { data } = await SupabaseService.fetchProfessionalApplications();
+      if (Array.isArray(data)) {
+        applications = data.map(item => ({
+          key: item.id,
+          id: item.id,
+          name: item.name || '',
+          surname: item.surname || '',
+          email: item.email || '',
+          phone: item.phone || '',
+          city: item.city || '',
+          province: item.province || '',
+          cap: item.cap || '',
+          specialty: item.specialty || '',
+          experience: item.experience,
+          notes: item.notes || '',
+          attachmentLinks: item.attachment_links || '',
+          status: item.status || 'in_review',
+          reviewFeedback: item.review_feedback || '',
+          reviewedAt: item.reviewed_at,
+          submissionDate: item.submission_date
+        }));
+      }
+    }
+    
+    if (applications.length === 0) {
+      const stored = JSON.parse(localStorage.getItem('professionalApplications') || '[]');
+      applications = stored.map(item => ({
+        key: item.localId || item.id || `${item.name}-${item.dateISO || Date.now()}`,
+        id: item.id || null,
+        localId: item.localId || item.key || `${item.name}-${item.dateISO || Date.now()}`,
+        name: item.name || '',
+        surname: item.surname || '',
+        email: item.email || '',
+        phone: item.phone || '',
+        city: item.city || '',
+        province: item.province || '',
+        cap: item.cap || '',
+        specialty: item.specialty || '',
+        experience: item.experience,
+        notes: item.notes || '',
+        attachmentLinks: item.attachmentLinks || '',
+        status: item.status || 'in_review',
+        reviewFeedback: item.reviewFeedback || '',
+        reviewedAt: item.reviewedAt || null,
+        submissionDate: item.dateISO || new Date().toISOString()
+      }));
+    }
+    
+    ProfessionalReview.applications = applications;
+    ProfessionalReview.populateSelect();
+    ProfessionalReview.renderList();
+  },
+  
+  populateSelect: () => {
     if (!DOM.reviewSelect) return;
     const options = ['<option value="">Seleziona un professionista</option>'];
-    PROFESSIONALS_DATA.forEach((pro, index) => {
-      options.push(`<option value="${index}">${pro.name} — ${pro.specialty || ''}</option>`);
+    ProfessionalReview.applications.forEach(app => {
+      options.push(`<option value="${app.key}">${app.name} ${app.surname ? `- ${app.surname}` : ''}</option>`);
     });
     DOM.reviewSelect.innerHTML = options.join('');
-    ProfessionalReview.currentProfessional = null;
+    ProfessionalReview.currentApplication = null;
     if (DOM.reviewDetails) {
       DOM.reviewDetails.innerHTML = '<p style="color: var(--text-muted);">Seleziona un professionista per visualizzare i dettagli.</p>';
     }
@@ -2454,48 +2542,107 @@ const ProfessionalReview = {
   },
   
   handleSelection: () => {
-    const idx = Number(DOM.reviewSelect.value);
-    if (Number.isNaN(idx)) {
-      ProfessionalReview.currentProfessional = null;
+    const key = DOM.reviewSelect?.value;
+    const application = ProfessionalReview.applications.find(app => app.key === key);
+    ProfessionalReview.currentApplication = application || null;
+    if (!application) {
       if (DOM.reviewDetails) {
         DOM.reviewDetails.innerHTML = '<p style="color: var(--text-muted);">Seleziona un professionista per visualizzare i dettagli.</p>';
       }
       return;
     }
-    const pro = PROFESSIONALS_DATA[idx];
-    ProfessionalReview.currentProfessional = pro;
-    ProfessionalReview.renderDetails(pro);
+    ProfessionalReview.renderDetails(application);
     ProfessionalReview.setDefaultMessage();
   },
   
-  renderDetails: (pro) => {
-    if (!DOM.reviewDetails || !pro) return;
+  renderDetails: (app) => {
+    if (!DOM.reviewDetails || !app) return;
     DOM.reviewDetails.innerHTML = `
       <div class="review-detail-grid">
-        <p><strong>Nome:</strong> ${pro.name || '-'}</p>
-        <p><strong>Email:</strong> ${pro.email || 'N/A'}</p>
-        <p><strong>Telefono:</strong> ${pro.phone || 'N/A'}</p>
-        <p><strong>Specialità:</strong> ${pro.specialty || 'N/A'}</p>
-        <p><strong>Città:</strong> ${pro.city || 'N/D'} ${pro.province ? `(${pro.province})` : ''}</p>
-        <p><strong>CAP:</strong> ${pro.cap || 'N/D'}</p>
+        <p><strong>Nome:</strong> ${app.name || '-'} ${app.surname || ''}</p>
+        <p><strong>Email:</strong> ${app.email || 'N/A'}</p>
+        <p><strong>Telefono:</strong> ${app.phone || 'N/A'}</p>
+        <p><strong>Specializzazione:</strong> ${app.specialty || 'N/A'}</p>
+        <p><strong>Città:</strong> ${app.city || 'N/D'} ${app.province ? `(${app.province})` : ''}</p>
+        <p><strong>CAP:</strong> ${app.cap || 'N/D'}</p>
       </div>
-      <p><strong>Descrizione:</strong> ${pro.desc || '—'}</p>
-      ${pro.services ? `<p><strong>Servizi:</strong> ${pro.services}</p>` : ''}
+      ${app.notes ? `<p><strong>Note candidato:</strong> ${app.notes}</p>` : ''}
+      ${app.attachmentLinks ? `<p><strong>Allegati:</strong><br>${app.attachmentLinks.replace(/\n/g, '<br>')}</p>` : ''}
+      <p><strong>Stato:</strong> <span class="status-pill ${app.status || 'in_review'}">${ProfessionalReview.getStatusLabel(app.status)}</span></p>
+      ${app.reviewFeedback ? `<p><strong>Feedback inviato:</strong> ${app.reviewFeedback}</p>` : ''}
     `;
   },
   
+  renderList: () => {
+    const list = document.getElementById('review-list');
+    if (!list) return;
+    if (ProfessionalReview.applications.length === 0) {
+      list.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Ancora nessuna candidatura.</p>';
+      return;
+    }
+    list.innerHTML = ProfessionalReview.applications.map(app => `
+      <div class="review-list-item">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:var(--spacing-md); flex-wrap:wrap;">
+          <strong>${app.name || ''} ${app.surname || ''}</strong>
+          <span class="status-pill ${app.status || 'in_review'}">${ProfessionalReview.getStatusLabel(app.status)}</span>
+        </div>
+        <p><strong>Email:</strong> ${app.email || 'N/A'} • <strong>Telefono:</strong> ${app.phone || 'N/A'}</p>
+        <p><strong>Specialità:</strong> ${app.specialty || 'N/A'}</p>
+        <p><strong>Inviata il:</strong> ${app.submissionDate ? new Date(app.submissionDate).toLocaleString('it-IT') : 'N/A'}</p>
+        ${app.reviewFeedback ? `<p><strong>Ultimo feedback:</strong> ${app.reviewFeedback}</p>` : ''}
+      </div>
+    `).join('');
+  },
+  
+  getStatusLabel: (status) => {
+    switch (status) {
+      case 'approved':
+        return 'Verificato';
+      case 'needs_info':
+        return 'Richiede integrazioni';
+      case 'rejected':
+        return 'Respinta';
+      default:
+        return 'In verifica';
+    }
+  },
+  
   setDefaultMessage: () => {
-    if (!DOM.reviewMessage || !ProfessionalReview.currentProfessional) return;
+    if (!DOM.reviewMessage || !ProfessionalReview.currentApplication) return;
     const type = document.querySelector('input[name="review-type"]:checked')?.value || 'positive';
-    const pro = ProfessionalReview.currentProfessional;
+    const app = ProfessionalReview.currentApplication;
     if (DOM.reviewMessage.value.trim().length === 0 || DOM.reviewMessage.dataset.autofill === 'true') {
       if (type === 'positive') {
-        DOM.reviewMessage.value = `Ciao ${pro.name},\n\nabbiamo verificato i tuoi documenti e la tua candidatura è stata approvata. Da ora puoi operare sulla piattaforma.\n\nGrazie per la collaborazione!\nTeam Debito Zero - Solvo`;
+        DOM.reviewMessage.value = `Ciao ${app.name},\n\nabbiamo verificato i tuoi documenti e la tua candidatura è stata approvata. Da ora puoi operare sulla piattaforma.\n\nGrazie per la collaborazione!\nTeam Debito Zero - Solvo`;
       } else {
-        DOM.reviewMessage.value = `Ciao ${pro.name},\n\nabbiamo analizzato la tua candidatura ma sono necessarie alcune integrazioni. Ti invitiamo a inviarci documenti aggiuntivi o chiarimenti per completare la valutazione.\n\nRestiamo a disposizione.\nTeam Debito Zero - Solvo`;
+        DOM.reviewMessage.value = `Ciao ${app.name},\n\nabbiamo analizzato la tua candidatura ma sono necessarie alcune integrazioni. Ti invitiamo a inviarci documenti aggiuntivi o chiarimenti per completare la valutazione.\n\nTi faremo sapere al più presto l'esito della tua richiesta.\nTeam Debito Zero - Solvo`;
       }
       DOM.reviewMessage.dataset.autofill = 'true';
     }
+  },
+  
+  updateLocalStore: () => {
+    const serialized = ProfessionalReview.applications
+      .filter(app => app.localId && !app.id)
+      .map(app => ({
+        localId: app.localId,
+        name: app.name,
+        surname: app.surname,
+        email: app.email,
+        phone: app.phone,
+        city: app.city,
+        province: app.province,
+        cap: app.cap,
+        specialty: app.specialty,
+        experience: app.experience,
+        notes: app.notes,
+        attachmentLinks: app.attachmentLinks,
+        dateISO: app.submissionDate,
+        status: app.status,
+        reviewFeedback: app.reviewFeedback || '',
+        reviewedAt: app.reviewedAt
+      }));
+    localStorage.setItem('professionalApplications', JSON.stringify(serialized));
   },
   
   sendFeedback: async () => {
@@ -2507,9 +2654,8 @@ const ProfessionalReview = {
       return;
     }
     
-    const proIndex = Number(DOM.reviewSelect?.value);
-    const pro = PROFESSIONALS_DATA[proIndex];
-    if (!pro) {
+    const app = ProfessionalReview.currentApplication;
+    if (!app) {
       if (DOM.reviewStatus) {
         DOM.reviewStatus.className = 'review-status error';
         DOM.reviewStatus.textContent = 'Seleziona un professionista prima di inviare.';
@@ -2527,7 +2673,7 @@ const ProfessionalReview = {
       return;
     }
     
-    if (!pro.email) {
+    if (!app.email) {
       if (DOM.reviewStatus) {
         DOM.reviewStatus.className = 'review-status error';
         DOM.reviewStatus.textContent = 'Il professionista non ha un indirizzo email valido.';
@@ -2540,18 +2686,35 @@ const ProfessionalReview = {
       DOM.reviewStatus.textContent = 'Invio del feedback in corso...';
     }
     
+    const statusValue = type === 'positive' ? 'approved' : 'needs_info';
+    
     try {
       await emailjs.send(
         EMAIL_CONFIG.serviceId,
         EMAIL_CONFIG.templateIdReview || EMAIL_CONFIG.templateId,
         {
-          to_email: pro.email,
-          professional_name: pro.name,
-          review_result: type === 'positive' ? 'Positivo' : 'Da integrare',
+          to_email: app.email,
+          professional_name: `${app.name} ${app.surname || ''}`.trim(),
+          review_result: statusValue === 'approved' ? 'Positivo' : 'Da integrare',
           review_message: message,
-          subject: type === 'positive' ? 'Esito positivo verifica Debito Zero - Solvo' : 'Esito verifica: integrazioni richieste'
+          subject: statusValue === 'approved' ? 'Esito positivo verifica Debito Zero - Solvo' : 'Esito verifica: integrazioni richieste'
         }
       );
+      
+      const reviewedAt = new Date().toISOString();
+      app.status = statusValue;
+      app.reviewFeedback = message;
+      app.reviewedAt = reviewedAt;
+      ProfessionalReview.renderDetails(app);
+      ProfessionalReview.renderList();
+      ProfessionalReview.updateLocalStore();
+      if (app.id && SupabaseService.isReady()) {
+        SupabaseService.updateProfessionalApplication(app.id, {
+          status: statusValue,
+          review_feedback: message,
+          reviewed_at: reviewedAt
+        });
+      }
       if (DOM.reviewStatus) {
         DOM.reviewStatus.className = 'review-status success';
         DOM.reviewStatus.textContent = 'Feedback inviato correttamente.';
@@ -2674,15 +2837,23 @@ const ProfessionalApplication = {
       experience: data.experience || null,
       notes: data.note,
       attachmentLinks: attachmentsSummary,
-      dateISO: new Date().toISOString()
+      dateISO: new Date().toISOString(),
+      status: 'in_review',
+      reviewFeedback: '',
+      reviewedAt: null
     };
+    applicationRecord.localId = `local-${Date.now()}`;
     
     if (EMAIL_CONFIG.publicKey === 'YOUR_PUBLIC_KEY' || typeof emailjs === 'undefined') {
       console.warn('EmailJS non configurato per candidatura professionisti.');
       ProfessionalApplication.setStatus('success', 'Candidatura ricevuta (modalità demo). Configura EmailJS per inviare le email.');
+      const storedApplicationsLocal = JSON.parse(localStorage.getItem('professionalApplications') || '[]');
+      storedApplicationsLocal.unshift({ ...applicationRecord });
+      localStorage.setItem('professionalApplications', JSON.stringify(storedApplicationsLocal));
       if (SupabaseService.isReady()) {
         SupabaseService.saveProfessionalApplication(applicationRecord);
       }
+      ProfessionalReview.loadApplications();
       form.reset();
       Professionals.updateSortHint();
       return;
@@ -2716,6 +2887,30 @@ const ProfessionalApplication = {
       
       if (SupabaseService.isReady()) {
         SupabaseService.saveProfessionalApplication(applicationRecord);
+      }
+      const storedApplicationsLocal = JSON.parse(localStorage.getItem('professionalApplications') || '[]');
+      storedApplicationsLocal.unshift({ ...applicationRecord });
+      localStorage.setItem('professionalApplications', JSON.stringify(storedApplicationsLocal));
+      ProfessionalReview.loadApplications();
+      const storedApplications = JSON.parse(localStorage.getItem('professionalApplications') || '[]');
+      storedApplications.unshift({ ...applicationRecord, status: 'in_review', reviewedAt: null, feedback: '' });
+      localStorage.setItem('professionalApplications', JSON.stringify(storedApplications));
+      
+      const autoReplyPayload = {
+        to_email: data.email,
+        candidate_name: `${data.nome} ${data.cognome}`,
+        auto_message: `Grazie per l'interesse dimostrato. Diventare un professionista dell'ecosistema Solvo permette a tutti i nostri partner di raggiungere possibili clienti da supportare verso la loro libertà finanziaria.\nTi faremo sapere al più presto l'esito della tua richiesta.`
+      };
+      try {
+        await emailjs.send(
+          EMAIL_CONFIG.serviceId,
+          (EMAIL_CONFIG.templateIdProAutoReply && EMAIL_CONFIG.templateIdProAutoReply !== 'template_1p0r597')
+            ? EMAIL_CONFIG.templateIdProAutoReply
+            : EMAIL_CONFIG.templateId,
+          autoReplyPayload
+        );
+      } catch (autoErr) {
+        console.warn('Impossibile inviare auto-reply candidatura:', autoErr);
       }
       
       ProfessionalApplication.setStatus('success', '✅ Grazie! La tua candidatura è stata inviata con successo. Ti contatteremo a breve.');
@@ -3166,7 +3361,7 @@ const AdminDashboard = {
     } else if (AdminDashboard.currentTab === 'statistics') {
       AdminDashboard.loadStatistics();
     } else if (AdminDashboard.currentTab === 'review') {
-      ProfessionalReview.refreshOptions();
+      ProfessionalReview.loadApplications();
     }
   },
   
