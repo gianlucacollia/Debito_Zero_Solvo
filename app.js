@@ -27,6 +27,71 @@ if (window.supabase && window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url && w
   console.warn('⚠️ Supabase non configurato. I documenti verranno salvati in localStorage.');
 }
 
+const SupabaseService = {
+  isReady: () => Boolean(supabase),
+  
+  saveClientRequest: async (request) => {
+    if (!supabase) return { error: 'Supabase non disponibile' };
+    try {
+      const payload = {
+        name: request.name || '',
+        surname: request.surname || '',
+        email: request.email || '',
+        phone: request.phone || '',
+        city: request.city || '',
+        province: request.province || '',
+        cap: request.cap || '',
+        debt_types: request.debtTypes || '',
+        debt_details: request.debtDetails || '',
+        total_amount: request.totalAmountNumber || 0,
+        submission_date: request.dateISO || new Date().toISOString()
+      };
+      return await supabase.from('client_requests').insert([payload]);
+    } catch (error) {
+      console.error('Errore salvataggio Supabase (client_requests):', error);
+      return { error };
+    }
+  },
+  
+  fetchClientRequests: async () => {
+    if (!supabase) return { data: null, error: 'Supabase non disponibile' };
+    try {
+      const { data, error } = await supabase
+        .from('client_requests')
+        .select('*')
+        .order('submission_date', { ascending: false });
+      return { data, error };
+    } catch (error) {
+      console.error('Errore lettura Supabase (client_requests):', error);
+      return { data: null, error };
+    }
+  },
+  
+  saveProfessionalApplication: async (application) => {
+    if (!supabase) return { error: 'Supabase non disponibile' };
+    try {
+      const payload = {
+        name: application.name || '',
+        surname: application.surname || '',
+        email: application.email || '',
+        phone: application.phone || '',
+        city: application.city || '',
+        province: application.province || '',
+        cap: application.cap || '',
+        specialty: application.specialty || '',
+        experience: application.experience || null,
+        notes: application.notes || '',
+        attachment_links: application.attachmentLinks || '',
+        submission_date: application.dateISO || new Date().toISOString()
+      };
+      return await supabase.from('professional_applications').insert([payload]);
+    } catch (error) {
+      console.error('Errore salvataggio Supabase (professional_applications):', error);
+      return { error };
+    }
+  }
+};
+
 // ==================== APP STATE ====================
 const state = {
   currentStep: 1,
@@ -442,6 +507,7 @@ const DOM = {
   // Step 1
   optionButtons: document.querySelectorAll('.opt'),
   toStep2Btn: document.getElementById('to2'),
+  processOverview: document.getElementById('process-overview'),
   
   // Step 2
   form: document.getElementById('form'),
@@ -771,6 +837,10 @@ const Wizard = {
   showStep: (step) => {
     // Save current state before switching
     Wizard.saveStateToStorage();
+
+    if (DOM.processOverview) {
+      DOM.processOverview.style.display = step === 1 ? 'block' : 'none';
+    }
     
     const currentStepElement = [DOM.step1, DOM.step2, DOM.step3][state.currentStep - 1];
     const nextStepElement = [DOM.step1, DOM.step2, DOM.step3][step - 1];
@@ -1513,6 +1583,7 @@ const EmailService = {
       
       // Save request to admin dashboard
       try {
+        const requestDate = new Date();
         const requestData = {
           name: state.formData.nome,
           surname: state.formData.cognome,
@@ -1523,13 +1594,19 @@ const EmailService = {
           cap: state.formData.cap,
           debtTypes: state.selections.map(s => DEBT_LABELS[s] || s).join(', '),
           totalAmount: `€ ${state.formData.totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2})}`,
+          totalAmountNumber: state.formData.totalAmount,
           debtDetails: debtsDetail.trim(),
-          date: new Date().toLocaleString('it-IT')
+          date: requestDate.toLocaleString('it-IT'),
+          dateISO: requestDate.toISOString()
         };
         
         const existingRequests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
         existingRequests.push(requestData);
         localStorage.setItem('clientRequests', JSON.stringify(existingRequests));
+        
+        if (SupabaseService.isReady()) {
+          SupabaseService.saveClientRequest(requestData);
+        }
       } catch (e) {
         console.error('Errore salvataggio richiesta:', e);
       }
@@ -2397,9 +2474,27 @@ const ProfessionalApplication = {
       ? uploads.map(u => `${u.name} ${u.url ? `→ ${u.url}` : u.note ? `(${u.note})` : ''}`).join('\n')
       : 'Nessun allegato fornito';
     
+    const applicationRecord = {
+      name: data.nome,
+      surname: data.cognome,
+      email: data.email,
+      phone: data.telefono,
+      city: data.citta,
+      province: data.provincia,
+      cap: data.cap,
+      specialty: data.specialty,
+      experience: data.experience || null,
+      notes: data.note,
+      attachmentLinks: attachmentsSummary,
+      dateISO: new Date().toISOString()
+    };
+    
     if (EMAIL_CONFIG.publicKey === 'YOUR_PUBLIC_KEY' || typeof emailjs === 'undefined') {
       console.warn('EmailJS non configurato per candidatura professionisti.');
       ProfessionalApplication.setStatus('success', 'Candidatura ricevuta (modalità demo). Configura EmailJS per inviare le email.');
+      if (SupabaseService.isReady()) {
+        SupabaseService.saveProfessionalApplication(applicationRecord);
+      }
       form.reset();
       Professionals.updateSortHint();
       return;
@@ -2430,6 +2525,10 @@ const ProfessionalApplication = {
         EMAIL_CONFIG.templateIdProApplication || EMAIL_CONFIG.templateId,
         emailData
       );
+      
+      if (SupabaseService.isReady()) {
+        SupabaseService.saveProfessionalApplication(applicationRecord);
+      }
       
       ProfessionalApplication.setStatus('success', '✅ Grazie! La tua candidatura è stata inviata con successo. Ti contatteremo a breve.');
       form.reset();
@@ -2871,9 +2970,9 @@ const AdminDashboard = {
   /**
    * Load and display data
    */
-  loadData: () => {
+  loadData: async () => {
     if (AdminDashboard.currentTab === 'requests') {
-      AdminDashboard.loadRequests();
+      await AdminDashboard.loadRequests();
     } else if (AdminDashboard.currentTab === 'professionals') {
       AdminDashboard.loadProfessionals();
     } else if (AdminDashboard.currentTab === 'statistics') {
@@ -2884,14 +2983,43 @@ const AdminDashboard = {
   /**
    * Load client requests
    */
-  loadRequests: () => {
+  fetchRequestsData: async () => {
+    if (SupabaseService.isReady()) {
+      const { data, error } = await SupabaseService.fetchClientRequests();
+      if (!error && Array.isArray(data)) {
+        return data.map(item => ({
+          name: item.name || '',
+          surname: item.surname || '',
+          email: item.email || '',
+          phone: item.phone || '',
+          city: item.city || '',
+          province: item.province || '',
+          cap: item.cap || '',
+          debtTypes: item.debt_types || '',
+          totalAmount: item.total_amount != null
+            ? `€ ${Number(item.total_amount).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : '',
+          debtDetails: item.debt_details || '',
+          date: item.submission_date ? new Date(item.submission_date).toLocaleString('it-IT') : '',
+          dateISO: item.submission_date || ''
+        }));
+      }
+    }
+    
+    const localRequests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+    return localRequests;
+  },
+
+  loadRequests: async () => {
     const container = document.getElementById('requests-list');
     if (!container) return;
     
+    container.innerHTML = '<p style="color: var(--text-muted); padding: var(--spacing-xl); text-align: center;">Caricamento in corso…</p>';
+    
     try {
-      const allRequests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+      const allRequests = await AdminDashboard.fetchRequestsData();
       
-      if (allRequests.length === 0) {
+      if (!allRequests || allRequests.length === 0) {
         container.innerHTML = '<p style="color: var(--text-muted); padding: var(--spacing-xl); text-align: center;">Nessuna richiesta ancora ricevuta.</p>';
         return;
       }
@@ -2927,7 +3055,7 @@ const AdminDashboard = {
       `).join('');
     } catch (e) {
       console.error('Errore caricamento richieste:', e);
-      container.innerHTML = '<p style="color: #f56565;">Errore nel caricamento delle richieste.</p>';
+      container.innerHTML = '<p style="color: #f56565; padding: var(--spacing-xl); text-align: center;">Errore nel caricamento delle richieste.</p>';
     }
   },
   
@@ -3000,9 +3128,9 @@ const AdminDashboard = {
   /**
    * Export client requests to CSV
    */
-  exportRequestsCSV: () => {
+  exportRequestsCSV: async () => {
     try {
-      const requests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+      const requests = await AdminDashboard.fetchRequestsData();
       
       if (requests.length === 0) {
         alert('Nessuna richiesta da esportare.');
@@ -3139,14 +3267,14 @@ const AdminDashboard = {
   /**
    * Export client requests to Excel
    */
-  exportRequestsExcel: () => {
+  exportRequestsExcel: async () => {
     try {
       if (typeof XLSX === 'undefined') {
         alert('Libreria Excel non caricata. Riprova a ricaricare la pagina.');
         return;
       }
       
-      const requests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+      const requests = await AdminDashboard.fetchRequestsData();
       
       if (requests.length === 0) {
         alert('Nessuna richiesta da esportare.');
@@ -3185,7 +3313,7 @@ const AdminDashboard = {
   /**
    * Export client requests to PDF
    */
-  exportRequestsPDF: () => {
+  exportRequestsPDF: async () => {
     try {
       if (typeof window.jspdf === 'undefined') {
         alert('Libreria PDF non caricata. Riprova a ricaricare la pagina.');
@@ -3193,7 +3321,7 @@ const AdminDashboard = {
       }
       
       const { jsPDF } = window.jspdf;
-      const requests = JSON.parse(localStorage.getItem('clientRequests') || '[]');
+      const requests = await AdminDashboard.fetchRequestsData();
       
       if (requests.length === 0) {
         alert('Nessuna richiesta da esportare.');
