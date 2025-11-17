@@ -618,6 +618,63 @@ h3 {
   animation: fadeInSlide 0.4s ease-out;
 }
 
+.process-card {
+  margin-top: var(--spacing-xl);
+  padding: clamp(20px, 4vw, 48px);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(90, 144, 202, 0.08), rgba(72, 187, 120, 0.08));
+  box-shadow: 0 15px 40px rgba(15, 23, 42, 0.08);
+}
+
+.process-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  color: var(--text-primary);
+}
+
+.process-subtitle {
+  margin: var(--spacing-sm) 0 var(--spacing-lg);
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.process-grid {
+  display: grid;
+  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.process-step {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  position: relative;
+}
+
+.process-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  margin-bottom: var(--spacing-md);
+}
+
+.process-step h3 {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1.1rem;
+}
+
+.process-step p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
 @keyframes fadeInSlide {
   from {
     opacity: 0;
