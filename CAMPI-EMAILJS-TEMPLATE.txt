@@ -1,0 +1,150 @@
+═══════════════════════════════════════════════════════════════
+  CAMPI NECESSARI PER IL TEMPLATE EMAILJS
+  Template ID: template_v4ixmnr
+═══════════════════════════════════════════════════════════════
+
+⚠️ IMPORTANTE: Il template EmailJS deve contenere TUTTI questi campi
+   per funzionare correttamente. Usa {{nome_campo}} nel template.
+
+───────────────────────────────────────────────────────────────
+1. EMAIL RICHIESTA CLIENTE (all'admin)
+───────────────────────────────────────────────────────────────
+Campi inviati:
+- to_email: gianluca.collia@gmail.com
+- from_name: Nome Cognome cliente
+- from_email: email@cliente.com
+- phone: telefono cliente
+- client_city: città cliente
+- client_province: provincia cliente
+- client_cap: CAP cliente
+- debt_types: Tipologie debiti (es. "Banche e finanziarie, Fiscali e tributari")
+- debt_details: Dettagli completi con creditori e importi
+- debt_amount: Importo totale (es. "€ 15.000,00")
+- submission_date: Data invio (formato italiano)
+- consent_summary: Consensi privacy (es. "Servizio richiesto: SI | Marketing: NO | Profilazione: NO")
+
+───────────────────────────────────────────────────────────────
+2. EMAIL CONFERMA CLIENTE (al cliente)
+───────────────────────────────────────────────────────────────
+Campi inviati:
+- to_email: email@cliente.com
+- from_name: Debito Zero - Solvo
+- subject: ✅ Richiesta ricevuta - Debito Zero Solvo
+- client_name: Nome Cognome cliente
+- client_city: città cliente
+- client_province: provincia cliente
+- client_cap: CAP cliente
+- debt_types: Tipologie debiti
+- debt_amount: Importo totale
+- submission_date: Data invio
+- message: Messaggio completo di conferma (già formattato)
+
+───────────────────────────────────────────────────────────────
+3. EMAIL PRENOTAZIONE APPUNTAMENTO (al professionista)
+───────────────────────────────────────────────────────────────
+Campi inviati:
+- to_email: email@professionista.com
+- from_name: Nome Cognome cliente
+- from_email: email@cliente.com
+- phone: telefono cliente
+- professional_name: Nome professionista
+- appointment_date: Data appuntamento
+- appointment_time: Orario appuntamento
+- meeting_type: "In presenza" o "Remoto (webcam/Meet)"
+- client_name: Nome Cognome cliente
+- client_email: email@cliente.com
+- client_phone: telefono cliente
+- client_city: città cliente
+- client_province: provincia cliente
+- client_cap: CAP cliente
+- debt_summary: Riepilogo debiti del cliente
+- calendar_link: Link Google Calendar (se disponibile)
+
+───────────────────────────────────────────────────────────────
+4. EMAIL CANDIDATURA PROFESSIONISTA (all'admin)
+───────────────────────────────────────────────────────────────
+Campi inviati:
+- to_email: gianluca.collia@gmail.com
+- from_name: Nome Cognome candidato
+- from_email: email@candidato.com
+- phone: telefono candidato
+- candidate_name: Nome Cognome candidato
+- candidate_email: email@candidato.com
+- candidate_phone: telefono candidato
+- candidate_city: città candidato
+- candidate_province: provincia candidato
+- candidate_cap: CAP candidato
+- candidate_specialty: Specialità professionale
+- candidate_experience: Anni di esperienza (o "Non indicata")
+- candidate_notes: Note aggiuntive (o "Non specificate")
+- attachment_links: Link ai documenti caricati
+- submission_date: Data invio
+- subject: Nuova candidatura professionista
+
+───────────────────────────────────────────────────────────────
+5. EMAIL AUTO-REPLY CANDIDATURA (al candidato)
+───────────────────────────────────────────────────────────────
+Campi inviati:
+- to_email: email@candidato.com
+- candidate_name: Nome Cognome candidato
+- auto_message: Messaggio preimpostato:
+  "Grazie per l'interesse dimostrato. Diventare un professionista 
+   dell'ecosistema Solvo permette a tutti i nostri partner di 
+   raggiungere possibili clienti da supportare verso la loro 
+   libertà finanziaria.
+   Ti faremo sapere al più presto l'esito della tua richiesta."
+
+───────────────────────────────────────────────────────────────
+6. EMAIL FEEDBACK VERIFICA (al professionista verificato)
+───────────────────────────────────────────────────────────────
+Campi inviati:
+- to_email: email@professionista.com
+- professional_name: Nome Cognome professionista
+- review_result: "Positivo" o "Da integrare"
+- review_message: Messaggio personalizzato dell'admin
+- subject: "Esito positivo verifica Debito Zero - Solvo" 
+           o "Esito verifica: integrazioni richieste"
+
+═══════════════════════════════════════════════════════════════
+  COME CONFIGURARE IL TEMPLATE IN EMAILJS
+═══════════════════════════════════════════════════════════════
+
+1. Vai su https://dashboard.emailjs.com/admin/template
+2. Clicca su "Create New Template" o modifica template_v4ixmnr
+3. Nel campo "Content" inserisci i campi usando {{nome_campo}}
+   Esempio:
+   
+   Oggetto: {{subject}}
+   
+   Ciao {{candidate_name}},
+   
+   {{auto_message}}
+   
+   Cordiali saluti,
+   Il team di Debito Zero - Solvo
+
+4. IMPORTANTE: 
+   - Non aggiungere campi che non vengono inviati dal codice
+   - Se un campo è opzionale, usa {{campo || 'Valore di default'}}
+   - Salva il template
+
+5. Verifica che il Service ID sia: service_ok3g5iy
+6. Verifica che la Public Key sia: wrPtIJWjgaySCJWjZ
+
+═══════════════════════════════════════════════════════════════
+  TEST
+═══════════════════════════════════════════════════════════════
+
+Dopo aver configurato il template:
+1. Apri la console del browser (F12)
+2. Invia una richiesta o candidatura
+3. Controlla se ci sono errori nella console
+4. Vai su EmailJS Dashboard → Activity per vedere se l'email 
+   è stata inviata correttamente
+
+Se vedi errori 400: il template non ha tutti i campi necessari
+Se vedi errori 401: problema con la Public Key
+Se vedi errori 403: dominio non autorizzato in EmailJS
+
+═══════════════════════════════════════════════════════════════
+

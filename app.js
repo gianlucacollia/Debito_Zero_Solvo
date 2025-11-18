@@ -2,12 +2,12 @@
 // 🔧 ISTRUZIONI: Segui la guida in CONFIGURAZIONE-COMPLETA.txt per configurare EmailJS
 const EMAIL_CONFIG = {
   serviceId: 'service_ok3g5iy',      // ← Service ID da EmailJS
-  templateId: 'template_1p0r597',    // ← Template ID da EmailJS per richieste clienti
-  templateIdConfirmation: 'template_1p0r597',  // ← Template ID per email conferma cliente (usa lo stesso o crea uno separato)
-  templateIdAppointment: 'template_1p0r597',    // ← Template ID per prenotazioni (usa lo stesso o crea uno separato)
-  templateIdReview: 'template_1p0r597', // ← Template per feedback verifica professionisti
-  templateIdProAutoReply: 'template_1p0r597', // ← Template auto-reply candidature professionisti
-  templateIdProApplication: 'template_1p0r597', // ← Template ID per candidature professionisti
+  templateId: 'template_v4ixmnr',    // ← Template ID da EmailJS per richieste clienti
+  templateIdConfirmation: 'template_v4ixmnr',  // ← Template ID per email conferma cliente (usa lo stesso o crea uno separato)
+  templateIdAppointment: 'template_v4ixmnr',    // ← Template ID per prenotazioni (usa lo stesso o crea uno separato)
+  templateIdReview: 'template_v4ixmnr', // ← Template per feedback verifica professionisti
+  templateIdProAutoReply: 'template_v4ixmnr', // ← Template auto-reply candidature professionisti
+  templateIdProApplication: 'template_v4ixmnr', // ← Template ID per candidature professionisti
   publicKey: 'wrPtIJWjgaySCJWjZ',      // ← Public Key da EmailJS
   recipientEmail: 'gianluca.collia@gmail.com'  // ← Email dove ricevere le richieste
 };
@@ -702,6 +702,15 @@ const Navigation = {
     const professionalPage = document.getElementById('page-professional');
     const adminPage = document.getElementById('page-admin');
     const joinPage = DOM.pageJoin;
+    const professionalsListPage = document.getElementById('professionals-list-page');
+    
+    // Handle professionals list page
+    if (professionalsListPage && professionalsListPage.classList.contains('active')) {
+      professionalsListPage.classList.remove('active');
+      professionalsListPage.hidden = true;
+      Navigation.goToHome();
+      return;
+    }
     
     // Handle privacy policy
     if (privacyPage && privacyPage.classList.contains('active')) {
@@ -1553,11 +1562,28 @@ const EmailService = {
    * Initialize EmailJS
    */
   init: () => {
+    console.log('🔧 Inizializzazione EmailJS...');
+    console.log('EmailJS disponibile:', typeof emailjs !== 'undefined');
+    console.log('Public Key configurata:', EMAIL_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY');
+    console.log('Public Key:', EMAIL_CONFIG.publicKey);
+    console.log('Service ID:', EMAIL_CONFIG.serviceId);
+    console.log('Template ID:', EMAIL_CONFIG.templateId);
+    
     if (typeof emailjs !== 'undefined' && EMAIL_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
-      emailjs.init(EMAIL_CONFIG.publicKey);
-      console.log('✅ EmailJS initialized');
+      try {
+        emailjs.init(EMAIL_CONFIG.publicKey);
+        console.log('✅ EmailJS initialized con successo');
+      } catch (initError) {
+        console.error('❌ Errore inizializzazione EmailJS:', initError);
+      }
     } else {
       console.warn('⚠️ EmailJS non configurato. Leggi CONFIG-EMAIL.txt');
+      if (typeof emailjs === 'undefined') {
+        console.error('❌ EmailJS SDK non caricato. Verifica che lo script sia incluso in index.html');
+      }
+      if (EMAIL_CONFIG.publicKey === 'YOUR_PUBLIC_KEY') {
+        console.error('❌ Public Key non configurata in EMAIL_CONFIG');
+      }
     }
   },
   
@@ -1618,6 +1644,11 @@ const EmailService = {
       };
       
       // Send via EmailJS
+      console.log('📧 Invio email richiesta cliente...');
+      console.log('Service ID:', EMAIL_CONFIG.serviceId);
+      console.log('Template ID:', EMAIL_CONFIG.templateId);
+      console.log('Email data:', emailData);
+      
       const response = await emailjs.send(
         EMAIL_CONFIG.serviceId,
         EMAIL_CONFIG.templateId,
@@ -1625,6 +1656,8 @@ const EmailService = {
       );
       
       console.log('✅ Email inviata con successo:', response);
+      console.log('Response status:', response.status);
+      console.log('Response text:', response.text);
       DOM.sendingMsg.style.display = 'none';
       DOM.successMsg.style.display = 'block';
       
@@ -1716,6 +1749,12 @@ Il team di Debito Zero - Solvo`
       
     } catch (error) {
       console.error('❌ Errore invio email:', error);
+      console.error('Dettagli errore:', {
+        status: error.status,
+        text: error.text,
+        message: error.message,
+        stack: error.stack
+      });
       DOM.sendingMsg.style.display = 'none';
       DOM.emailErrorMsg.style.display = 'block';
       
@@ -2689,17 +2728,26 @@ const ProfessionalReview = {
     const statusValue = type === 'positive' ? 'approved' : 'needs_info';
     
     try {
-      await emailjs.send(
+      const feedbackEmailData = {
+        to_email: app.email,
+        professional_name: `${app.name} ${app.surname || ''}`.trim(),
+        review_result: statusValue === 'approved' ? 'Positivo' : 'Da integrare',
+        review_message: message,
+        subject: statusValue === 'approved' ? 'Esito positivo verifica Debito Zero - Solvo' : 'Esito verifica: integrazioni richieste'
+      };
+      
+      console.log('📧 Invio email feedback professionista...');
+      console.log('Service ID:', EMAIL_CONFIG.serviceId);
+      console.log('Template ID:', EMAIL_CONFIG.templateIdReview || EMAIL_CONFIG.templateId);
+      console.log('Feedback email data:', feedbackEmailData);
+      
+      const feedbackResponse = await emailjs.send(
         EMAIL_CONFIG.serviceId,
         EMAIL_CONFIG.templateIdReview || EMAIL_CONFIG.templateId,
-        {
-          to_email: app.email,
-          professional_name: `${app.name} ${app.surname || ''}`.trim(),
-          review_result: statusValue === 'approved' ? 'Positivo' : 'Da integrare',
-          review_message: message,
-          subject: statusValue === 'approved' ? 'Esito positivo verifica Debito Zero - Solvo' : 'Esito verifica: integrazioni richieste'
-        }
+        feedbackEmailData
       );
+      
+      console.log('✅ Email feedback inviata:', feedbackResponse);
       
       const reviewedAt = new Date().toISOString();
       app.status = statusValue;
@@ -2721,10 +2769,16 @@ const ProfessionalReview = {
       }
       DOM.reviewMessage.dataset.autofill = 'false';
     } catch (error) {
-      console.error('Errore invio feedback professionista:', error);
+      console.error('❌ Errore invio feedback professionista:', error);
+      console.error('Dettagli errore:', {
+        status: error.status,
+        text: error.text,
+        message: error.message,
+        stack: error.stack
+      });
       if (DOM.reviewStatus) {
         DOM.reviewStatus.className = 'review-status error';
-        DOM.reviewStatus.textContent = 'Errore durante l\'invio del feedback. Riprova più tardi.';
+        DOM.reviewStatus.textContent = `Errore durante l'invio del feedback: ${error.text || error.message || 'Errore sconosciuto'}. Riprova più tardi.`;
       }
     }
   }
@@ -2879,11 +2933,18 @@ const ProfessionalApplication = {
         subject: 'Nuova candidatura professionista'
       };
       
-      await emailjs.send(
+      console.log('📧 Invio email candidatura professionista...');
+      console.log('Service ID:', EMAIL_CONFIG.serviceId);
+      console.log('Template ID:', EMAIL_CONFIG.templateIdProApplication || EMAIL_CONFIG.templateId);
+      console.log('Email data:', emailData);
+      
+      const emailResponse = await emailjs.send(
         EMAIL_CONFIG.serviceId,
         EMAIL_CONFIG.templateIdProApplication || EMAIL_CONFIG.templateId,
         emailData
       );
+      
+      console.log('✅ Email candidatura inviata:', emailResponse);
       
       if (SupabaseService.isReady()) {
         SupabaseService.saveProfessionalApplication(applicationRecord);
@@ -2902,15 +2963,24 @@ const ProfessionalApplication = {
         auto_message: `Grazie per l'interesse dimostrato. Diventare un professionista dell'ecosistema Solvo permette a tutti i nostri partner di raggiungere possibili clienti da supportare verso la loro libertà finanziaria.\nTi faremo sapere al più presto l'esito della tua richiesta.`
       };
       try {
-        await emailjs.send(
+        console.log('📧 Invio auto-reply al candidato...');
+        console.log('Template ID:', EMAIL_CONFIG.templateIdProAutoReply || EMAIL_CONFIG.templateId);
+        console.log('Auto-reply data:', autoReplyPayload);
+        
+        const autoReplyResponse = await emailjs.send(
           EMAIL_CONFIG.serviceId,
-          (EMAIL_CONFIG.templateIdProAutoReply && EMAIL_CONFIG.templateIdProAutoReply !== 'template_1p0r597')
-            ? EMAIL_CONFIG.templateIdProAutoReply
-            : EMAIL_CONFIG.templateId,
+          EMAIL_CONFIG.templateIdProAutoReply || EMAIL_CONFIG.templateId,
           autoReplyPayload
         );
+        
+        console.log('✅ Auto-reply inviata:', autoReplyResponse);
       } catch (autoErr) {
-        console.warn('Impossibile inviare auto-reply candidatura:', autoErr);
+        console.error('❌ Errore invio auto-reply candidatura:', autoErr);
+        console.error('Dettagli errore:', {
+          status: autoErr.status,
+          text: autoErr.text,
+          message: autoErr.message
+        });
       }
       
       ProfessionalApplication.setStatus('success', '✅ Grazie! La tua candidatura è stata inviata con successo. Ti contatteremo a breve.');
@@ -4218,6 +4288,173 @@ const LoginHandler = {
   }
 };
 
+// ==================== FOOTER PROFESSIONALS LIST ====================
+const FooterProfessionals = {
+  /**
+   * Extract name and surname from full name (handles titles like "Avv. Elena Rossi")
+   */
+  extractNameParts: (fullName) => {
+    if (!fullName) return { firstName: '', surname: '' };
+    
+    const nameParts = fullName.trim().split(/\s+/);
+    let firstName = '';
+    let surname = '';
+    
+    if (nameParts.length === 1) {
+      firstName = nameParts[0] || '';
+    } else if (nameParts.length === 2) {
+      firstName = nameParts[0] || '';
+      surname = nameParts[1] || '';
+    } else {
+      // More than 2 parts: likely "Titolo Nome Cognome" or "Nome Cognome Cognome"
+      // Check if first part is a title (Avv., Dott., etc.)
+      const titles = ['Avv.', 'Dott.', 'Dott.ssa', 'Ing.', 'Arch.', 'Rag.', 'Geom.'];
+      if (titles.includes(nameParts[0])) {
+        firstName = nameParts[1] || '';
+        surname = nameParts.slice(2).join(' ') || '';
+      } else {
+        firstName = nameParts[0] || '';
+        surname = nameParts.slice(1).join(' ') || '';
+      }
+    }
+    
+    return { firstName, surname };
+  },
+  
+  /**
+   * Get all professionals with saved data merged
+   */
+  getAllProfessionals: () => {
+    return PROFESSIONALS_DATA.map((pro, index) => {
+      // Check if there's saved data for this professional
+      const savedDataKey = `professionalData_${pro.loginUsername || index}`;
+      const savedData = localStorage.getItem(savedDataKey);
+      let finalPro = { ...pro };
+      
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          // Merge saved data with original data
+          finalPro = {
+            ...pro,
+            name: parsed.name || pro.name,
+            email: parsed.email || pro.email,
+            phone: parsed.phone || pro.phone || '',
+            city: parsed.city || pro.city || '',
+            province: parsed.province || pro.province || '',
+            cap: parsed.cap || pro.cap || ''
+          };
+        } catch (e) {
+          console.warn('Errore parsing dati professionista salvati:', e);
+        }
+      }
+      
+      return finalPro;
+    });
+  },
+  
+  /**
+   * Render the professionals table
+   */
+  renderTable: () => {
+    console.log('📊 Rendering tabella professionisti...');
+    const tableBody = document.getElementById('professionals-table-body');
+    if (!tableBody) {
+      console.error('❌ Elemento professionals-table-body non trovato!');
+      return;
+    }
+    
+    const professionalsList = FooterProfessionals.getAllProfessionals();
+    console.log('📋 Professionisti trovati:', professionalsList.length);
+    
+    if (professionalsList.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: var(--spacing-xl);">Nessun professionista disponibile al momento.</td></tr>';
+      return;
+    }
+    
+    // Render table rows
+    const rowsHTML = professionalsList.map(pro => {
+      const { firstName, surname } = FooterProfessionals.extractNameParts(pro.name);
+      const city = pro.city || 'N/D';
+      const phone = pro.phone || 'N/A';
+      const email = pro.email || 'N/A';
+      
+      return `
+        <tr>
+          <td>${firstName || 'N/A'}</td>
+          <td>${surname || 'N/A'}</td>
+          <td>${city}</td>
+          <td>${phone}</td>
+          <td>${email}</td>
+        </tr>
+      `;
+    }).join('');
+    
+    tableBody.innerHTML = rowsHTML;
+    console.log('✅ Tabella renderizzata con', professionalsList.length, 'professionisti');
+  },
+  
+  /**
+   * Show the professionals list page
+   */
+  showList: () => {
+    // Hide other pages
+    DOM.pageWizard.classList.remove('active');
+    DOM.pagePro.classList.remove('active');
+    const privacyPage = document.getElementById('privacy-policy');
+    const professionalPage = document.getElementById('page-professional');
+    const adminPage = document.getElementById('page-admin');
+    const joinPage = DOM.pageJoin;
+    
+    if (privacyPage) privacyPage.hidden = true;
+    if (professionalPage) professionalPage.hidden = true;
+    if (adminPage) adminPage.hidden = true;
+    if (joinPage) joinPage.hidden = true;
+    
+    // Show professionals list page
+    const listPage = document.getElementById('professionals-list-page');
+    if (listPage) {
+      listPage.hidden = false;
+      listPage.classList.add('active');
+      FooterProfessionals.renderTable();
+      Navigation.closeMenu();
+      Utils.scrollToTop();
+    }
+  },
+  
+  /**
+   * Hide the professionals list page and return to home
+   */
+  hideList: () => {
+    const listPage = document.getElementById('professionals-list-page');
+    if (listPage) {
+      listPage.classList.remove('active');
+      listPage.hidden = true;
+    }
+    Navigation.goToHome();
+  },
+  
+  /**
+   * Initialize footer professionals functionality
+   */
+  init: () => {
+    // Re-render table when professionals data changes
+    // This will be called when a professional saves their data
+    const originalSaveData = ProfessionalDashboard.saveData;
+    if (originalSaveData) {
+      ProfessionalDashboard.saveData = function(...args) {
+        const result = originalSaveData.apply(this, args);
+        // Re-render table if the page is visible
+        const listPage = document.getElementById('professionals-list-page');
+        if (listPage && !listPage.hidden) {
+          FooterProfessionals.renderTable();
+        }
+        return result;
+      };
+    }
+  }
+};
+
 // ==================== APP INITIALIZATION ====================
 const App = {
   init: () => {
@@ -4229,6 +4466,7 @@ const App = {
     Navigation.initMenu();
     ProfessionalApplication.init();
     ProfessionalReview.init();
+    FooterProfessionals.init();
     const capField = document.getElementById('cap');
     if (capField) {
       capField.addEventListener('input', () => Professionals.updateSortHint());

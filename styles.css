@@ -232,6 +232,8 @@ body.nav-menu-open {
 .page.active {
   display: block;
   animation: fadeInPage 0.4s ease-out;
+  min-height: calc(100vh - 200px);
+  padding-bottom: var(--spacing-xl);
 }
 
 @keyframes fadeInPage {
@@ -431,6 +433,8 @@ body.nav-menu-open {
   border-top: 1px solid var(--border);
   padding: var(--spacing-xl) 0;
   margin-top: var(--spacing-xl);
+  position: relative;
+  z-index: 1;
 }
 
 .footer-content {
@@ -476,10 +480,77 @@ body.nav-menu-open {
   text-decoration: underline;
 }
 
+.professionals-link-footer {
+  display: inline-block;
+  margin-top: var(--spacing-md);
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+  padding: var(--spacing-xs) 0;
+}
+
+.professionals-link-footer:hover {
+  color: var(--accent-dark);
+  text-decoration: underline;
+}
+
+.professionals-table-wrapper {
+  margin-top: var(--spacing-lg);
+  overflow-x: auto;
+}
+
+.professionals-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.professionals-table thead {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  color: white;
+}
+
+.professionals-table th {
+  padding: var(--spacing-md);
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.professionals-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background-color var(--transition-fast);
+}
+
+.professionals-table tbody tr:hover {
+  background-color: rgba(var(--accent-rgb), 0.05);
+}
+
+.professionals-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.professionals-table td {
+  padding: var(--spacing-md);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.professionals-table td:last-child {
+  word-break: break-word;
+}
+
 .footer-bottom {
   text-align: center;
   padding-top: var(--spacing-lg);
   border-top: 1px solid var(--border);
+  margin-top: var(--spacing-xl);
 }
 
 .footer-bottom p {
@@ -492,6 +563,21 @@ body.nav-menu-open {
   .footer-content {
     grid-template-columns: 1fr;
     gap: var(--spacing-lg);
+  }
+  
+  .professionals-table-wrapper {
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .professionals-table {
+    min-width: 600px;
+  }
+  
+  .professionals-table th,
+  .professionals-table td {
+    padding: var(--spacing-sm);
+    font-size: 0.875rem;
   }
   
   .privacy-content {

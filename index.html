@@ -767,6 +767,7 @@
         <div class="footer-section">
           <h4>Contatti</h4>
           <p>Per informazioni: contattaci tramite il form</p>
+          <a href="#" id="show-professionals-list" class="professionals-link-footer" onclick="FooterProfessionals.showList(); return false;">I nostri Professionisti</a>
         </div>
       </div>
       <div class="footer-bottom">
@@ -774,6 +775,30 @@
       </div>
     </div>
   </footer>
+
+  <!-- Professionals List Page -->
+  <section class="page" id="professionals-list-page" aria-labelledby="professionals-list-title" hidden>
+    <div class="container">
+      <button class="back-btn" onclick="Navigation.goBack();" style="margin-bottom: var(--spacing-lg);">← Indietro</button>
+      <h1 id="professionals-list-title">I Nostri Professionisti</h1>
+      <div class="professionals-table-wrapper">
+        <table class="professionals-table" id="professionals-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Cognome</th>
+              <th>Città</th>
+              <th>Telefono</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody id="professionals-table-body">
+            <!-- Lista professionisti caricata dinamicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 
   <!-- Privacy Policy Page -->
   <section class="page" id="privacy-policy" aria-labelledby="privacy-title" hidden>
