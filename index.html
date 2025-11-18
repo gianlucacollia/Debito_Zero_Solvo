@@ -129,49 +129,60 @@
       <h1 id="wizard-title">Risolvi i tuoi debiti in modo semplice</h1>
       <p class="lead">In 3 passi ti colleghiamo con i professionisti giusti per la tua situazione</p>
 
-      <!-- Progress Bar -->
-      <div class="prog" role="progressbar" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso wizard">
-        <span id="bar"></span>
-      </div>
-      
-      <!-- Steps Indicator -->
-      <div class="steps">
-        <div class="step active" data-step="1">
-          <span class="num" aria-hidden="true">1</span>
-          <span>Tipi di debito</span>
-        </div>
-        <div class="step" data-step="2">
-          <span class="num" aria-hidden="true">2</span>
-          <span>Dati personali</span>
-        </div>
-        <div class="step" data-step="3">
-          <span class="num" aria-hidden="true">3</span>
-          <span>Riepilogo</span>
-        </div>
-      </div>
-
-      <!-- Process Overview -->
-      <section class="process-card" id="process-overview" aria-label="Come funziona">
-        <h2 class="process-title">Come funziona Solvo in 3 passi</h2>
-        <p class="process-subtitle">Trasparente, rapido e sempre accompagnato da professionisti certificati.</p>
-        <div class="process-grid">
-          <article class="process-step">
-            <span class="process-number">1</span>
-            <h3>Raccontaci la tua situazione</h3>
-            <p>Seleziona i debiti, aggiungi importi e inserisci i tuoi dati di contatto.</p>
-          </article>
-          <article class="process-step">
-            <span class="process-number">2</span>
-            <h3>Ricevi i professionisti idonei</h3>
-            <p>Valutiamo la tua richiesta e ti proponiamo i profili più adatti a territorio e esigenze.</p>
-          </article>
-          <article class="process-step">
-            <span class="process-number">3</span>
-            <h3>Prenota l’appuntamento</h3>
-            <p>Scegli data, orario e modalità (presenza o remoto). Il professionista riceve tutto subito.</p>
-          </article>
+      <!-- Hero process overview -->
+      <section class="process-hero">
+        <section class="process-card" id="process-overview" aria-label="Come funziona">
+          <h2 class="process-title">Come funziona Solvo in 3 passi</h2>
+          <p class="process-subtitle">Trasparente, rapido e sempre accompagnato da professionisti certificati.</p>
+          <div class="process-grid">
+            <article class="process-step">
+              <span class="process-number">1</span>
+              <h3>Raccontaci la tua situazione</h3>
+              <p>Seleziona i debiti, aggiungi importi e inserisci i tuoi dati di contatto.</p>
+            </article>
+            <article class="process-step">
+              <span class="process-number">2</span>
+              <h3>Ricevi i professionisti idonei</h3>
+              <p>Valutiamo la tua richiesta e ti proponiamo i profili più adatti a territorio e esigenze.</p>
+            </article>
+            <article class="process-step">
+              <span class="process-number">3</span>
+              <h3>Prenota l’appuntamento</h3>
+              <p>Scegli data, orario e modalità (presenza o remoto). Il professionista riceve tutto subito.</p>
+            </article>
+          </div>
+        </section>
+        <div class="process-cta">
+          <button type="button" class="btn start-flow-btn" id="start-flow-btn">Iniziamo</button>
+          <p class="cta-hint">Scorri per selezionare le tipologie di debiti e raccontarci la tua storia.</p>
         </div>
       </section>
+
+      <!-- Dynamic progress panel -->
+      <div class="wizard-progress-panel" aria-live="polite">
+        <div class="wizard-progress-pill" role="progressbar" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso della richiesta">
+          <div class="wizard-progress-track">
+            <div class="wizard-progress-fill" id="progress-fill"></div>
+          </div>
+          <div class="wizard-progress-text"><span id="progress-percentage">33%</span> completato</div>
+        </div>
+        <div class="wizard-progress-steps">
+          <div class="steps">
+            <div class="step active" data-step="1">
+              <span class="num" aria-hidden="true">1</span>
+              <span>Tipi di debito</span>
+            </div>
+            <div class="step" data-step="2">
+              <span class="num" aria-hidden="true">2</span>
+              <span>Dati personali</span>
+            </div>
+            <div class="step" data-step="3">
+              <span class="num" aria-hidden="true">3</span>
+              <span>Riepilogo</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Step 1: Debt Type Selection -->
       <section id="step1" class="card">

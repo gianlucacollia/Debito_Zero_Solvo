@@ -528,7 +528,8 @@ const DOM = {
   navToggle: document.getElementById('navToggle'),
   
   // Progress
-  progressBar: document.getElementById('bar'),
+  progressFill: document.getElementById('progress-fill'),
+  progressPercent: document.getElementById('progress-percentage'),
   stepIndicators: document.querySelectorAll('.step'),
   
   // Steps
@@ -540,6 +541,7 @@ const DOM = {
   optionButtons: document.querySelectorAll('.opt'),
   toStep2Btn: document.getElementById('to2'),
   processOverview: document.getElementById('process-overview'),
+  startFlowBtn: document.getElementById('start-flow-btn'),
   
   // Step 2
   form: document.getElementById('form'),
@@ -873,13 +875,35 @@ const Wizard = {
    */
   updateProgress: (step) => {
     const progressValue = step === 1 ? 33 : step === 2 ? 66 : 100;
-    DOM.progressBar.style.width = `${progressValue}%`;
-    DOM.progressBar.parentElement.setAttribute('aria-valuenow', progressValue);
+    
+    if (DOM.progressFill) {
+      DOM.progressFill.style.width = `${progressValue}%`;
+      const progressContainer = DOM.progressFill.closest('.wizard-progress-pill');
+      if (progressContainer) {
+        progressContainer.setAttribute('aria-valuenow', progressValue);
+      }
+    }
+    
+    if (DOM.progressPercent) {
+      DOM.progressPercent.textContent = `${progressValue}%`;
+    }
     
     DOM.stepIndicators.forEach(indicator => {
       const indicatorStep = Number(indicator.dataset.step);
       indicator.classList.toggle('active', indicatorStep === step);
     });
+  },
+
+  /**
+   * Smooth scroll to debt selection cards
+   */
+  scrollToDebtOptions: () => {
+    if (DOM.step1) {
+      DOM.step1.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => {
+        window.scrollBy({ top: -80, behavior: 'auto' });
+      }, 400);
+    }
   },
   
   /**
@@ -1506,6 +1530,10 @@ const Wizard = {
     Wizard.initStep1();
     Wizard.initStep2();
     Wizard.initStep3();
+    
+    if (DOM.startFlowBtn) {
+      DOM.startFlowBtn.addEventListener('click', Wizard.scrollToDebtOptions);
+    }
     
     // Check for saved state on load
     const savedData = Wizard.loadStateFromStorage();
