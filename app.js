@@ -12,6 +12,11 @@ const EMAIL_CONFIG = {
   recipientEmail: 'gianluca.collia@gmail.com'  // ← Email dove ricevere le richieste
 };
 
+// ==================== CONFIGURAZIONE ANALYTICS ====================
+const ANALYTICS_CONFIG = {
+  measurementId: 'G-XXXXXXXXXX' // ← sostituisci con il tuo Measurement ID reale
+};
+
 // ==================== CONFIGURAZIONE SUPABASE ====================
 // 🔧 ISTRUZIONI: Segui la guida in CONFIGURAZIONE-COMPLETA.txt per configurare Supabase
 let supabase = null;
@@ -564,6 +569,11 @@ const DOM = {
   consentProfilingChk: document.getElementById('consentProfilingChk'),
   closeModalBtn: document.getElementById('closeModal'),
   confirmSendBtn: document.getElementById('confirmSend'),
+
+  // Cookie banner
+  cookieBanner: document.getElementById('cookie-banner'),
+  cookieAcceptBtn: document.getElementById('cookie-accept'),
+  cookieDeclineBtn: document.getElementById('cookie-decline'),
   
   // Professionals
   searchInput: document.getElementById('search'),
@@ -701,10 +711,19 @@ const Navigation = {
    */
   goBack: () => {
     const privacyPage = document.getElementById('privacy-policy');
+    const cookiePage = document.getElementById('cookie-policy');
     const professionalPage = document.getElementById('page-professional');
     const adminPage = document.getElementById('page-admin');
     const joinPage = DOM.pageJoin;
     const professionalsListPage = document.getElementById('professionals-list-page');
+    
+    // Handle cookie policy
+    if (cookiePage && cookiePage.classList.contains('active')) {
+      cookiePage.classList.remove('active');
+      cookiePage.hidden = true;
+      Navigation.goToHome();
+      return;
+    }
     
     // Handle professionals list page
     if (professionalsListPage && professionalsListPage.classList.contains('active')) {
@@ -855,16 +874,126 @@ const Navigation = {
     DOM.pageWizard.classList.remove('active');
     DOM.pagePro.classList.remove('active');
     const privacyPage = document.getElementById('privacy-policy');
+    const cookiePage = document.getElementById('cookie-policy');
     const professionalPage = document.getElementById('page-professional');
     const adminPage = document.getElementById('page-admin');
     if (professionalPage) professionalPage.hidden = true;
     if (adminPage) adminPage.hidden = true;
+    if (cookiePage) cookiePage.hidden = true;
     if (privacyPage) {
       privacyPage.hidden = false;
       privacyPage.classList.add('active');
       Navigation.updateGlobalBackButton(true);
       Utils.scrollToTop();
     }
+  },
+  
+  showCookiePolicy: () => {
+    DOM.pageWizard.classList.remove('active');
+    DOM.pagePro.classList.remove('active');
+    const cookiePage = document.getElementById('cookie-policy');
+    const privacyPage = document.getElementById('privacy-policy');
+    const professionalPage = document.getElementById('page-professional');
+    const adminPage = document.getElementById('page-admin');
+    if (professionalPage) professionalPage.hidden = true;
+    if (adminPage) adminPage.hidden = true;
+    if (privacyPage) privacyPage.hidden = true;
+    if (cookiePage) {
+      cookiePage.hidden = false;
+      cookiePage.classList.add('active');
+      Navigation.updateGlobalBackButton(true);
+      Utils.scrollToTop();
+    }
+  }
+};
+
+// ==================== COOKIE CONSENT ====================
+const CookieConsent = {
+  init: () => {
+    if (!DOM.cookieBanner) return;
+    
+    const saved = CookieConsent.getStoredPreference();
+    if (saved) {
+      if (saved.analytics) {
+        CookieConsent.loadAnalytics();
+      }
+      return;
+    }
+    
+    CookieConsent.showBanner();
+    
+    if (DOM.cookieAcceptBtn) {
+      DOM.cookieAcceptBtn.addEventListener('click', CookieConsent.acceptAll);
+    }
+    if (DOM.cookieDeclineBtn) {
+      DOM.cookieDeclineBtn.addEventListener('click', CookieConsent.declineAnalytics);
+    }
+  },
+  
+  getStoredPreference: () => {
+    try {
+      return JSON.parse(localStorage.getItem('cookieConsent'));
+    } catch (e) {
+      return null;
+    }
+  },
+  
+  storePreference: (data) => {
+    try {
+      localStorage.setItem('cookieConsent', JSON.stringify(data));
+    } catch (e) {
+      console.warn('Impossibile salvare preferenze cookie:', e);
+    }
+  },
+  
+  showBanner: () => {
+    if (DOM.cookieBanner) {
+      DOM.cookieBanner.hidden = false;
+    }
+  },
+  
+  hideBanner: () => {
+    if (DOM.cookieBanner) {
+      DOM.cookieBanner.hidden = true;
+    }
+  },
+  
+  acceptAll: () => {
+    CookieConsent.storePreference({ analytics: true, timestamp: Date.now() });
+    CookieConsent.hideBanner();
+    CookieConsent.loadAnalytics();
+  },
+  
+  declineAnalytics: () => {
+    CookieConsent.storePreference({ analytics: false, timestamp: Date.now() });
+    CookieConsent.hideBanner();
+  },
+  
+  loadAnalytics: () => {
+    if (!ANALYTICS_CONFIG.measurementId || ANALYTICS_CONFIG.measurementId === 'G-XXXXXXXXXX') {
+      console.warn('Measurement ID non configurato. Aggiorna ANALYTICS_CONFIG.');
+      return;
+    }
+    
+    if (window.gtag) {
+      return;
+    }
+    
+    const existingScript = document.querySelector(`script[data-analytics="${ANALYTICS_CONFIG.measurementId}"]`);
+    if (existingScript) return;
+    
+    const gaScript = document.createElement('script');
+    gaScript.async = true;
+    gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${ANALYTICS_CONFIG.measurementId}`;
+    gaScript.dataset.analytics = ANALYTICS_CONFIG.measurementId;
+    gaScript.onload = () => {
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', ANALYTICS_CONFIG.measurementId);
+    };
+    document.head.appendChild(gaScript);
   }
 };
 
@@ -4494,6 +4623,7 @@ const App = {
     Navigation.initMenu();
     ProfessionalApplication.init();
     ProfessionalReview.init();
+    CookieConsent.init();
     FooterProfessionals.init();
     const capField = document.getElementById('cap');
     if (capField) {

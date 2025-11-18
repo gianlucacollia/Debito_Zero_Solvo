@@ -673,6 +673,76 @@ h3 {
   font-size: 0.95rem;
 }
 
+/* ==================== COOKIE BANNER ==================== */
+.cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--spacing-lg);
+  background: rgba(15, 23, 42, 0.85);
+  color: #fff;
+  z-index: 200;
+  backdrop-filter: blur(6px);
+  animation: slideUp 0.4s ease-out;
+}
+
+.cookie-banner__content {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cookie-banner__content h3 {
+  margin: 0 0 var(--spacing-xs);
+  color: #fff;
+}
+
+.cookie-banner__content p {
+  margin: 0 0 var(--spacing-xs);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.cookie-banner__content a {
+  color: #a0d2ff;
+  text-decoration: underline;
+}
+
+.cookie-banner__actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.cookie-banner .btn {
+  white-space: nowrap;
+}
+
+.cookie-banner .btn.ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .cookie-banner__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .cookie-banner {
+    padding-bottom: calc(var(--spacing-xl) + env(safe-area-inset-bottom));
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 /* ==================== CARD ==================== */
 .card {
   animation: fadeInSlide 0.4s ease-out;
@@ -1001,14 +1071,15 @@ h3 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.97);
+  color: var(--text-primary);
+  font-size: 1.15rem;
   font-weight: 700;
-  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.25);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.2);
 }
 
 .opt.selected .check {
