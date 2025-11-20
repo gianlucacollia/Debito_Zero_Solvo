@@ -2,8 +2,8 @@
 // 🔧 ISTRUZIONI: Segui la guida in CONFIGURAZIONE-COMPLETA.txt per configurare EmailJS
 const EMAIL_CONFIG = {
   serviceId: 'service_ok3g5iy',      // ← Service ID da EmailJS
-  templateId: 'template_v4ixmnr',    // ← Template ID da EmailJS per richieste clienti
-  templateIdConfirmation: 'template_v4ixmnr',  // ← Template ID per email conferma cliente (usa lo stesso o crea uno separato)
+  templateId: 'template_1p0r597',    // ← Template ID per richieste clienti → TEAM SOLVO
+  templateIdConfirmation: 'template_cp9rxvj',  // ← Template ID per email conferma CLIENTE
   templateIdAppointment: 'template_v4ixmnr',    // ← Template ID per prenotazioni (usa lo stesso o crea uno separato)
   templateIdReview: 'template_v4ixmnr', // ← Template per feedback verifica professionisti
   templateIdProAutoReply: 'template_v4ixmnr', // ← Template auto-reply candidature professionisti
@@ -1881,17 +1881,24 @@ Cordiali saluti,
 Il team di Debito Zero - Solvo`
           };
           
-          // Use same service but different template (or same template with different data)
-          // Note: You may need to create a separate template for client confirmation
-          // For now, we'll use the same template but you should create a confirmation template
+          // Use separate template for client confirmation
+          console.log('📧 Invio email conferma cliente...');
+          console.log('Template ID:', EMAIL_CONFIG.templateIdConfirmation);
+          console.log('Confirmation email data:', confirmationEmailData);
+          
           emailjs.send(
             EMAIL_CONFIG.serviceId,
-            EMAIL_CONFIG.templateId, // Consider creating a separate templateId for confirmations
+            EMAIL_CONFIG.templateIdConfirmation, // Template dedicato per conferma cliente
             confirmationEmailData
           ).then(() => {
             console.log('✅ Email di conferma inviata al cliente');
           }).catch(err => {
             console.error('⚠️ Errore invio email conferma (non critico):', err);
+            console.error('Dettagli errore conferma:', {
+              status: err.status,
+              text: err.text,
+              message: err.message
+            });
             // Don't fail the whole process if confirmation email fails
           });
         } catch (e) {
