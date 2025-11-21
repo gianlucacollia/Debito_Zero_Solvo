@@ -219,10 +219,17 @@ body.nav-menu-open {
 
 /* ==================== LAYOUT ==================== */
 .page {
-  padding: 20px;
+  padding: var(--spacing-xl) 0 var(--spacing-xxl);
   display: none;
   position: relative;
   min-height: 100vh;
+}
+
+#page-wizard {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(160, 192, 236, 0.18), transparent 55%),
+    radial-gradient(circle at 80% 10%, rgba(133, 187, 255, 0.15), transparent 50%),
+    linear-gradient(180deg, #f0f7ff 0%, #e6f2ff 60%, #f5f9ff 100%);
 }
 
 .page[hidden] {
@@ -248,31 +255,12 @@ body.nav-menu-open {
 }
 
 /* Background patterns for each page */
-#page-wizard {
-  background: 
-    linear-gradient(135deg, rgba(248, 249, 250, 0.95), rgba(233, 236, 239, 0.9)),
-    radial-gradient(circle at 20% 80%, rgba(93, 173, 226, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(74, 144, 226, 0.06) 0%, transparent 50%);
-  background-attachment: fixed;
-}
-
-#page-wizard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 35px,
-      rgba(93, 173, 226, 0.015) 35px,
-      rgba(93, 173, 226, 0.015) 70px
-    );
-  pointer-events: none;
-  z-index: 0;
+#page-wizard,
+#page-pro,
+#page-professional,
+#page-admin,
+#privacy-policy {
+  background: #eaf4fb;
 }
 
 #page-wizard .container {
@@ -602,7 +590,7 @@ body.nav-menu-open {
 
 .page-content .card,
 .page-content > section {
-  max-width: 1200px;
+  max-width: 1180px;
   margin: 0 auto;
   background: var(--card-bg);
   border-radius: var(--radius-xl);
@@ -1039,15 +1027,20 @@ h3 {
 /* ==================== OPTIONS (Step 1) ==================== */
 .options {
   display: grid;
-  gap: var(--spacing-md);
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   align-items: stretch;
 }
 
 .opt-wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-md);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(93, 173, 226, 0.08);
 }
 
 .debt-details {
