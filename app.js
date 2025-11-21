@@ -143,7 +143,8 @@ const DEBT_LABELS = {
   fiscali_tributari: 'Debiti fiscali e tributari',
   previdenziali: 'Debiti contributivi e previdenziali',
   utenze_servizi: 'Utenze e servizi ricorrenti',
-  procedure_esecutive: 'Procedure esecutive e recupero crediti'
+  procedure_esecutive: 'Procedure esecutive e recupero crediti',
+  altro: 'Altre situazioni particolari'
 };
 
 const DEBT_SUBCATEGORIES = {
@@ -181,6 +182,12 @@ const DEBT_SUBCATEGORIES = {
     { value: 'ipoteca_giudiziale', label: 'Ipoteca giudiziale' },
     { value: 'decreto_ingiuntivo', label: 'Decreto ingiuntivo' },
     { value: 'crediti_servicer', label: 'Crediti gestiti da servicer' }
+  ],
+  altro: [
+    { value: 'garanzie', label: 'Garanzie / fideiussioni' },
+    { value: 'societa', label: 'Impegni societari / cooperative' },
+    { value: 'estero', label: 'Debiti con enti esteri' },
+    { value: 'informali', label: 'Prestiti informali / personali' }
   ]
 };
 
@@ -1495,8 +1502,19 @@ const Wizard = {
       }
     });
     
+    // Generate debt tags for review
+    const debtTagsHTML = state.selections
+      .map(sel => `<span class="pill">${DEBT_LABELS[sel] || sel}</span>`)
+      .join(' ');
+    
     // Generate review HTML
     const reviewHTML = `
+      <div style="margin-bottom: var(--spacing-xl); padding: var(--spacing-md);">
+        <p style="margin: 0 0 var(--spacing-sm); font-size: 0.875rem; color: var(--text-muted); font-weight: 600;">Tipologie di debiti selezionate:</p>
+        <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-sm); align-items: center;">
+          ${debtTagsHTML || '<span style="color: var(--text-muted); font-size: 0.875rem;">Nessuna tipologia selezionata</span>'}
+        </div>
+      </div>
       <ul>
         <li><b>Nome:</b> ${state.formData.nome} ${state.formData.cognome}</li>
         <li><b>Cellulare:</b> ${state.formData.telefono}</li>

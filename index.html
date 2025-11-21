@@ -169,7 +169,7 @@
               <span class="check" aria-hidden="true">✓</span>
               <span class="label">
                 Debiti bancari e finanziari
-                <small>Mutui, prestiti personali, leasing, carte revolving</small>
+                <small>Mutui e prestiti • Carte e leasing</small>
               </span>
             </button>
             <div class="debt-details" id="details-banche_finanziarie" style="display:none;">
@@ -184,7 +184,7 @@
               <span class="check" aria-hidden="true">✓</span>
               <span class="label">
                 Debiti fiscali e tributari
-                <small>IVA, IRPEF/IRES, IMU, cartelle esattoriali</small>
+                <small>IVA e imposte • Cartelle AE</small>
               </span>
             </button>
             <div class="debt-details" id="details-fiscali_tributari" style="display:none;">
@@ -199,7 +199,7 @@
               <span class="check" aria-hidden="true">✓</span>
               <span class="label">
                 Debiti contributivi e previdenziali
-                <small>INPS, INAIL, casse professionali, fondi pensione</small>
+                <small>INPS/INAIL • Casse professionali</small>
               </span>
             </button>
             <div class="debt-details" id="details-previdenziali" style="display:none;">
@@ -214,7 +214,7 @@
               <span class="check" aria-hidden="true">✓</span>
               <span class="label">
                 Utenze e servizi ricorrenti
-                <small>Energia, acqua, telefonia, servizi digitali</small>
+                <small>Energia/Acqua • Telefonia/servizi</small>
               </span>
             </button>
             <div class="debt-details" id="details-utenze_servizi" style="display:none;">
@@ -229,12 +229,27 @@
               <span class="check" aria-hidden="true">✓</span>
               <span class="label">
                 Procedure esecutive e recupero crediti
-                <small>Pignoramenti, decreti ingiuntivi, crediti gestiti da servicer</small>
+                <small>Pignoramenti • Decreti e crediti</small>
               </span>
             </button>
             <div class="debt-details" id="details-procedure_esecutive" style="display:none;">
               <div class="debt-items"></div>
               <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('procedure_esecutive')">+ Aggiungi voce</button>
+            </div>
+          </div>
+
+          <div class="opt-wrapper">
+            <button type="button" class="opt" data-value="altro" aria-pressed="false">
+              <span class="opt-step-badge" aria-hidden="true">🌐</span>
+              <span class="check" aria-hidden="true">✓</span>
+              <span class="label">
+                Altre situazioni particolari
+                <small>Società estere • Garanzie • Altri impegni</small>
+              </span>
+            </button>
+            <div class="debt-details" id="details-altro" style="display:none;">
+              <div class="debt-items"></div>
+              <button type="button" class="btn-add-creditor" onclick="Wizard.addCreditor('altro')">+ Aggiungi voce</button>
             </div>
           </div>
         </div>

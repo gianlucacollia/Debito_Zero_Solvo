@@ -639,6 +639,22 @@ h3 {
   color: var(--text-muted);
   font-size: 0.875rem;
   margin: 0 0 var(--spacing-lg);
+  line-height: 1.7;
+}
+
+/* Tag dei debiti nella sezione subtle dello Step 2 */
+#step2 .subtle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+#step2 .subtle #chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
 }
 
 /* ==================== PROCESS CTA ==================== */
@@ -1024,22 +1040,60 @@ h3 {
   padding: var(--spacing-xl) 0;
 }
 
+/* Evidenziazione delle card per Step 2 e Step 3 */
+#step2.card,
+#step3.card {
+  background: #ffffff;
+  border-radius: var(--radius-xl);
+  padding: clamp(28px, 4vw, 44px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  margin-top: var(--spacing-xl);
+  position: relative;
+  z-index: 1;
+}
+
+/* Sezioni separate nella review */
+#step3 .review > ul:first-child {
+  background: rgba(248, 249, 250, 0.6);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  margin-bottom: var(--spacing-lg);
+}
+
+#step3 .review h3 {
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px solid var(--accent);
+}
+
 /* ==================== OPTIONS (Step 1) ==================== */
 .options {
   display: grid;
-  gap: var(--spacing-lg);
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: clamp(16px, 2vw, 24px);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   align-items: stretch;
+}
+
+@media (min-width: 1100px) {
+  .options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .opt-wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
   background: rgba(255, 255, 255, 0.9);
   border-radius: var(--radius-xl);
-  padding: var(--spacing-md);
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  padding: var(--spacing-sm);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
   border: 1px solid rgba(93, 173, 226, 0.08);
 }
 
@@ -1174,13 +1228,15 @@ h3 {
   flex-direction: column;
   gap: 6px;
   text-align: left;
+  flex: 1;
 }
 
 .opt .label small {
-  font-size: 0.8125rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
   font-weight: 500;
   line-height: 1.4;
+  min-height: 2.2rem;
 }
 
 @media (max-width: 699px) {
@@ -1209,9 +1265,10 @@ h3 {
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
   border: 2px solid rgba(0, 0, 0, 0.06);
   cursor: pointer;
-  min-height: 80px;
+  min-height: 160px;
   display: flex;
-  gap: var(--spacing-md);
+  flex-direction: column;
+  gap: var(--spacing-sm);
   align-items: flex-start;
   color: var(--text-primary);
   font-size: 1rem;
@@ -1234,8 +1291,9 @@ h3 {
 }
 
 .opt .check {
-  flex: 0 0 22px;
-  height: 22px;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   border: 2px solid #cbd5e0;
   display: grid;
@@ -1451,13 +1509,22 @@ select:focus {
 /* ==================== PILLS & TAGS ==================== */
 .pill {
   display: inline-block;
-  padding: var(--spacing-xs) var(--spacing-md);
+  padding: 8px 16px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  font-size: 0.75rem;
-  margin-right: var(--spacing-xs);
-  margin-bottom: var(--spacing-xs);
+  background: linear-gradient(135deg, #5dade2, #4a90e2);
+  border: 1px solid rgba(93, 173, 226, 0.4);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-right: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  box-shadow: 0 2px 6px rgba(93, 173, 226, 0.25);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(93, 173, 226, 0.35);
 }
 
 .tag {
@@ -1536,18 +1603,41 @@ select:focus {
 .review {
   font-size: 0.875rem;
   color: var(--text-muted);
+  background: rgba(248, 249, 250, 0.8);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: var(--spacing-lg);
 }
 
 .review ul {
   padding-left: 20px;
+  margin: 0;
 }
 
 .review li {
   margin-bottom: var(--spacing-sm);
+  line-height: 1.6;
 }
 
 .review b {
   color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* Tag dei debiti nella review */
+.review .pill {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #5dade2, #4a90e2);
+  border: 1px solid rgba(93, 173, 226, 0.4);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-right: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  box-shadow: 0 2px 6px rgba(93, 173, 226, 0.25);
 }
 
 .success {
