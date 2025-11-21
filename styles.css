@@ -586,22 +586,29 @@ body.nav-menu-open {
 }
 
 .container {
-  width: min(1100px, 94%);
-  margin: 0 auto;
-  background: var(--card-bg);
-  border-radius: var(--radius-xl);
-  padding: var(--spacing-xl);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: var(--spacing-xl) 5%;
   position: relative;
-  overflow: hidden;
 }
 
 #page-wizard > .container {
   background: transparent;
   box-shadow: none;
   border: none;
-  padding: 0;
+  padding: var(--spacing-xl) 5%;
+}
+
+.page-content .card,
+.page-content > section {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .container::before {
