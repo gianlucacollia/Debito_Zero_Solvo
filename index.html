@@ -125,37 +125,91 @@
 
   <!-- WIZARD -->
   <section class="page active" id="page-wizard" aria-labelledby="wizard-title">
-    <div class="container">
-      <h1 id="wizard-title">Risolvi i tuoi debiti in modo semplice</h1>
-      <p class="lead">In 3 passi ti colleghiamo con i professionisti giusti per la tua situazione</p>
+    <section class="wizard-hero" aria-label="Panoramica iniziale">
+      <div class="hero-inner">
+        <div class="hero-left">
+          <div class="hero-chip-row">
+            <span class="chip active">Nuova richiesta</span>
+            <span class="chip">Clienti esistenti</span>
+            <span class="chip outline">Supporto veloce</span>
+          </div>
+          <h1 id="wizard-title">Prenota il tuo percorso verso la libertà finanziaria</h1>
+          <p class="lead">Un'unica piattaforma dove raccontare la tua situazione, confrontarti con professionisti certificati e fissare subito l'appuntamento.</p>
+          
+          <div class="hero-search-block" role="group" aria-label="Selettore rapido">
+            <div class="hero-toggle">
+              <button type="button" class="toggle-btn active">In studio</button>
+              <button type="button" class="toggle-btn">Online</button>
+              <button type="button" class="toggle-btn">Ibrido</button>
+            </div>
+            <div class="hero-search-fields">
+              <div class="field">
+                <label>Tipologia</label>
+                <input type="text" placeholder="es. debito con banca, Equitalia, utenze">
+              </div>
+              <div class="field">
+                <label>Provincia</label>
+                <input type="text" placeholder="es. Roma, Milano, Napoli">
+              </div>
+              <button type="button" class="btn hero-search-btn" onclick="Navigation.scrollToClient()">Cerca professionisti</button>
+            </div>
+          </div>
 
-      <!-- Process Overview -->
-      <section class="process-card" id="process-overview" aria-label="Come funziona">
-        <h2 class="process-title">Come funziona Solvo in 3 passi</h2>
-        <p class="process-subtitle">Trasparente, rapido e sempre accompagnato da professionisti certificati.</p>
-        <div class="process-grid">
-          <article class="process-step">
-            <span class="process-number">1</span>
-            <h3>Raccontaci la tua situazione</h3>
-            <p>Seleziona i debiti, aggiungi importi e inserisci i tuoi dati di contatto.</p>
-          </article>
-          <article class="process-step">
-            <span class="process-number">2</span>
-            <h3>Ricevi i professionisti idonei</h3>
-            <p>Valutiamo la tua richiesta e ti proponiamo i profili più adatti a territorio e esigenze.</p>
-          </article>
-          <article class="process-step">
-            <span class="process-number">3</span>
-            <h3>Prenota l’appuntamento</h3>
-            <p>Scegli data, orario e modalità (presenza o remoto). Il professionista riceve tutto subito.</p>
-          </article>
+          <section class="process-card hero-process" id="process-overview" aria-label="Come funziona">
+            <h2 class="process-title">Solvo in 3 passaggi</h2>
+            <div class="process-grid">
+              <article class="process-step">
+                <span class="process-number">1</span>
+                <h3>Raccontaci la tua situazione</h3>
+                <p>Seleziona le tipologie di debito e aggiungi importi e creditori principali.</p>
+              </article>
+              <article class="process-step">
+                <span class="process-number">2</span>
+                <h3>Ricevi proposte mirate</h3>
+                <p>Incrociamo la tua richiesta con professionisti certificati, vicino a te o online.</p>
+              </article>
+              <article class="process-step">
+                <span class="process-number">3</span>
+                <h3>Prenota subito</h3>
+                <p>Scegli giorno, ora e modalità dell’appuntamento. Il professionista riceve un riepilogo completo.</p>
+              </article>
+            </div>
+            <div class="process-cta-inline">
+              <button type="button" class="btn start-flow-btn" id="start-flow-btn">Iniziamo</button>
+              <p class="cta-hint">Scorri e raccontaci quali debiti vuoi gestire.</p>
+            </div>
+          </section>
         </div>
-        <div class="process-cta-inline">
-          <button type="button" class="btn start-flow-btn" id="start-flow-btn">Iniziamo</button>
-          <p class="cta-hint">In un attimo arrivi alla sezione per indicare le tipologie di debiti.</p>
+        <div class="hero-right" aria-hidden="true">
+          <div class="hero-figure">
+            <div class="hero-card big">
+              <p>Professionisti attivi</p>
+              <strong>+120</strong>
+              <span>Consulenti, avvocati, commercialisti</span>
+            </div>
+            <div class="hero-card inline">
+              <div>
+                <p>Appuntamenti settimanali</p>
+                <strong>340</strong>
+              </div>
+              <div>
+                <p>Soddisfazione media</p>
+                <strong>4.8/5</strong>
+              </div>
+            </div>
+            <div class="hero-avatars">
+              <span class="avatar">GC</span>
+              <span class="avatar">ER</span>
+              <span class="avatar">AR</span>
+              <p>Professionisti certificati pronti ad ascoltarti</p>
+            </div>
+            <div class="hero-illustration"></div>
+          </div>
         </div>
-      </section>
+      </div>
+    </section>
 
+    <div class="container page-content">
       <!-- Step 1: Debt Type Selection -->
       <section id="step1" class="card">
         <h2 class="question">Quali debiti vuoi risolvere?</h2>
@@ -258,7 +312,7 @@
             <div class="field">
               <label for="nome">Nome</label>
               <div class="input-wrapper">
-                <input type="text" id="nome" name="nome" autocomplete="given-name" required>
+              <input type="text" id="nome" name="nome" autocomplete="given-name" required>
                 <span class="field-icon" id="icon-nome" aria-hidden="true"></span>
               </div>
               <div class="error-text" id="err-nome" role="alert">Inserisci almeno 3 caratteri.</div>
@@ -266,7 +320,7 @@
             <div class="field">
               <label for="cognome">Cognome</label>
               <div class="input-wrapper">
-                <input type="text" id="cognome" name="cognome" autocomplete="family-name" required>
+              <input type="text" id="cognome" name="cognome" autocomplete="family-name" required>
                 <span class="field-icon" id="icon-cognome" aria-hidden="true"></span>
               </div>
               <div class="error-text" id="err-cognome" role="alert">Inserisci almeno 3 caratteri.</div>
@@ -276,7 +330,7 @@
             <div class="field">
               <label for="telefono">Numero di cellulare</label>
               <div class="input-wrapper">
-                <input type="tel" id="telefono" name="telefono" inputmode="tel" placeholder="+39 333 1234567" autocomplete="tel" required>
+              <input type="tel" id="telefono" name="telefono" inputmode="tel" placeholder="+39 333 1234567" autocomplete="tel" required>
                 <span class="field-icon" id="icon-telefono" aria-hidden="true"></span>
               </div>
               <div class="error-text" id="err-telefono" role="alert">Inserisci almeno 9 cifre (es. +39 333 1234567).</div>
@@ -284,7 +338,7 @@
             <div class="field">
               <label for="email">Email</label>
               <div class="input-wrapper">
-                <input type="email" id="email" name="email" autocomplete="email" required>
+              <input type="email" id="email" name="email" autocomplete="email" required>
                 <span class="field-icon" id="icon-email" aria-hidden="true"></span>
               </div>
               <div class="error-text" id="err-email" role="alert">Inserisci un'email valida (es. nome@example.com).</div>
@@ -358,8 +412,8 @@
       <!-- Toolbar: Search & Filters -->
       <div class="toolbar">
         <div class="toolbar-top">
-          <div class="search">
-            <input type="search" id="search" placeholder="Cerca (es. 'fiscale', 'saldo e stralcio')" aria-label="Cerca professionisti">
+        <div class="search">
+          <input type="search" id="search" placeholder="Cerca (es. 'fiscale', 'saldo e stralcio')" aria-label="Cerca professionisti">
           </div>
           <div class="sorter">
             <label for="sortSelect">Ordina</label>
@@ -372,12 +426,12 @@
           </div>
         </div>
         <div class="toolbar-filters" role="group" aria-label="Filtra professionisti">
-          <button type="button" class="chip active" data-filter="all">Tutti</button>
-          <button type="button" class="chip" data-filter="bancari">Bancari</button>
-          <button type="button" class="chip" data-filter="fiscali">Fiscali/Tributari</button>
-          <button type="button" class="chip" data-filter="aziende">Aziende</button>
-          <button type="button" class="chip" data-filter="privati">Privati</button>
-        </div>
+        <button type="button" class="chip active" data-filter="all">Tutti</button>
+        <button type="button" class="chip" data-filter="bancari">Bancari</button>
+        <button type="button" class="chip" data-filter="fiscali">Fiscali/Tributari</button>
+        <button type="button" class="chip" data-filter="aziende">Aziende</button>
+        <button type="button" class="chip" data-filter="privati">Privati</button>
+      </div>
       </div>
       <p class="sort-hint" id="sortHint">Inserisci il tuo CAP nel modulo per ordinare per vicinanza.</p>
 

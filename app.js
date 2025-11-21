@@ -1022,7 +1022,7 @@ const Wizard = {
       indicator.classList.toggle('active', indicatorStep === step);
     });
   },
-
+  
   /**
    * Smooth scroll to debt selection cards
    */
@@ -1728,7 +1728,7 @@ const EmailService = {
     
     if (typeof emailjs !== 'undefined' && EMAIL_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
       try {
-        emailjs.init(EMAIL_CONFIG.publicKey);
+      emailjs.init(EMAIL_CONFIG.publicKey);
         console.log('✅ EmailJS initialized con successo');
       } catch (initError) {
         console.error('❌ Errore inizializzazione EmailJS:', initError);
@@ -1789,6 +1789,8 @@ const EmailService = {
         to_email: EMAIL_CONFIG.recipientEmail,
         from_name: `${state.formData.nome} ${state.formData.cognome}`,
         from_email: state.formData.email,
+        email: state.formData.email,  // ← Per Reply To
+        nome: state.formData.nome,    // ← Per From Name nel template
         phone: state.formData.telefono,
         client_city: state.formData.citta || '',
         client_province: state.formData.provincia || '',
