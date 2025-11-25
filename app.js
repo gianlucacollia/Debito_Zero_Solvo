@@ -553,7 +553,6 @@ const DOM = {
   optionButtons: document.querySelectorAll('.opt'),
   toStep2Btn: document.getElementById('to2'),
   processOverview: document.getElementById('process-overview'),
-  startFlowBtn: document.getElementById('start-flow-btn'),
   
   // Step 2
   form: document.getElementById('form'),
@@ -1028,18 +1027,6 @@ const Wizard = {
       const indicatorStep = Number(indicator.dataset.step);
       indicator.classList.toggle('active', indicatorStep === step);
     });
-  },
-  
-  /**
-   * Smooth scroll to debt selection cards
-   */
-  scrollToDebtOptions: () => {
-    if (DOM.step1) {
-      DOM.step1.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setTimeout(() => {
-        window.scrollBy({ top: -80, behavior: 'auto' });
-      }, 400);
-    }
   },
   
   /**
@@ -1678,9 +1665,6 @@ const Wizard = {
     Wizard.initStep2();
     Wizard.initStep3();
     
-    if (DOM.startFlowBtn) {
-      DOM.startFlowBtn.addEventListener('click', Wizard.scrollToDebtOptions);
-    }
     
     // Check for saved state on load
     const savedData = Wizard.loadStateFromStorage();
