@@ -2,7 +2,7 @@
 // 🔧 ISTRUZIONI: Segui la guida in CONFIGURAZIONE-COMPLETA.txt per configurare EmailJS
 const EMAIL_CONFIG = {
   serviceId: 'service_ok3g5iy',      // ← Service ID da EmailJS
-  templateId: 'template_1p0r597',    // ← Template ID per richieste clienti → TEAM SOLVO
+  templateId: 'template_1p0r597',    // ← Template ID per richieste clienti → TEAM TATOSOLVI
   templateIdConfirmation: 'template_cp9rxvj',  // ← Template ID per email conferma CLIENTE
   templateIdAppointment: 'template_v4ixmnr',    // ← Template ID per prenotazioni (usa lo stesso o crea uno separato)
   templateIdReview: 'template_v4ixmnr', // ← Template per feedback verifica professionisti
@@ -1858,8 +1858,8 @@ const EmailService = {
         try {
           const confirmationEmailData = {
             to_email: state.formData.email,
-            from_name: 'Debito Zero - Solvo',
-            subject: '✅ Richiesta ricevuta - Debito Zero Solvo',
+            from_name: 'Tatosolvi',
+            subject: '✅ Richiesta ricevuta - Tatosolvi',
             client_name: `${state.formData.nome} ${state.formData.cognome}`,
             client_city: state.formData.citta || '',
             client_province: state.formData.provincia || '',
@@ -1882,7 +1882,7 @@ Dettagli della richiesta:
 - Data richiesta: ${new Date().toLocaleString('it-IT')}
 
 Cordiali saluti,
-Il team di Debito Zero - Solvo`
+Il team di Tatosolvi`
           };
           
           // Use separate template for client confirmation
@@ -2454,7 +2454,7 @@ const Professionals = {
       return `${year}${month}${day}T${hours}${minutes}00Z`;
     };
     
-    const title = encodeURIComponent(`Consulenza con ${pro.name} - Debito Zero Solvo`);
+    const title = encodeURIComponent(`Consulenza con ${pro.name} - Tatosolvi`);
     const details = encodeURIComponent(`Appuntamento di consulenza per gestione debiti`);
     const start = formatDate(startDate);
     const end = formatDate(endDate);
@@ -2472,7 +2472,7 @@ const Professionals = {
       
       const appointmentEmailData = {
         to_email: pro.email,
-        from_name: 'Debito Zero - Solvo',
+        from_name: 'Tatosolvi',
         subject: `📅 Nuova prenotazione: ${eventDate} alle ${eventTime} - ${meetingTypeLabel}`,
         appointment_professional: pro.name,
         appointment_date: eventDate,
@@ -2482,7 +2482,7 @@ const Professionals = {
         client_name: clientFullName,
         client_phone: clientPhone || 'Non fornito',
         client_email: clientEmail || 'Non fornita',
-        appointment_details: `Consulenza per gestione debiti - Debito Zero Solvo\n\nModalità: ${meetingTypeLabel}`,
+        appointment_details: `Consulenza per gestione debiti - Tatosolvi\n\nModalità: ${meetingTypeLabel}`,
         calendar_link: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}`,
         booking_date: new Date().toLocaleString('it-IT')
       };
@@ -2820,9 +2820,9 @@ const ProfessionalReview = {
     const app = ProfessionalReview.currentApplication;
     if (DOM.reviewMessage.value.trim().length === 0 || DOM.reviewMessage.dataset.autofill === 'true') {
       if (type === 'positive') {
-        DOM.reviewMessage.value = `Ciao ${app.name},\n\nabbiamo verificato i tuoi documenti e la tua candidatura è stata approvata. Da ora puoi operare sulla piattaforma.\n\nGrazie per la collaborazione!\nTeam Debito Zero - Solvo`;
+        DOM.reviewMessage.value = `Ciao ${app.name},\n\nabbiamo verificato i tuoi documenti e la tua candidatura è stata approvata. Da ora puoi operare sulla piattaforma.\n\nGrazie per la collaborazione!\nTeam Tatosolvi`;
       } else {
-        DOM.reviewMessage.value = `Ciao ${app.name},\n\nabbiamo analizzato la tua candidatura ma sono necessarie alcune integrazioni. Ti invitiamo a inviarci documenti aggiuntivi o chiarimenti per completare la valutazione.\n\nTi faremo sapere al più presto l'esito della tua richiesta.\nTeam Debito Zero - Solvo`;
+        DOM.reviewMessage.value = `Ciao ${app.name},\n\nabbiamo analizzato la tua candidatura ma sono necessarie alcune integrazioni. Ti invitiamo a inviarci documenti aggiuntivi o chiarimenti per completare la valutazione.\n\nTi faremo sapere al più presto l'esito della tua richiesta.\nTeam Tatosolvi`;
       }
       DOM.reviewMessage.dataset.autofill = 'true';
     }
@@ -2901,7 +2901,7 @@ const ProfessionalReview = {
         professional_name: `${app.name} ${app.surname || ''}`.trim(),
         review_result: statusValue === 'approved' ? 'Positivo' : 'Da integrare',
         review_message: message,
-        subject: statusValue === 'approved' ? 'Esito positivo verifica Debito Zero - Solvo' : 'Esito verifica: integrazioni richieste'
+        subject: statusValue === 'approved' ? 'Esito positivo verifica Tatosolvi' : 'Esito verifica: integrazioni richieste'
       };
       
       console.log('📧 Invio email feedback professionista...');
@@ -3128,7 +3128,7 @@ const ProfessionalApplication = {
       const autoReplyPayload = {
         to_email: data.email,
         candidate_name: `${data.nome} ${data.cognome}`,
-        auto_message: `Grazie per l'interesse dimostrato. Diventare un professionista dell'ecosistema Solvo permette a tutti i nostri partner di raggiungere possibili clienti da supportare verso la loro libertà finanziaria.\nTi faremo sapere al più presto l'esito della tua richiesta.`
+        auto_message: `Grazie per l'interesse dimostrato. Diventare un professionista dell'ecosistema Tatosolvi permette a tutti i nostri partner di raggiungere possibili clienti da supportare verso la loro libertà finanziaria.\nTi faremo sapere al più presto l'esito della tua richiesta.`
       };
       try {
         console.log('📧 Invio auto-reply al candidato...');
@@ -3964,7 +3964,7 @@ const AdminDashboard = {
       
       // Header
       doc.setFontSize(18);
-      doc.text('Richieste Clienti - Debito Zero Solvo', margin, yPosition);
+      doc.text('Richieste Clienti - Tatosolvi', margin, yPosition);
       yPosition += 10;
       doc.setFontSize(10);
       doc.text(`Data export: ${new Date().toLocaleDateString('it-IT')}`, margin, yPosition);
@@ -4160,7 +4160,7 @@ const AdminDashboard = {
       
       // Header
       doc.setFontSize(18);
-      doc.text('Professionisti - Debito Zero Solvo', margin, yPosition);
+      doc.text('Professionisti - Tatosolvi', margin, yPosition);
       yPosition += 10;
       doc.setFontSize(10);
       doc.text(`Data export: ${new Date().toLocaleDateString('it-IT')}`, margin, yPosition);
@@ -4651,7 +4651,7 @@ const App = {
     localStorage.removeItem('adminLoggedIn');
     localStorage.removeItem('currentProfessional');
     
-    console.log('✅ Debito Zero - Solvo app initialized');
+    console.log('✅ Tatosolvi app initialized');
   }
 };
 
