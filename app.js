@@ -524,10 +524,392 @@ PROFESSIONALS_DATA.forEach((pro, index) => {
   if (!pro.city) pro.city = fallback.city;
   if (!pro.province) pro.province = fallback.province;
   if (!pro.cap) pro.cap = fallback.cap;
+  // Initialize rating and reviews if not present
+  if (!pro.rating) pro.rating = 0;
+  if (!pro.reviews) pro.reviews = [];
+  if (!pro.reviewCount) pro.reviewCount = 0;
 });
 
 // Make available globally for structured data
 window.PROFESSIONALS_DATA = PROFESSIONALS_DATA;
+
+// ==================== REVIEWS SYSTEM ====================
+const ReviewsSystem = {
+  /**
+   * Load reviews from localStorage
+   */
+  loadReviews: () => {
+    try {
+      const saved = localStorage.getItem('professionalReviews');
+      if (saved) {
+        const reviews = JSON.parse(saved);
+        // Update professionals with their reviews
+        reviews.forEach(review => {
+          const proIndex = PROFESSIONALS_DATA.findIndex(p => p.name === review.professionalName);
+          if (proIndex !== -1) {
+            if (!PROFESSIONALS_DATA[proIndex].reviews) {
+              PROFESSIONALS_DATA[proIndex].reviews = [];
+            }
+            // Check if review already exists (by id or timestamp)
+            const exists = PROFESSIONALS_DATA[proIndex].reviews.some(r => 
+              r.id === review.id || (r.timestamp === review.timestamp && r.reviewerName === review.reviewerName)
+            );
+            if (!exists) {
+              PROFESSIONALS_DATA[proIndex].reviews.push(review);
+            }
+          }
+        });
+        // Recalculate ratings
+        ReviewsSystem.calculateRatings();
+      }
+    } catch (e) {
+      console.error('Errore caricamento recensioni:', e);
+    }
+  },
+  
+  /**
+   * Calculate average rating for each professional
+   */
+  calculateRatings: () => {
+    PROFESSIONALS_DATA.forEach(pro => {
+      if (pro.reviews && pro.reviews.length > 0) {
+        const approvedReviews = pro.reviews.filter(r => r.status === 'approved');
+        if (approvedReviews.length > 0) {
+          const sum = approvedReviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+          pro.rating = Math.round((sum / approvedReviews.length) * 10) / 10; // Round to 1 decimal
+          pro.reviewCount = approvedReviews.length;
+        } else {
+          pro.rating = 0;
+          pro.reviewCount = 0;
+        }
+      } else {
+        pro.rating = 0;
+        pro.reviewCount = 0;
+      }
+    });
+  },
+  
+  /**
+   * Save review to localStorage
+   */
+  saveReview: (review) => {
+    try {
+      let allReviews = [];
+      const saved = localStorage.getItem('professionalReviews');
+      if (saved) {
+        allReviews = JSON.parse(saved);
+      }
+      // Add new review
+      review.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      review.timestamp = new Date().toISOString();
+      review.status = 'pending'; // Admin must approve
+      allReviews.push(review);
+      localStorage.setItem('professionalReviews', JSON.stringify(allReviews));
+      
+      // Update professional's reviews
+      const proIndex = PROFESSIONALS_DATA.findIndex(p => p.name === review.professionalName);
+      if (proIndex !== -1) {
+        if (!PROFESSIONALS_DATA[proIndex].reviews) {
+          PROFESSIONALS_DATA[proIndex].reviews = [];
+        }
+        PROFESSIONALS_DATA[proIndex].reviews.push(review);
+      }
+      
+      return review;
+    } catch (e) {
+      console.error('Errore salvataggio recensione:', e);
+      return null;
+    }
+  },
+  
+  /**
+   * Update review status (admin function)
+   */
+  updateReviewStatus: (reviewId, status) => {
+    try {
+      const saved = localStorage.getItem('professionalReviews');
+      if (!saved) return false;
+      
+      const reviews = JSON.parse(saved);
+      const reviewIndex = reviews.findIndex(r => r.id === reviewId);
+      if (reviewIndex === -1) return false;
+      
+      reviews[reviewIndex].status = status;
+      if (status === 'approved') {
+        reviews[reviewIndex].approvedAt = new Date().toISOString();
+      }
+      
+      localStorage.setItem('professionalReviews', JSON.stringify(reviews));
+      
+      // Update in PROFESSIONALS_DATA
+      const review = reviews[reviewIndex];
+      const proIndex = PROFESSIONALS_DATA.findIndex(p => p.name === review.professionalName);
+      if (proIndex !== -1) {
+        const proReviewIndex = PROFESSIONALS_DATA[proIndex].reviews.findIndex(r => r.id === reviewId);
+        if (proReviewIndex !== -1) {
+          PROFESSIONALS_DATA[proIndex].reviews[proReviewIndex].status = status;
+        }
+      }
+      
+      // Recalculate ratings
+      ReviewsSystem.calculateRatings();
+      
+      return true;
+    } catch (e) {
+      console.error('Errore aggiornamento recensione:', e);
+      return false;
+    }
+  },
+  
+  /**
+   * Get all pending reviews (admin function)
+   */
+  getPendingReviews: () => {
+    try {
+      const saved = localStorage.getItem('professionalReviews');
+      if (!saved) return [];
+      const reviews = JSON.parse(saved);
+      return reviews.filter(r => r.status === 'pending');
+    } catch (e) {
+      console.error('Errore lettura recensioni in attesa:', e);
+      return [];
+    }
+  },
+  
+  /**
+   * Get all reviews (admin function)
+   */
+  getAllReviews: () => {
+    try {
+      const saved = localStorage.getItem('professionalReviews');
+      if (!saved) return [];
+      return JSON.parse(saved);
+    } catch (e) {
+      console.error('Errore lettura recensioni:', e);
+      return [];
+    }
+  },
+  
+  /**
+   * Render stars HTML
+   */
+  renderStars: (rating, size = 'normal') => {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    
+    const starSize = size === 'small' ? '14px' : '18px';
+    let html = '<div class="stars-container" style="display:inline-flex;align-items:center;gap:2px;">';
+    
+    // Full stars
+    for (let i = 0; i < fullStars; i++) {
+      html += `<span style="color:#ffc107;font-size:${starSize};">★</span>`;
+    }
+    
+    // Half star
+    if (hasHalfStar) {
+      html += `<span style="color:#ffc107;font-size:${starSize};">☆</span>`;
+    }
+    
+    // Empty stars
+    for (let i = 0; i < emptyStars; i++) {
+      html += `<span style="color:#e0e0e0;font-size:${starSize};">★</span>`;
+    }
+    
+    html += '</div>';
+    return html;
+  },
+  
+  /**
+   * Show review form modal
+   */
+  showReviewForm: (proIndex) => {
+    const pro = PROFESSIONALS_DATA[proIndex];
+    
+    // Create or get review modal
+    let reviewModal = document.getElementById('reviewModal');
+    if (!reviewModal) {
+      reviewModal = document.createElement('div');
+      reviewModal.id = 'reviewModal';
+      reviewModal.className = 'modal-backdrop';
+      document.body.appendChild(reviewModal);
+    }
+    
+    let selectedRating = 0;
+    let hoverRating = 0;
+    
+    const updateStars = (rating) => {
+      const starsContainer = reviewModal.querySelector('.review-stars-input');
+      if (!starsContainer) return;
+      starsContainer.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.style.cssText = 'font-size:32px;cursor:pointer;color:' + (i <= rating ? '#ffc107' : '#e0e0e0') + ';transition:color 0.2s;';
+        star.textContent = '★';
+        star.onmouseenter = () => {
+          hoverRating = i;
+          updateStars(i);
+        };
+        star.onmouseleave = () => {
+          hoverRating = 0;
+          updateStars(selectedRating);
+        };
+        star.onclick = () => {
+          selectedRating = i;
+          updateStars(i);
+        };
+        starsContainer.appendChild(star);
+      }
+    };
+    
+    reviewModal.innerHTML = `
+      <div class="appointment-modal" style="max-width: 600px; padding: var(--spacing-xl); background: var(--card-bg); border-radius: var(--radius-xl); box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+        <button class="modal-close" onclick="ReviewsSystem.closeReviewForm()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text-muted);">&times;</button>
+        <h2 style="margin-top: 0; margin-bottom: var(--spacing-lg); color: var(--text-primary);">Lascia una Recensione</h2>
+        <div style="margin-bottom: var(--spacing-lg);">
+          <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--spacing-sm);">${pro.name}</div>
+          <div style="color: var(--text-muted);">${pro.specialty}</div>
+        </div>
+        
+        <form id="reviewForm" onsubmit="ReviewsSystem.submitReview(event, ${proIndex})">
+          <div style="margin-bottom: var(--spacing-xl);">
+            <label style="display: block; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary);">
+              Valutazione (1-5 stelle) *
+            </label>
+            <div class="review-stars-input" style="display: flex; gap: 8px; margin-bottom: var(--spacing-sm);"></div>
+            <div id="ratingText" style="color: var(--text-muted); font-size: 0.9rem; min-height: 20px;"></div>
+          </div>
+          
+          <div style="margin-bottom: var(--spacing-lg);">
+            <label for="reviewerName" style="display: block; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--text-primary);">
+              Il tuo nome *
+            </label>
+            <input type="text" id="reviewerName" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="Nome e cognome">
+          </div>
+          
+          <div style="margin-bottom: var(--spacing-lg);">
+            <label for="reviewerEmail" style="display: block; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--text-primary);">
+              La tua email *
+            </label>
+            <input type="email" id="reviewerEmail" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="email@esempio.it">
+          </div>
+          
+          <div style="margin-bottom: var(--spacing-xl);">
+            <label for="reviewText" style="display: block; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--text-primary);">
+              La tua recensione *
+            </label>
+            <textarea id="reviewText" required rows="5" style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem; font-family: inherit; resize: vertical;" placeholder="Racconta la tua esperienza con questo professionista..."></textarea>
+          </div>
+          
+          <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end;">
+            <button type="button" onclick="ReviewsSystem.closeReviewForm()" class="btn ghost" style="width: auto;">Annulla</button>
+            <button type="submit" class="btn" style="width: auto;">Invia Recensione</button>
+          </div>
+        </form>
+      </div>
+    `;
+    
+    reviewModal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    
+    // Initialize stars
+    setTimeout(() => {
+      updateStars(0);
+      
+      // Update rating text on change
+      const stars = reviewModal.querySelectorAll('.review-stars-input span');
+      stars.forEach((star, index) => {
+        star.addEventListener('click', () => {
+          const ratingTexts = ['', 'Pessimo', 'Scarso', 'Discreto', 'Buono', 'Eccellente'];
+          const textEl = reviewModal.querySelector('#ratingText');
+          if (textEl) {
+            textEl.textContent = ratingTexts[selectedRating] || '';
+          }
+        });
+      });
+    }, 100);
+    
+    // Close on backdrop click
+    reviewModal.addEventListener('click', (e) => {
+      if (e.target === reviewModal) {
+        ReviewsSystem.closeReviewForm();
+      }
+    });
+    
+    // Close on Escape key
+    const escapeHandler = (e) => {
+      if (e.key === 'Escape') {
+        ReviewsSystem.closeReviewForm();
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    };
+    document.addEventListener('keydown', escapeHandler);
+  },
+  
+  /**
+   * Close review form
+   */
+  closeReviewForm: () => {
+    const reviewModal = document.getElementById('reviewModal');
+    if (reviewModal) {
+      reviewModal.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  },
+  
+  /**
+   * Submit review
+   */
+  submitReview: (event, proIndex) => {
+    event.preventDefault();
+    const pro = PROFESSIONALS_DATA[proIndex];
+    
+    const reviewerName = document.getElementById('reviewerName').value.trim();
+    const reviewerEmail = document.getElementById('reviewerEmail').value.trim();
+    const reviewText = document.getElementById('reviewText').value.trim();
+    
+    // Get selected rating from stars
+    const stars = document.querySelectorAll('.review-stars-input span');
+    let rating = 0;
+    stars.forEach((star, index) => {
+      if (star.style.color === 'rgb(255, 193, 7)' || star.style.color === '#ffc107') {
+        rating = index + 1;
+      }
+    });
+    
+    if (rating === 0) {
+      alert('Per favore, seleziona una valutazione da 1 a 5 stelle.');
+      return;
+    }
+    
+    const review = {
+      professionalName: pro.name,
+      professionalIndex: proIndex,
+      rating: rating,
+      reviewerName: reviewerName,
+      reviewerEmail: reviewerEmail,
+      reviewText: reviewText
+    };
+    
+    const saved = ReviewsSystem.saveReview(review);
+    if (saved) {
+      alert('✅ Recensione inviata con successo! La recensione sarà pubblicata dopo l\'approvazione dell\'amministratore.');
+      ReviewsSystem.closeReviewForm();
+      // Refresh professional details if modal is open
+      const detailsModal = document.getElementById('proDetailsModal');
+      if (detailsModal && detailsModal.classList.contains('show')) {
+        Professionals.openDetails(proIndex);
+      }
+      // Refresh professionals list
+      Professionals.render();
+    } else {
+      alert('❌ Errore durante l\'invio della recensione. Riprova più tardi.');
+    }
+  }
+};
+
+// Load reviews on initialization
+ReviewsSystem.loadReviews();
 
 
 // ==================== DOM REFERENCES ====================
@@ -2064,9 +2446,19 @@ const Professionals = {
       `;
     }).join('');
     
+    // Calculate rating display
+    const rating = pro.rating || 0;
+    const reviewCount = pro.reviewCount || 0;
+    const starsHTML = ReviewsSystem.renderStars(rating, 'small');
+    
     return `
-      <article class="pro-card" data-tags="${pro.tags.join(' ')}" data-searchtext="${pro.name.toLowerCase()} ${pro.specialty.toLowerCase()} ${pro.services.toLowerCase()} ${pro.desc.toLowerCase()} ${locationSearch}" data-pro-index="${index}">
+      <article class="pro-card" data-tags="${pro.tags.join(' ')}" data-searchtext="${pro.name.toLowerCase()} ${pro.specialty.toLowerCase()} ${pro.services.toLowerCase()} ${pro.desc.toLowerCase()} ${locationSearch}" data-pro-index="${index}" data-rating="${rating}">
         <h3 class="pro-title">${pro.name}</h3>
+        <div class="pro-rating" style="margin-top:8px;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+          ${starsHTML}
+          ${rating > 0 ? `<span style="color:var(--text-muted);font-size:0.9rem;">${rating.toFixed(1)}</span>` : ''}
+          ${reviewCount > 0 ? `<span style="color:var(--text-muted);font-size:0.85rem;">(${reviewCount} ${reviewCount === 1 ? 'recensione' : 'recensioni'})</span>` : '<span style="color:var(--text-muted);font-size:0.85rem;">Nessuna recensione</span>'}
+        </div>
         <div class="pro-sub">${pro.specialty}</div>
         <div class="pro-sub" style="margin-top:4px; font-size:0.85rem;">${pro.services}</div>
         <div class="pro-price">da € ${pro.price}</div>
@@ -2193,6 +2585,28 @@ const Professionals = {
           ${calendarHTML || '<p style="color:#718096;">Nessun appuntamento disponibile nei prossimi 30 giorni.</p>'}
         </div>
       </div>
+      
+      <div class="pro-modal-section" style="border-top:2px solid var(--border);padding-top:var(--spacing-xl);margin-top:var(--spacing-xl);">
+        <h3>⭐ Recensioni</h3>
+        ${pro.rating > 0 ? `
+          <div style="margin-bottom:var(--spacing-lg);">
+            <div style="display:flex;align-items:center;gap:var(--spacing-md);margin-bottom:var(--spacing-sm);">
+              ${ReviewsSystem.renderStars(pro.rating)}
+              <span style="font-size:1.2rem;font-weight:600;color:var(--text-primary);">${pro.rating.toFixed(1)}</span>
+              <span style="color:var(--text-muted);">(${pro.reviewCount} ${pro.reviewCount === 1 ? 'recensione' : 'recensioni'})</span>
+            </div>
+          </div>
+        ` : '<p style="color:var(--text-muted);margin-bottom:var(--spacing-lg);">Nessuna recensione ancora.</p>'}
+        
+        <div style="margin-top:var(--spacing-xl);padding:var(--spacing-lg);background:var(--bg-secondary);border-radius:var(--radius-lg);">
+          <p style="font-weight:600;margin-bottom:var(--spacing-md);color:var(--text-primary);">
+            Hai avuto un rapporto con questo professionista?
+          </p>
+          <button type="button" class="btn" onclick="ReviewsSystem.showReviewForm(${index})" style="width:100%;">
+            Lascia una recensione
+          </button>
+        </div>
+      </div>
     `;
     
     modal.classList.add('show');
@@ -2228,6 +2642,14 @@ const Professionals = {
         return data.sort((a, b) => (a.pro.price || 0) - (b.pro.price || 0));
       case 'price-desc':
         return data.sort((a, b) => (b.pro.price || 0) - (a.pro.price || 0));
+      case 'rating-desc':
+        return data.sort((a, b) => {
+          const ratingA = a.pro.rating || 0;
+          const ratingB = b.pro.rating || 0;
+          if (ratingB !== ratingA) return ratingB - ratingA;
+          // If same rating, sort by review count
+          return (b.pro.reviewCount || 0) - (a.pro.reviewCount || 0);
+        });
       case 'distance': {
         const userCapDigits = Professionals.getUserCap();
         if (userCapDigits.length !== 5) return data;
@@ -3596,6 +4018,8 @@ const AdminDashboard = {
       await AdminDashboard.loadRequests();
     } else if (AdminDashboard.currentTab === 'professionals') {
       AdminDashboard.loadProfessionals();
+    } else if (AdminDashboard.currentTab === 'reviews') {
+      AdminDashboard.loadReviews();
     } else if (AdminDashboard.currentTab === 'statistics') {
       AdminDashboard.loadStatistics();
     } else if (AdminDashboard.currentTab === 'review') {
@@ -3749,6 +4173,119 @@ const AdminDashboard = {
     } catch (e) {
       console.error('Errore caricamento professionisti:', e);
       container.innerHTML = '<p style="color: #f56565;">Errore nel caricamento dei professionisti.</p>';
+    }
+  },
+  
+  /**
+   * Load reviews for admin
+   */
+  loadReviews: () => {
+    const container = document.getElementById('reviews-list');
+    if (!container) return;
+    
+    const allReviews = ReviewsSystem.getAllReviews();
+    const filter = AdminDashboard.reviewsFilter || 'pending';
+    const filteredReviews = filter === 'pending' 
+      ? allReviews.filter(r => r.status === 'pending')
+      : allReviews;
+    
+    if (filteredReviews.length === 0) {
+      container.innerHTML = `<p style="color: var(--text-muted); padding: var(--spacing-xl); text-align: center;">Nessuna recensione ${filter === 'pending' ? 'in attesa' : ''}.</p>`;
+      return;
+    }
+    
+    // Sort by date (newest first)
+    filteredReviews.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    container.innerHTML = filteredReviews.map(review => {
+      const pro = PROFESSIONALS_DATA.find(p => p.name === review.professionalName);
+      const statusBadge = review.status === 'approved' 
+        ? '<span style="background:#48bb78;color:#fff;padding:4px 12px;border-radius:12px;font-size:0.85rem;">✓ Approvata</span>'
+        : review.status === 'rejected'
+        ? '<span style="background:#f56565;color:#fff;padding:4px 12px;border-radius:12px;font-size:0.85rem;">✗ Rifiutata</span>'
+        : '<span style="background:#ed8936;color:#fff;padding:4px 12px;border-radius:12px;font-size:0.85rem;">⏳ In Attesa</span>';
+      
+      const date = new Date(review.timestamp).toLocaleString('it-IT');
+      
+      return `
+        <div class="data-card" style="margin-bottom: var(--spacing-lg);">
+          <div class="data-card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-sm);">
+            <div>
+              <h3>${review.reviewerName || 'Anonimo'}</h3>
+              <div style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">${date}</div>
+            </div>
+            ${statusBadge}
+          </div>
+          <div class="data-card-body">
+            <div class="data-row">
+              <strong>Professionista:</strong> ${review.professionalName || 'N/A'}
+            </div>
+            <div class="data-row">
+              <strong>Valutazione:</strong> ${ReviewsSystem.renderStars(review.rating || 0)} ${review.rating || 0}/5
+            </div>
+            <div class="data-row">
+              <strong>Email recensore:</strong> ${review.reviewerEmail || 'N/A'}
+            </div>
+            <div class="data-row">
+              <strong>Recensione:</strong>
+              <p style="margin-top: 8px; padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md); white-space: pre-wrap;">${review.reviewText || 'Nessun testo'}</p>
+            </div>
+            ${review.status === 'pending' ? `
+              <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 2px solid var(--border);">
+                <button class="btn" onclick="AdminDashboard.approveReview('${review.id}')" style="flex: 1; background: #48bb78;">
+                  ✓ Approva
+                </button>
+                <button class="btn" onclick="AdminDashboard.rejectReview('${review.id}')" style="flex: 1; background: #f56565;">
+                  ✗ Rifiuta
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  },
+  
+  /**
+   * Filter reviews
+   */
+  filterReviews: (filter) => {
+    AdminDashboard.reviewsFilter = filter;
+    AdminDashboard.loadReviews();
+  },
+  
+  /**
+   * Approve review
+   */
+  approveReview: (reviewId) => {
+    if (confirm('Vuoi approvare questa recensione? Sarà visibile pubblicamente.')) {
+      const success = ReviewsSystem.updateReviewStatus(reviewId, 'approved');
+      if (success) {
+        alert('✅ Recensione approvata!');
+        AdminDashboard.loadReviews();
+        // Refresh professionals list to update ratings
+        Professionals.render();
+      } else {
+        alert('❌ Errore durante l\'approvazione della recensione.');
+      }
+    }
+  },
+  
+  /**
+   * Reject review
+   */
+  rejectReview: (reviewId) => {
+    if (confirm('Vuoi rifiutare questa recensione? Non sarà visibile pubblicamente.')) {
+      const success = ReviewsSystem.updateReviewStatus(reviewId, 'rejected');
+      if (success) {
+        alert('✅ Recensione rifiutata.');
+        AdminDashboard.loadReviews();
+        // Recalculate ratings
+        ReviewsSystem.calculateRatings();
+        Professionals.render();
+      } else {
+        alert('❌ Errore durante il rifiuto della recensione.');
+      }
     }
   },
   

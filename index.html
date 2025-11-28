@@ -372,6 +372,11 @@
           <div class="sorter">
             <label for="sortSelect">Ordina</label>
             <select id="sortSelect" aria-label="Ordina professionisti">
+              <option value="default">Predefinito</option>
+              <option value="rating-desc">⭐ Migliori recensioni</option>
+              <option value="price-asc">Prezzo: crescente</option>
+              <option value="price-desc">Prezzo: decrescente</option>
+              <option value="distance">Vicinanza</option>
               <option value="default">Consigliati</option>
               <option value="price-asc">Prezzo crescente</option>
               <option value="price-desc">Prezzo decrescente</option>
@@ -614,6 +619,7 @@
         <div class="dashboard-tabs">
           <button class="tab-btn active" onclick="AdminDashboard.showTab('requests')">Richieste Clienti</button>
           <button class="tab-btn" onclick="AdminDashboard.showTab('professionals')">Professionisti</button>
+          <button class="tab-btn" onclick="AdminDashboard.showTab('reviews')">Recensioni</button>
           <button class="tab-btn" onclick="AdminDashboard.showTab('statistics')">Statistiche</button>
           <button class="tab-btn" onclick="AdminDashboard.showTab('review')">Verifica Professionisti</button>
         </div>
@@ -657,6 +663,21 @@
             <div id="admin-statistics" class="tab-content">
               <h2 style="margin-bottom: var(--spacing-lg);">Statistiche e Analisi</h2>
               <div id="statistics-content" class="statistics-grid"></div>
+            </div>
+            
+            <div id="admin-reviews" class="tab-content">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); flex-wrap: wrap; gap: var(--spacing-md);">
+                <h2 style="margin: 0;">Gestione Recensioni</h2>
+                <div style="display: flex; gap: var(--spacing-sm);">
+                  <button class="btn" onclick="AdminDashboard.filterReviews('pending')" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
+                    ⏳ In Attesa
+                  </button>
+                  <button class="btn" onclick="AdminDashboard.filterReviews('all')" style="width: auto; padding: var(--spacing-sm) var(--spacing-lg);">
+                    📋 Tutte
+                  </button>
+                </div>
+              </div>
+              <div id="reviews-list" class="data-list"></div>
             </div>
             
             <div id="admin-review" class="tab-content">
