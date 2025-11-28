@@ -70,8 +70,8 @@ body {
   gap: var(--spacing-xl);
   align-items: center;
   padding: var(--spacing-md) var(--spacing-lg);
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: var(--brand);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .nav-brand {
@@ -86,10 +86,10 @@ body {
   flex-direction: column;
   gap: 4px;
   font-family: 'Montserrat', sans-serif;
-  background: var(--brand);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: var(--radius-xl);
-  box-shadow: 0 10px 25px rgba(16, 59, 52, 0.2);
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .logotype-main {
@@ -126,8 +126,8 @@ body {
   width: 42px;
   height: 42px;
   border-radius: var(--radius-md);
-  border: 2px solid rgba(0, 0, 0, 0.08);
-  background: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -140,7 +140,7 @@ body {
 .nav-toggle span {
   width: 22px;
   height: 2px;
-  background: var(--text-primary);
+  background: #ffffff;
   border-radius: var(--radius-full);
   transition: transform var(--transition-fast), opacity var(--transition-fast);
 }
@@ -194,6 +194,11 @@ body {
   color: var(--text-primary);
   cursor: pointer;
   transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+/* Nav menu link quando la navbar è verde salvia */
+.nav .nav-menu-link {
+  color: var(--text-primary);
 }
 
 .nav-menu-link:hover,
