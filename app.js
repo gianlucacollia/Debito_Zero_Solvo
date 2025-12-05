@@ -1847,18 +1847,36 @@ const Wizard = {
     incomeModal.classList.add('show');
     document.body.style.overflow = 'hidden';
     
-    // Populate province select
-    setTimeout(() => {
-      const provinceSelect = document.getElementById('popup-provincia');
-      if (provinceSelect && ITALIAN_PROVINCES) {
-        ITALIAN_PROVINCES.forEach(prov => {
-          const option = document.createElement('option');
-          option.value = prov.code;
-          option.textContent = `${prov.name} (${prov.code})`;
-          provinceSelect.appendChild(option);
-        });
-      }
-    }, 100);
+    // Populate province select - use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      const populateProvinceSelect = () => {
+        const provinceSelect = document.getElementById('popup-provincia');
+        if (provinceSelect) {
+          // Clear existing options
+          provinceSelect.innerHTML = '<option value="">Seleziona provincia</option>';
+          
+          // Add all provinces
+          if (typeof ITALIAN_PROVINCES !== 'undefined' && ITALIAN_PROVINCES && Array.isArray(ITALIAN_PROVINCES) && ITALIAN_PROVINCES.length > 0) {
+            ITALIAN_PROVINCES.forEach(prov => {
+              const option = document.createElement('option');
+              option.value = prov.code;
+              option.textContent = `${prov.name} (${prov.code})`;
+              provinceSelect.appendChild(option);
+            });
+            console.log(`✅ Popolate ${ITALIAN_PROVINCES.length} province nel select`);
+          } else {
+            console.error('❌ ITALIAN_PROVINCES non definito, vuoto o non è un array');
+          }
+        } else {
+          console.error('❌ Select provincia non trovato nel DOM');
+        }
+      };
+      
+      // Try multiple times to ensure it works
+      populateProvinceSelect();
+      setTimeout(populateProvinceSelect, 10);
+      setTimeout(populateProvinceSelect, 100);
+    });
     
     // Close on backdrop click
     incomeModal.addEventListener('click', (e) => {
