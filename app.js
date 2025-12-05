@@ -1755,7 +1755,10 @@ const Wizard = {
     incomeModal.innerHTML = `
       <div class="appointment-modal" style="max-width: 700px; padding: var(--spacing-xl); background: var(--card-bg); border-radius: var(--radius-xl); box-shadow: 0 20px 60px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto;">
         <button class="modal-close" onclick="Wizard.closeIncomeDataPopup()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text-muted); z-index: 10;">&times;</button>
-        <h2 style="margin-top: 0; margin-bottom: var(--spacing-md); color: var(--text-primary);">Un'ultima cosa</h2>
+        <h2 style="margin-top: 0; margin-bottom: var(--spacing-md); color: var(--text-primary); display: flex; align-items: center; gap: var(--spacing-sm);">
+          <span>💡</span>
+          <span>Un'ultima cosa</span>
+        </h2>
         <p style="color: var(--text-muted); margin-bottom: var(--spacing-xl); font-size: 1.05rem;">
           Dicci qual è il tuo reddito mensile netto, così potremo farti una prima analisi preliminare della tua situazione.
         </p>
