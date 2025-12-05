@@ -51,6 +51,7 @@ const SupabaseService = {
         debt_types: request.debtTypes || '',
         debt_details: request.debtDetails || '',
         total_amount: request.totalAmountNumber || 0,
+        monthly_income: request.monthlyIncome || null, // Reddito mensile netto
         submission_date: request.dateISO || new Date().toISOString()
       };
       return await supabase.from('client_requests').insert([payload]);
@@ -1849,11 +1850,11 @@ const Wizard = {
     // Populate province select
     setTimeout(() => {
       const provinceSelect = document.getElementById('popup-provincia');
-      if (provinceSelect && window.Geo && window.Geo.PROVINCES) {
-        window.Geo.PROVINCES.forEach(prov => {
+      if (provinceSelect && ITALIAN_PROVINCES) {
+        ITALIAN_PROVINCES.forEach(prov => {
           const option = document.createElement('option');
           option.value = prov.code;
-          option.textContent = prov.label;
+          option.textContent = `${prov.name} (${prov.code})`;
           provinceSelect.appendChild(option);
         });
       }
@@ -2694,6 +2695,7 @@ const EmailService = {
           debtTypes: state.selections.map(s => DEBT_LABELS[s] || s).join(', '),
           totalAmount: `€ ${state.formData.totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2})}`,
           totalAmountNumber: state.formData.totalAmount,
+          monthlyIncome: state.formData.redditoMensile || null, // Reddito mensile netto
           debtDetails: storageDebtDetails,
           consentSummary: consentSummaryText,
           date: requestDate.toLocaleString('it-IT'),
