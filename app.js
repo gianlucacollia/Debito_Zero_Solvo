@@ -1727,9 +1727,15 @@ const Wizard = {
   },
   
   /**
-   * Move to Step 2 - Show income and data popup
+   * Move to Step 2 - Show income and data popup after debt selection
    */
   goToStep2: () => {
+    // Check if user has selected at least one debt type
+    if (state.selections.length === 0) {
+      alert('Seleziona almeno un tipo di debito per procedere.');
+      return;
+    }
+    // Show popup with income and personal data
     Wizard.showIncomeDataPopup();
   },
   
