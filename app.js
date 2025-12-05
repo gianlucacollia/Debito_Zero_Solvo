@@ -930,6 +930,7 @@ const DOM = {
   step1: document.getElementById('step1'),
   step2: document.getElementById('step2'),
   step3: document.getElementById('step3'),
+  stepAnalysis: document.getElementById('step-analysis'),
   
   // Step 1
   optionButtons: document.querySelectorAll('.opt'),
@@ -942,9 +943,13 @@ const DOM = {
   back1Btn: document.getElementById('back1'),
   toStep3Btn: document.getElementById('to3'),
   
+  // Step Analysis
+  stepAnalysis: document.getElementById('step-analysis'),
+  
   // Step 3
   reviewDiv: document.getElementById('review'),
   back2Btn: document.getElementById('back2'),
+  backPrivacyBtn: document.getElementById('back-privacy'),
   submitBtn: document.getElementById('submit'),
   successMsg: document.getElementById('ok'),
   sendingMsg: document.getElementById('sending'),
@@ -1422,8 +1427,9 @@ const Wizard = {
       DOM.processOverview.style.display = step === 1 ? 'block' : 'none';
     }
     
-    const currentStepElement = [DOM.step1, DOM.step2, DOM.step3][state.currentStep - 1];
-    const nextStepElement = [DOM.step1, DOM.step2, DOM.step3][step - 1];
+    const allSteps = [DOM.step1, DOM.step2, DOM.stepAnalysis, DOM.step3];
+    const currentStepElement = allSteps[state.currentStep - 1];
+    const nextStepElement = allSteps[step - 1];
     
     // Animate out current step
     if (currentStepElement && !currentStepElement.hidden) {
@@ -1445,6 +1451,23 @@ const Wizard = {
       // Restore saved data if available
       if (step === 2) {
         Wizard.loadStateFromStorage();
+      }
+      
+      // Setup analysis step buttons if showing analysis
+      if (step === 2.5 || (nextStepElement && nextStepElement.id === 'step-analysis')) {
+        const backBtn = document.getElementById('back-analysis');
+        const nextBtn = document.getElementById('to-privacy');
+        if (backBtn) {
+          backBtn.onclick = () => {
+            Wizard.closeIncomeDataPopup();
+            Wizard.showIncomeDataPopup();
+          };
+        }
+        if (nextBtn) {
+          nextBtn.onclick = () => {
+            Wizard.goToPrivacy();
+          };
+        }
       }
     }, currentStepElement && !currentStepElement.hidden ? 300 : 0);
   },
@@ -1704,14 +1727,241 @@ const Wizard = {
   },
   
   /**
-   * Move to Step 2
+   * Move to Step 2 - Show income and data popup
    */
   goToStep2: () => {
-    const chipsHTML = state.selections
-      .map(sel => `<span class="pill">${DEBT_LABELS[sel] || sel}</span>`)
-      .join(' ');
-    DOM.chipsSpan.innerHTML = chipsHTML;
-    Wizard.showStep(2);
+    Wizard.showIncomeDataPopup();
+  },
+  
+  /**
+   * Show popup for income and personal data
+   */
+  showIncomeDataPopup: () => {
+    // Create or get popup modal
+    let incomeModal = document.getElementById('incomeDataModal');
+    if (!incomeModal) {
+      incomeModal = document.createElement('div');
+      incomeModal.id = 'incomeDataModal';
+      incomeModal.className = 'modal-backdrop';
+      document.body.appendChild(incomeModal);
+    }
+    
+    incomeModal.innerHTML = `
+      <div class="appointment-modal" style="max-width: 700px; padding: var(--spacing-xl); background: var(--card-bg); border-radius: var(--radius-xl); box-shadow: 0 20px 60px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto;">
+        <button class="modal-close" onclick="Wizard.closeIncomeDataPopup()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text-muted); z-index: 10;">&times;</button>
+        <h2 style="margin-top: 0; margin-bottom: var(--spacing-md); color: var(--text-primary);">Un'ultima cosa</h2>
+        <p style="color: var(--text-muted); margin-bottom: var(--spacing-xl); font-size: 1.05rem;">
+          Dicci qual è il tuo reddito mensile netto, così potremo farti una prima analisi preliminare della tua situazione.
+        </p>
+        
+        <form id="incomeDataForm" onsubmit="Wizard.submitIncomeData(event)">
+          <div style="margin-bottom: var(--spacing-lg);">
+            <label for="redditoMensile" style="display: block; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--text-primary);">
+              Reddito mensile netto (€) *
+            </label>
+            <input type="number" id="redditoMensile" min="0" step="0.01" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="Es. 2000">
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: var(--spacing-xs);">Inserisci il tuo reddito mensile netto dopo le trattenute</div>
+          </div>
+          
+          <div style="border-top: 2px solid var(--border); padding-top: var(--spacing-xl); margin-top: var(--spacing-xl);">
+            <h3 style="margin-bottom: var(--spacing-lg); color: var(--text-primary);">I tuoi dati di contatto</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+              <div>
+                <label for="popup-nome" style="display: block; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--text-primary);">
+                  Nome *
+                </label>
+                <input type="text" id="popup-nome" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="Il tuo nome">
+              </div>
+              <div>
+                <label for="popup-cognome" style="display: block; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--text-primary);">
+                  Cognome *
+                </label>
+                <input type="text" id="popup-cognome" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="Il tuo cognome">
+              </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+              <div>
+                <label for="popup-telefono" style="display: block; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--text-primary);">
+                  Numero di cellulare *
+                </label>
+                <input type="tel" id="popup-telefono" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="+39 333 1234567">
+              </div>
+              <div>
+                <label for="popup-email" style="display: block; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--text-primary);">
+                  Email *
+                </label>
+                <input type="email" id="popup-email" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="nome@esempio.it">
+              </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+              <div>
+                <label for="popup-citta" style="display: block; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--text-primary);">
+                  Città *
+                </label>
+                <input type="text" id="popup-citta" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="Es. Milano">
+              </div>
+              <div>
+                <label for="popup-provincia" style="display: block; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--text-primary);">
+                  Provincia *
+                </label>
+                <select id="popup-provincia" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;">
+                  <option value="">Seleziona provincia</option>
+                </select>
+              </div>
+              <div>
+                <label for="popup-cap" style="display: block; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--text-primary);">
+                  CAP *
+                </label>
+                <input type="text" id="popup-cap" maxlength="5" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="Es. 20100">
+              </div>
+            </div>
+          </div>
+          
+          <div style="margin-top: var(--spacing-xl); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.6;">
+              <strong>Disclaimer:</strong> L'analisi effettuata è puramente a titolo esemplificativo, non consiste in una soluzione pratica né tantomeno in un consiglio da seguire.
+            </p>
+          </div>
+          
+          <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end; margin-top: var(--spacing-xl);">
+            <button type="button" onclick="Wizard.closeIncomeDataPopup()" class="btn ghost" style="width: auto;">Annulla</button>
+            <button type="submit" class="btn" style="width: auto;">Procedi all'analisi</button>
+          </div>
+        </form>
+      </div>
+    `;
+    
+    incomeModal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    
+    // Populate province select
+    setTimeout(() => {
+      const provinceSelect = document.getElementById('popup-provincia');
+      if (provinceSelect && window.Geo && window.Geo.PROVINCES) {
+        window.Geo.PROVINCES.forEach(prov => {
+          const option = document.createElement('option');
+          option.value = prov.code;
+          option.textContent = prov.label;
+          provinceSelect.appendChild(option);
+        });
+      }
+    }, 100);
+    
+    // Close on backdrop click
+    incomeModal.addEventListener('click', (e) => {
+      if (e.target === incomeModal) {
+        Wizard.closeIncomeDataPopup();
+      }
+    });
+    
+    // Close on Escape key
+    const escapeHandler = (e) => {
+      if (e.key === 'Escape') {
+        Wizard.closeIncomeDataPopup();
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    };
+    document.addEventListener('keydown', escapeHandler);
+  },
+  
+  /**
+   * Close income data popup
+   */
+  closeIncomeDataPopup: () => {
+    const incomeModal = document.getElementById('incomeDataModal');
+    if (incomeModal) {
+      incomeModal.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  },
+  
+  /**
+   * Submit income data and show analysis
+   */
+  submitIncomeData: (event) => {
+    event.preventDefault();
+    
+    // Validate fields
+    const reddito = parseFloat(document.getElementById('redditoMensile').value) || 0;
+    const nome = document.getElementById('popup-nome').value.trim();
+    const cognome = document.getElementById('popup-cognome').value.trim();
+    const telefono = document.getElementById('popup-telefono').value.trim();
+    const email = document.getElementById('popup-email').value.trim();
+    const citta = document.getElementById('popup-citta').value.trim();
+    const provincia = document.getElementById('popup-provincia').value.trim();
+    const cap = document.getElementById('popup-cap').value.trim();
+    
+    if (!reddito || reddito <= 0) {
+      alert('Inserisci un reddito mensile valido.');
+      return;
+    }
+    
+    if (!nome || nome.length < 3) {
+      alert('Inserisci un nome valido (almeno 3 caratteri).');
+      return;
+    }
+    
+    if (!cognome || cognome.length < 3) {
+      alert('Inserisci un cognome valido (almeno 3 caratteri).');
+      return;
+    }
+    
+    if (!Utils.isValidEmail(email)) {
+      alert('Inserisci un\'email valida.');
+      return;
+    }
+    
+    if (Utils.extractDigits(telefono).length < 9) {
+      alert('Inserisci un numero di telefono valido.');
+      return;
+    }
+    
+    if (!citta || citta.length < 2) {
+      alert('Inserisci una città valida.');
+      return;
+    }
+    
+    if (!provincia || provincia.length !== 2) {
+      alert('Seleziona una provincia.');
+      return;
+    }
+    
+    if (Utils.extractDigits(cap).length !== 5) {
+      alert('Inserisci un CAP valido (5 cifre).');
+      return;
+    }
+    
+    // Save form data
+    state.formData = {
+      nome: nome,
+      cognome: cognome,
+      telefono: telefono,
+      email: email,
+      citta: citta,
+      provincia: provincia,
+      cap: cap,
+      redditoMensile: reddito
+    };
+    
+    // Calculate total debt
+    let totalAmount = 0;
+    Object.values(state.debtCreditors).forEach(creditors => {
+      if (Array.isArray(creditors)) {
+        creditors.forEach(item => {
+          totalAmount += Number(item.amount) || 0;
+        });
+      }
+    });
+    state.formData.totalAmount = totalAmount;
+    
+    // Close popup
+    Wizard.closeIncomeDataPopup();
+    
+    // Show analysis page
+    Wizard.showAnalysis();
   },
   
   /**
@@ -1798,7 +2048,211 @@ const Wizard = {
   },
   
   /**
-   * Move to Step 3 (Review)
+   * Show analysis page
+   */
+  showAnalysis: () => {
+    const totalDebt = state.formData.totalAmount || 0;
+    const monthlyIncome = state.formData.redditoMensile || 0;
+    const annualIncome = monthlyIncome * 12;
+    
+    // Calculate debt-to-income ratio (DTI)
+    const dtiRatio = annualIncome > 0 ? (totalDebt / annualIncome) * 100 : 0;
+    
+    // Calculate months to pay off (assuming 30% of income can go to debt)
+    const monthlyDebtPayment = monthlyIncome * 0.30;
+    const monthsToPayOff = monthlyDebtPayment > 0 ? Math.ceil(totalDebt / monthlyDebtPayment) : 0;
+    
+    // Determine risk level based on DTI ratio
+    let riskLevel = 'Bassa';
+    let riskColor = '#48bb78';
+    let riskDescription = 'La tua situazione finanziaria appare gestibile.';
+    
+    if (dtiRatio >= 40) {
+      riskLevel = 'Molto Alta';
+      riskColor = '#f56565';
+      riskDescription = 'La tua situazione richiede attenzione immediata. Il rapporto debito/reddito è molto elevato.';
+    } else if (dtiRatio >= 30) {
+      riskLevel = 'Alta';
+      riskColor = '#ed8936';
+      riskDescription = 'La tua situazione finanziaria è sotto pressione. È consigliabile cercare soluzioni strutturate.';
+    } else if (dtiRatio >= 20) {
+      riskLevel = 'Media';
+      riskColor = '#f6ad55';
+      riskDescription = 'La tua situazione richiede monitoraggio. Potrebbe essere utile un piano di rientro strutturato.';
+    }
+    
+    // Calculate sustainability score (0-100)
+    let sustainabilityScore = 100;
+    if (dtiRatio > 0) {
+      sustainabilityScore = Math.max(0, 100 - (dtiRatio * 1.5));
+    }
+    
+    // Determine recommended action
+    let recommendedAction = '';
+    if (dtiRatio >= 40) {
+      recommendedAction = 'Consulenza urgente con professionisti specializzati in procedure di sovraindebitamento e composizione delle crisi.';
+    } else if (dtiRatio >= 30) {
+      recommendedAction = 'Valutazione approfondita con consulenti esperti per definire un piano di rientro strutturato.';
+    } else if (dtiRatio >= 20) {
+      recommendedAction = 'Consulenza preventiva per ottimizzare la gestione dei debiti e prevenire situazioni critiche.';
+    } else {
+      recommendedAction = 'Monitoraggio della situazione e consulenza per ottimizzare la gestione finanziaria.';
+    }
+    
+    const analysisHTML = `
+      <div style="margin-bottom: var(--spacing-xl);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+          <div style="padding: var(--spacing-lg); background: var(--bg-secondary); border-radius: var(--radius-lg); text-align: center;">
+            <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">Debito Totale</div>
+            <div style="font-size: 1.75rem; font-weight: 700; color: var(--accent);">€ ${totalDebt.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+          </div>
+          <div style="padding: var(--spacing-lg); background: var(--bg-secondary); border-radius: var(--radius-lg); text-align: center;">
+            <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">Reddito Mensile</div>
+            <div style="font-size: 1.75rem; font-weight: 700; color: var(--brand);">€ ${monthlyIncome.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+          </div>
+          <div style="padding: var(--spacing-lg); background: var(--bg-secondary); border-radius: var(--radius-lg); text-align: center;">
+            <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">Rapporto Debito/Reddito</div>
+            <div style="font-size: 1.75rem; font-weight: 700; color: ${riskColor};">${dtiRatio.toFixed(1)}%</div>
+          </div>
+        </div>
+        
+        <div style="padding: var(--spacing-xl); background: linear-gradient(135deg, ${riskColor}15 0%, ${riskColor}05 100%); border-left: 4px solid ${riskColor}; border-radius: var(--radius-lg); margin-bottom: var(--spacing-xl);">
+          <h3 style="margin: 0 0 var(--spacing-md) 0; color: var(--text-primary); display: flex; align-items: center; gap: var(--spacing-sm);">
+            <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: ${riskColor};"></span>
+            Livello di Criticità: <span style="color: ${riskColor};">${riskLevel}</span>
+          </h3>
+          <p style="margin: 0; color: var(--text-primary); line-height: 1.6;">${riskDescription}</p>
+        </div>
+        
+        <div style="margin-bottom: var(--spacing-xl);">
+          <h3 style="margin-bottom: var(--spacing-md); color: var(--text-primary);">Indicatori di Sostenibilità</h3>
+          <div style="display: grid; gap: var(--spacing-md);">
+            <div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-xs);">
+                <span style="color: var(--text-primary); font-weight: 600;">Punteggio Sostenibilità</span>
+                <span style="color: var(--text-muted);">${sustainabilityScore.toFixed(0)}/100</span>
+              </div>
+              <div style="height: 12px; background: var(--bg-secondary); border-radius: var(--radius-full); overflow: hidden;">
+                <div style="height: 100%; width: ${sustainabilityScore}%; background: ${sustainabilityScore >= 70 ? '#48bb78' : sustainabilityScore >= 50 ? '#f6ad55' : '#f56565'}; transition: width 0.5s ease;"></div>
+              </div>
+            </div>
+            <div style="padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
+              <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">Tempo stimato per estinzione debiti</div>
+              <div style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary);">
+                ${monthsToPayOff > 0 ? `${monthsToPayOff} mesi` : 'Non calcolabile'}
+                ${monthsToPayOff > 0 ? `(${Math.floor(monthsToPayOff / 12)} anni e ${monthsToPayOff % 12} mesi)` : ''}
+              </div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: var(--spacing-xs);">
+                Calcolo basato su un impegno mensile del 30% del reddito netto
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div style="padding: var(--spacing-lg); background: var(--brand); color: #fff; border-radius: var(--radius-lg); margin-bottom: var(--spacing-xl);">
+          <h3 style="margin: 0 0 var(--spacing-md) 0; color: #fff;">Raccomandazione</h3>
+          <p style="margin: 0; line-height: 1.6; color: rgba(255,255,255,0.95);">${recommendedAction}</p>
+        </div>
+        
+        <div style="padding: var(--spacing-lg); background: var(--bg-secondary); border-radius: var(--radius-lg);">
+          <h4 style="margin: 0 0 var(--spacing-md) 0; color: var(--text-primary);">Prossimi Passi Suggeriti</h4>
+          <ul style="margin: 0; padding-left: var(--spacing-lg); color: var(--text-primary); line-height: 1.8;">
+            <li>Consulta un professionista qualificato per un'analisi approfondita della tua situazione</li>
+            <li>Valuta le opzioni disponibili per la gestione e la ristrutturazione dei debiti</li>
+            <li>Considera la possibilità di procedure strutturate come saldo e stralcio o composizione delle crisi</li>
+            <li>Mantieni un monitoraggio costante della tua situazione finanziaria</li>
+          </ul>
+        </div>
+    `;
+    
+    const analysisContent = document.getElementById('analysis-content');
+    if (analysisContent) {
+      analysisContent.innerHTML = analysisHTML;
+    }
+    
+    // Show analysis step
+    const analysisStep = document.getElementById('step-analysis');
+    if (analysisStep) {
+      // Hide other steps
+      [DOM.step1, DOM.step2, DOM.step3].forEach(step => {
+        if (step) {
+          step.hidden = true;
+          step.classList.remove('active');
+        }
+      });
+      
+      analysisStep.hidden = false;
+      state.currentStep = 2.5;
+      Wizard.updateProgress(2.5); // Between step 2 and 3
+      Utils.scrollToTop();
+    }
+  },
+  
+  /**
+   * Move to Privacy step (Step 3)
+   */
+  goToPrivacy: () => {
+    // Generate review HTML for privacy step
+    const chipsHTML = state.selections
+      .map(sel => `<span class="pill">${DEBT_LABELS[sel] || sel}</span>`)
+      .join(' ');
+    
+    // Calculate total
+    let totalAmount = state.formData.totalAmount || 0;
+    
+    // Generate debts detail
+    let debtsDetail = '';
+    state.selections.forEach(debtType => {
+      const creditors = state.debtCreditors[debtType] || [];
+      const typeLabel = DEBT_LABELS[debtType] || debtType;
+      
+      if (creditors.length === 0) {
+        debtsDetail += `<li><b>${typeLabel}:</b> Nessun dettaglio specificato</li>`;
+      } else {
+        creditors.forEach((item, index) => {
+          const hasContent = item.subCategory || item.creditor || (Number(item.amount) || 0) > 0;
+          if (hasContent) {
+            const subLabel = Wizard.getSubcategoryLabel(debtType, item.subCategory) || 'Voce non specificata';
+            const creditorName = item.creditor ? ` • ${item.creditor}` : '';
+            const amountText = `€ ${Number(item.amount || 0).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            debtsDetail += `<li><b>${typeLabel}${creditors.length > 1 ? ` (${index + 1})` : ''}:</b> ${subLabel}${creditorName} - ${amountText}</li>`;
+          }
+        });
+      }
+    });
+    
+    const reviewHTML = `
+      <div style="margin-bottom: var(--spacing-xl); padding: var(--spacing-md);">
+        <p style="margin: 0 0 var(--spacing-sm); font-size: 0.875rem; color: var(--text-muted); font-weight: 600;">Tipologie di debiti selezionate:</p>
+        <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-sm); align-items: center;">
+          ${chipsHTML || '<span style="color: var(--text-muted); font-size: 0.875rem;">Nessuna tipologia selezionata</span>'}
+        </div>
+      </div>
+      <ul>
+        <li><b>Nome:</b> ${state.formData.nome} ${state.formData.cognome}</li>
+        <li><b>Cellulare:</b> ${state.formData.telefono}</li>
+        <li><b>Email:</b> ${state.formData.email}</li>
+        <li><b>Località:</b> ${state.formData.citta || 'N/D'} ${state.formData.provincia ? `- ${Geo.getProvinceLabel(state.formData.provincia)}` : ''} ${state.formData.cap ? `(CAP ${state.formData.cap})` : ''}</li>
+        <li><b>Reddito mensile netto:</b> € ${(state.formData.redditoMensile || 0).toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</li>
+      </ul>
+      <h3 style="margin-top:24px; margin-bottom:12px;">Dettaglio Debiti:</h3>
+      <ul>
+        ${debtsDetail}
+      </ul>
+      <div style="margin-top:20px; padding:16px; background:#e6f4ff; border-radius:12px;">
+        <div style="font-size:0.875rem; color:var(--text-muted);">Totale complessivo:</div>
+        <div style="font-size:1.75rem; font-weight:800; color:var(--accent);">€ ${totalAmount.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+      </div>
+    `;
+    DOM.reviewDiv.innerHTML = reviewHTML;
+    
+    // Show step 3 (privacy)
+    state.currentStep = 3;
+    Wizard.showStep(3);
+  },
+  
+  /**
+   * Move to Step 3 (Review) - OLD, now redirects to privacy
    */
   goToStep3: () => {
     DOM.successMsg.style.display = 'none';
@@ -1953,7 +2407,9 @@ const Wizard = {
       }
     });
     
-    DOM.back1Btn.addEventListener('click', () => Wizard.showStep(1));
+    DOM.back1Btn.addEventListener('click', () => {
+      Wizard.showStep(1);
+    });
     DOM.toStep3Btn.addEventListener('click', Wizard.goToStep3);
   },
   
@@ -2035,7 +2491,18 @@ const Wizard = {
    * Initialize Step 3 event listeners
    */
   initStep3: () => {
-    DOM.back2Btn.addEventListener('click', () => Wizard.showStep(2));
+    // Back button from privacy goes to analysis
+    if (DOM.backPrivacyBtn) {
+      DOM.backPrivacyBtn.addEventListener('click', () => {
+        Wizard.showAnalysis();
+      });
+    }
+    // Legacy back button (if exists)
+    if (DOM.back2Btn) {
+      DOM.back2Btn.addEventListener('click', () => {
+        Wizard.showAnalysis();
+      });
+    }
     DOM.submitBtn.addEventListener('click', Modal.open);
   },
   

@@ -334,14 +334,33 @@
         </div>
       </section>
 
-      <!-- Step 3: Review -->
+      <!-- Step Analysis: Preliminary Analysis -->
+      <section id="step-analysis" class="card" hidden>
+        <h2 class="question">Analisi Preliminare della Tua Situazione</h2>
+        <p class="subtle">Valutazione basata sui dati forniti</p>
+        
+        <div id="analysis-content" style="margin-top: var(--spacing-xl);"></div>
+        
+        <div style="margin-top: var(--spacing-xl); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.6;">
+            <strong>Disclaimer:</strong> L'analisi effettuata è puramente a titolo esemplificativo, non consiste in una soluzione pratica né tantomeno in un consiglio da seguire.
+          </p>
+        </div>
+        
+        <div class="actions">
+          <button type="button" id="back-analysis" class="btn ghost">Indietro</button>
+          <button type="button" id="to-privacy" class="btn">Avanti</button>
+        </div>
+      </section>
+
+      <!-- Step 3: Privacy -->
       <section id="step3" class="card" hidden>
-        <h2 class="question">Verifica i tuoi dati</h2>
-        <p class="subtle">Controlla che tutto sia corretto prima di inviare</p>
+        <h2 class="question">Informativa Privacy</h2>
+        <p class="subtle">Per procedere è necessario accettare l'informativa sulla privacy</p>
         <div class="review" id="review"></div>
         <div class="actions">
-          <button type="button" id="back2" class="btn ghost">Indietro</button>
-          <button type="button" id="submit" class="btn">Invia</button>
+          <button type="button" id="back-privacy" class="btn ghost">Indietro</button>
+          <button type="button" id="submit" class="btn">Accetta e Invia</button>
         </div>
         <div id="ok" class="success" role="status" aria-live="polite">
           ✅ Dati confermati! Stiamo indirizzandoti ai professionisti adatti…
