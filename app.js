@@ -2925,6 +2925,9 @@ Il team di Tatosolvi`
   }
 };
 
+// Make Wizard available globally
+window.Wizard = Wizard;
+
 // ==================== MODAL ====================
 const Modal = {
   /**

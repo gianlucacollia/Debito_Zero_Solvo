@@ -342,8 +342,8 @@
         <div id="analysis-content" style="margin-top: var(--spacing-xl);"></div>
         
         <div class="actions">
-          <button type="button" id="back-analysis" class="btn ghost">Indietro</button>
-          <button type="button" id="to-privacy" class="btn">Avanti</button>
+          <button type="button" id="back-analysis" class="btn ghost" onclick="Wizard.closeIncomeDataPopup(); Wizard.showIncomeDataPopup();">Indietro</button>
+          <button type="button" id="to-privacy" class="btn" onclick="Wizard.goToPrivacy();">Avanti</button>
         </div>
       </section>
 
