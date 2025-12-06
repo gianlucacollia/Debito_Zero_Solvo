@@ -2284,6 +2284,23 @@ const Wizard = {
       state.currentStep = 2.5;
       Wizard.updateProgress(2.5); // Between step 2 and 3
       Utils.scrollToTop();
+      
+      // Setup buttons for analysis step
+      setTimeout(() => {
+        const backBtn = document.getElementById('back-analysis');
+        const nextBtn = document.getElementById('to-privacy');
+        if (backBtn) {
+          backBtn.onclick = () => {
+            Wizard.closeIncomeDataPopup();
+            Wizard.showIncomeDataPopup();
+          };
+        }
+        if (nextBtn) {
+          nextBtn.onclick = () => {
+            Wizard.goToPrivacy();
+          };
+        }
+      }, 100);
     }
   },
   
