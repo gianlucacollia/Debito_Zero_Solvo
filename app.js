@@ -2285,22 +2285,31 @@ const Wizard = {
       Wizard.updateProgress(2.5); // Between step 2 and 3
       Utils.scrollToTop();
       
-      // Setup buttons for analysis step
+      // Setup buttons for analysis step - attach directly to ensure it works
       setTimeout(() => {
         const backBtn = document.getElementById('back-analysis');
         const nextBtn = document.getElementById('to-privacy');
+        
         if (backBtn) {
-          backBtn.onclick = () => {
+          backBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             Wizard.closeIncomeDataPopup();
             Wizard.showIncomeDataPopup();
           };
         }
+        
         if (nextBtn) {
-          nextBtn.onclick = () => {
+          nextBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Avanti cliccato - andando a privacy');
             Wizard.goToPrivacy();
           };
+        } else {
+          console.error('Bottone to-privacy non trovato!');
         }
-      }, 100);
+      }, 200);
     }
   },
   
