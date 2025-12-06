@@ -2081,51 +2081,109 @@ const Wizard = {
   showAnalysis: () => {
     const totalDebt = state.formData.totalAmount || 0;
     const monthlyIncome = state.formData.redditoMensile || 0;
-    const annualIncome = monthlyIncome * 12;
     
-    // Calculate debt-to-income ratio (DTI)
-    const dtiRatio = annualIncome > 0 ? (totalDebt / annualIncome) * 100 : 0;
+    // Calculate average monthly debt payment (debt total / 72 months)
+    const averageMonthlyDebt = totalDebt / 72;
+    
+    // Calculate debt burden percentage (average monthly debt / monthly income * 100)
+    const debtBurdenPercent = monthlyIncome > 0 ? (averageMonthlyDebt / monthlyIncome) * 100 : 0;
+    
+    // Define timeline segments
+    const timelineSegments = [
+      { min: 0, max: 10, label: '0-10%', color: '#48bb78', name: 'Basso Indebitamento', description: 'Situazione finanziaria solida' },
+      { min: 10, max: 20, label: '10-20%', color: '#68d391', name: 'Indebitamento Controllato', description: 'Gestione debiti sostenibile' },
+      { min: 20, max: 30, label: '20-30%', color: '#f6ad55', name: 'Indebitamento Moderato', description: 'Richiede attenzione' },
+      { min: 30, max: 40, label: '30-40%', color: '#ed8936', name: 'Indebitamento Elevato', description: 'Situazione critica' },
+      { min: 40, max: 50, label: '40-50%', color: '#fc8181', name: 'Indebitamento Molto Elevato', description: 'Richiede intervento urgente' },
+      { min: 50, max: 1000, label: '50%+', color: '#f56565', name: 'Sovraindebitamento', description: 'Situazione insostenibile' }
+    ];
+    
+    // Find user's segment
+    let userSegment = timelineSegments.find(seg => debtBurdenPercent >= seg.min && debtBurdenPercent < seg.max);
+    if (!userSegment) {
+      // If over 100%, use the last segment
+      userSegment = timelineSegments[timelineSegments.length - 1];
+    }
+    
+    // Determine risk level and color based on user segment
+    const riskLevel = userSegment.name;
+    const riskColor = userSegment.color;
+    const riskDescription = userSegment.description;
+    
+    // Calculate sustainability score (0-100) based on debt burden
+    let sustainabilityScore = 100;
+    if (debtBurdenPercent > 0) {
+      sustainabilityScore = Math.max(0, 100 - (debtBurdenPercent * 1.2));
+    }
+    
+    // Determine recommended action based on debt burden
+    let recommendedAction = '';
+    if (debtBurdenPercent >= 50) {
+      recommendedAction = 'Consulenza urgente con professionisti specializzati in procedure di sovraindebitamento e composizione delle crisi.';
+    } else if (debtBurdenPercent >= 40) {
+      recommendedAction = 'Valutazione approfondita con consulenti esperti per definire un piano di rientro strutturato.';
+    } else if (debtBurdenPercent >= 30) {
+      recommendedAction = 'Consulenza preventiva per ottimizzare la gestione dei debiti e prevenire situazioni critiche.';
+    } else if (debtBurdenPercent >= 20) {
+      recommendedAction = 'Monitoraggio della situazione e consulenza per ottimizzare la gestione finanziaria.';
+    } else {
+      recommendedAction = 'La tua situazione è gestibile. Una consulenza può aiutarti a ottimizzare ulteriormente.';
+    }
     
     // Calculate months to pay off (assuming 30% of income can go to debt)
     const monthlyDebtPayment = monthlyIncome * 0.30;
     const monthsToPayOff = monthlyDebtPayment > 0 ? Math.ceil(totalDebt / monthlyDebtPayment) : 0;
     
-    // Determine risk level based on DTI ratio
-    let riskLevel = 'Bassa';
-    let riskColor = '#48bb78';
-    let riskDescription = 'La tua situazione finanziaria appare gestibile.';
-    
-    if (dtiRatio >= 40) {
-      riskLevel = 'Molto Alta';
-      riskColor = '#f56565';
-      riskDescription = 'La tua situazione richiede attenzione immediata. Il rapporto debito/reddito è molto elevato.';
-    } else if (dtiRatio >= 30) {
-      riskLevel = 'Alta';
-      riskColor = '#ed8936';
-      riskDescription = 'La tua situazione finanziaria è sotto pressione. È consigliabile cercare soluzioni strutturate.';
-    } else if (dtiRatio >= 20) {
-      riskLevel = 'Media';
-      riskColor = '#f6ad55';
-      riskDescription = 'La tua situazione richiede monitoraggio. Potrebbe essere utile un piano di rientro strutturato.';
-    }
-    
-    // Calculate sustainability score (0-100)
-    let sustainabilityScore = 100;
-    if (dtiRatio > 0) {
-      sustainabilityScore = Math.max(0, 100 - (dtiRatio * 1.5));
-    }
-    
-    // Determine recommended action
-    let recommendedAction = '';
-    if (dtiRatio >= 40) {
-      recommendedAction = 'Consulenza urgente con professionisti specializzati in procedure di sovraindebitamento e composizione delle crisi.';
-    } else if (dtiRatio >= 30) {
-      recommendedAction = 'Valutazione approfondita con consulenti esperti per definire un piano di rientro strutturato.';
-    } else if (dtiRatio >= 20) {
-      recommendedAction = 'Consulenza preventiva per ottimizzare la gestione dei debiti e prevenire situazioni critiche.';
-    } else {
-      recommendedAction = 'Monitoraggio della situazione e consulenza per ottimizzare la gestione finanziaria.';
-    }
+    // Generate timeline HTML
+    const timelineHTML = timelineSegments.map(seg => {
+      const isUserSegment = seg === userSegment;
+      const opacity = isUserSegment ? 1 : 0.3;
+      const scale = isUserSegment ? 1.05 : 1;
+      const borderWidth = isUserSegment ? '3px' : '1px';
+      const fontWeight = isUserSegment ? '700' : '500';
+      
+      return `
+        <div style="
+          flex: 1;
+          padding: var(--spacing-md) var(--spacing-sm);
+          background: ${isUserSegment ? seg.color + '20' : seg.color + '0a'};
+          border: ${borderWidth} solid ${seg.color};
+          border-radius: var(--radius-md);
+          text-align: center;
+          opacity: ${opacity};
+          transform: scale(${scale});
+          transition: all 0.3s ease;
+          position: relative;
+          ${isUserSegment ? 'box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;' : ''}
+        ">
+          <div style="font-size: 0.75rem; font-weight: ${fontWeight}; color: ${isUserSegment ? seg.color : '#999'}; margin-bottom: var(--spacing-xs);">
+            ${seg.label}
+          </div>
+          <div style="font-size: 0.7rem; color: ${isUserSegment ? '#333' : '#999'}; line-height: 1.3;">
+            ${seg.name}
+          </div>
+          ${isUserSegment ? `
+            <div style="
+              position: absolute;
+              top: -10px;
+              right: -10px;
+              width: 28px;
+              height: 28px;
+              background: ${seg.color};
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-size: 16px;
+              font-weight: bold;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+              border: 3px solid white;
+            ">📍</div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
     
     const analysisHTML = `
       <div style="margin-bottom: var(--spacing-xl);">
@@ -2139,17 +2197,30 @@ const Wizard = {
             <div style="font-size: 1.75rem; font-weight: 700; color: var(--brand);">€ ${monthlyIncome.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
           </div>
           <div style="padding: var(--spacing-lg); background: var(--bg-secondary); border-radius: var(--radius-lg); text-align: center;">
-            <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">Rapporto Debito/Reddito</div>
-            <div style="font-size: 1.75rem; font-weight: 700; color: ${riskColor};">${dtiRatio.toFixed(1)}%</div>
+            <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">Rata Mensile Media (72 mesi)</div>
+            <div style="font-size: 1.75rem; font-weight: 700; color: var(--accent);">€ ${averageMonthlyDebt.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+          </div>
+          <div style="padding: var(--spacing-lg); background: var(--bg-secondary); border-radius: var(--radius-lg); text-align: center;">
+            <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">% Indebitamento</div>
+            <div style="font-size: 1.75rem; font-weight: 700; color: ${riskColor};">${debtBurdenPercent.toFixed(1)}%</div>
           </div>
         </div>
         
-        <div style="padding: var(--spacing-xl); background: linear-gradient(135deg, ${riskColor}15 0%, ${riskColor}05 100%); border-left: 4px solid ${riskColor}; border-radius: var(--radius-lg); margin-bottom: var(--spacing-xl);">
-          <h3 style="margin: 0 0 var(--spacing-md) 0; color: var(--text-primary); display: flex; align-items: center; gap: var(--spacing-sm);">
-            <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: ${riskColor};"></span>
-            Livello di Criticità: <span style="color: ${riskColor};">${riskLevel}</span>
-          </h3>
-          <p style="margin: 0; color: var(--text-primary); line-height: 1.6;">${riskDescription}</p>
+        <div style="margin-bottom: var(--spacing-xl);">
+          <h3 style="margin-bottom: var(--spacing-md); color: var(--text-primary);">Timeline Indebitamento</h3>
+          <div style="display: flex; gap: var(--spacing-xs); margin-bottom: var(--spacing-md);">
+            ${timelineHTML}
+          </div>
+          <div style="padding: var(--spacing-lg); background: linear-gradient(135deg, ${riskColor}15 0%, ${riskColor}05 100%); border-left: 4px solid ${riskColor}; border-radius: var(--radius-lg);">
+            <h4 style="margin: 0 0 var(--spacing-sm) 0; color: var(--text-primary); display: flex; align-items: center; gap: var(--spacing-sm);">
+              <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: ${riskColor};"></span>
+              La tua situazione: <span style="color: ${riskColor};">${riskLevel}</span>
+            </h4>
+            <p style="margin: 0; color: var(--text-primary); line-height: 1.6;">${riskDescription}</p>
+            <p style="margin: var(--spacing-sm) 0 0 0; font-size: 0.9rem; color: var(--text-muted);">
+              Il tuo livello di indebitamento è del <strong>${debtBurdenPercent.toFixed(1)}%</strong>, calcolato dividendo la rata mensile media (€ ${averageMonthlyDebt.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}) per il tuo reddito mensile netto.
+            </p>
+          </div>
         </div>
         
         <div style="margin-bottom: var(--spacing-xl);">
@@ -2217,9 +2288,22 @@ const Wizard = {
   },
   
   /**
-   * Move to Privacy step (Step 3)
+   * Move to Privacy step (Step 3) and save target filter for professionals
    */
   goToPrivacy: () => {
+    // Determine appropriate filter based on selections for professionals page
+    let targetFilter = 'all';
+    if (state.selections.includes('banche_finanziarie')) {
+      targetFilter = 'bancari';
+    } else if (state.selections.includes('fiscali_tributari') || state.selections.includes('previdenziali')) {
+      targetFilter = 'fiscali';
+    } else if (state.selections.includes('utenze_servizi')) {
+      targetFilter = 'privati';
+    } else if (state.selections.includes('procedure_esecutive')) {
+      targetFilter = 'aziende';
+    }
+    // Save target filter for later use
+    state.targetFilter = targetFilter;
     // Generate review HTML for privacy step
     const chipsHTML = state.selections
       .map(sel => `<span class="pill">${DEBT_LABELS[sel] || sel}</span>`)
@@ -2852,19 +2936,22 @@ const Modal = {
     // Send email
     await EmailService.sendEmail();
     
-    // Determine appropriate filter based on selections
-    let targetFilter = 'all';
-    if (state.selections.includes('banche_finanziarie')) {
-      targetFilter = 'bancari';
-    } else if (state.selections.includes('fiscali_tributari') || state.selections.includes('previdenziali')) {
-      targetFilter = 'fiscali';
-    } else if (state.selections.includes('utenze_servizi')) {
-      targetFilter = 'privati';
-    } else if (state.selections.includes('procedure_esecutive')) {
-      targetFilter = 'aziende';
-    }
+    // Use saved target filter from goToPrivacy, or determine from selections
+    const targetFilter = state.targetFilter || (() => {
+      let filter = 'all';
+      if (state.selections.includes('banche_finanziarie')) {
+        filter = 'bancari';
+      } else if (state.selections.includes('fiscali_tributari') || state.selections.includes('previdenziali')) {
+        filter = 'fiscali';
+      } else if (state.selections.includes('utenze_servizi')) {
+        filter = 'privati';
+      } else if (state.selections.includes('procedure_esecutive')) {
+        filter = 'aziende';
+      }
+      return filter;
+    })();
     
-    // Navigate to professionals page
+    // Navigate to professionals page with correct filter
     setTimeout(() => {
       Navigation.showProfessionals();
       Professionals.applyFilter(targetFilter);
