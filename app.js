@@ -1428,9 +1428,21 @@ const Wizard = {
       DOM.processOverview.style.display = step === 1 ? 'block' : 'none';
     }
     
-    const allSteps = [DOM.step1, DOM.step2, DOM.stepAnalysis, DOM.step3];
-    const currentStepElement = allSteps[state.currentStep - 1];
-    const nextStepElement = allSteps[step - 1];
+    // Map step numbers to actual DOM elements
+    const stepMap = {
+      1: DOM.step1,
+      2: DOM.step2,
+      2.5: DOM.stepAnalysis,
+      3: DOM.step3
+    };
+    
+    const currentStepElement = stepMap[state.currentStep];
+    const nextStepElement = stepMap[step];
+    
+    if (!nextStepElement) {
+      console.error(`Step ${step} non trovato!`);
+      return;
+    }
     
     // Animate out current step
     if (currentStepElement && !currentStepElement.hidden) {
@@ -1445,9 +1457,9 @@ const Wizard = {
     state.currentStep = step;
     setTimeout(() => {
       nextStepElement.hidden = false;
-    Wizard.updateProgress(step);
+      Wizard.updateProgress(step);
       Navigation.updateGlobalBackButton();
-    Utils.scrollToTop();
+      Utils.scrollToTop();
       
       // Restore saved data if available
       if (step === 2) {
@@ -2384,8 +2396,8 @@ const Wizard = {
     `;
     DOM.reviewDiv.innerHTML = reviewHTML;
     
-    // Show step 3 (privacy)
-    state.currentStep = 3;
+    // Show step 3 (privacy) using showStep
+    console.log('Chiamando showStep(3)');
     Wizard.showStep(3);
   },
   
