@@ -2104,6 +2104,45 @@ const Wizard = {
       altro: 1.00
     };
 
+    // Pesi per sottocategoria (se disponibili)
+    const SUBCATEGORY_WEIGHTS = {
+      // banche_finanziarie
+      mutuo_ipotecario: 1.25,
+      prestito_personale: 1.10,
+      carte_revolving: 1.20,
+      leasing_finanziario: 1.05,
+      fidi_aziendali: 1.15,
+      // fiscali_tributari
+      iva: 1.10,
+      irpef_ires: 1.20,
+      imu_tasi: 1.10,
+      cartelle_esattoriali: 1.30,
+      avvisi_bonari: 1.00,
+      // previdenziali
+      inps_dipendenti: 1.05,
+      inps_gestione_separata: 1.05,
+      inail: 1.05,
+      casse_professionali: 1.10,
+      fondi_pensione: 1.05,
+      // utenze_servizi
+      energia_gas: 0.90,
+      acqua: 0.90,
+      telefonia_internet: 0.85,
+      servizi_digitali: 0.80,
+      altri_servizi: 0.90,
+      // procedure_esecutive
+      pignoramento_conto: 1.30,
+      pignoramento_quinto: 1.25,
+      ipoteca_giudiziale: 1.35,
+      decreto_ingiuntivo: 1.15,
+      crediti_servicer: 1.30,
+      // altro
+      garanzie: 1.10,
+      societa: 1.10,
+      estero: 1.15,
+      informali: 1.00
+    };
+
     // --- Pesi per fascia di importo complessivo ---
     const getAmountWeight = (amount) => {
       if (amount < 20000) return 0.90;
@@ -2130,10 +2169,36 @@ const Wizard = {
       });
     }
 
-    // Peso medio per categoria (pesato per importo della categoria)
-    let weightedCategoryFactor = 1;
     const sumCategoryAmounts = Object.values(categoryTotals).reduce((a, b) => a + b, 0);
-    if (sumCategoryAmounts > 0) {
+
+    // Totali per sottocategoria (se disponibile subCategory)
+    const subcategoryTotals = {};
+    state.selections.forEach(debtType => {
+      const entries = state.debtCreditors[debtType] || [];
+      entries.forEach(item => {
+        const sub = item.subCategory || '';
+        if (!sub) return;
+        const amount = Number(item.amount) || 0;
+        if (!subcategoryTotals[sub]) subcategoryTotals[sub] = 0;
+        subcategoryTotals[sub] += amount;
+      });
+    });
+    const sumSubcategoryAmounts = Object.values(subcategoryTotals).reduce((a, b) => a + b, 0);
+
+    // Peso medio (categoria + sottocategoria) pesato sugli importi
+    let weightedCategoryFactor = 1;
+    if (sumSubcategoryAmounts > 0) {
+      const weightedSum = Object.entries(subcategoryTotals).reduce((acc, [sub, amt]) => {
+        // trova categoria di appartenenza per il sub
+        const parentCat = Object.keys(DEBT_SUBCATEGORIES).find(cat =>
+          (DEBT_SUBCATEGORIES[cat] || []).some(sc => sc.value === sub)
+        );
+        const catWeight = CATEGORY_WEIGHTS[parentCat] || 1;
+        const subWeight = SUBCATEGORY_WEIGHTS[sub] || 1;
+        return acc + amt * catWeight * subWeight;
+      }, 0);
+      weightedCategoryFactor = weightedSum / sumSubcategoryAmounts;
+    } else if (sumCategoryAmounts > 0) {
       const weightedSum = state.selections.reduce((acc, debtType) => {
         const share = categoryTotals[debtType] || 0;
         const weight = CATEGORY_WEIGHTS[debtType] || 1;
@@ -2156,8 +2221,77 @@ const Wizard = {
     // Peso per fascia di importo
     const amountWeight = getAmountWeight(totalDebt);
 
-    // Rata media ponderata (72 mesi)
-    const averageMonthlyDebtBase = totalDebt / 72;
+    // Durate medie (mesi) per tipologia (stima statistica)
+    const CATEGORY_MONTHS = {
+      banche_finanziarie: 84,      // finanziamenti/credito al consumo
+      fiscali_tributari: 60,       // piani AE/ADER tipici
+      previdenziali: 48,
+      utenze_servizi: 24,
+      procedure_esecutive: 72,     // accordi/stralci esecutivi
+      altro: 60
+    };
+
+    // Durate medie (mesi) per sottocategoria (stima statistica)
+    const SUBCATEGORY_MONTHS = {
+      // banche_finanziarie
+      mutuo_ipotecario: 300,          // 25 anni
+      prestito_personale: 72,
+      carte_revolving: 48,
+      leasing_finanziario: 72,
+      fidi_aziendali: 60,
+      // fiscali_tributari
+      iva: 36,
+      irpef_ires: 48,
+      imu_tasi: 48,
+      cartelle_esattoriali: 72,
+      avvisi_bonari: 36,
+      // previdenziali
+      inps_dipendenti: 48,
+      inps_gestione_separata: 48,
+      inail: 48,
+      casse_professionali: 60,
+      fondi_pensione: 60,
+      // utenze_servizi
+      energia_gas: 24,
+      acqua: 24,
+      telefonia_internet: 18,
+      servizi_digitali: 12,
+      altri_servizi: 24,
+      // procedure_esecutive
+      pignoramento_conto: 60,
+      pignoramento_quinto: 84,
+      ipoteca_giudiziale: 120,
+      decreto_ingiuntivo: 48,
+      crediti_servicer: 84,
+      // altro
+      garanzie: 60,
+      societa: 72,
+      estero: 72,
+      informali: 36
+    };
+
+    // Durata media ponderata sui debiti dichiarati (preferisce sottocategorie se presenti)
+    let weightedMonths = 72;
+    if (sumSubcategoryAmounts > 0) {
+      const monthsWeightedSum = Object.entries(subcategoryTotals).reduce((acc, [sub, amt]) => {
+        const parentCat = Object.keys(DEBT_SUBCATEGORIES).find(cat =>
+          (DEBT_SUBCATEGORIES[cat] || []).some(sc => sc.value === sub)
+        );
+        const m = SUBCATEGORY_MONTHS[sub] || CATEGORY_MONTHS[parentCat] || 72;
+        return acc + amt * m;
+      }, 0);
+      weightedMonths = monthsWeightedSum / sumSubcategoryAmounts;
+    } else if (sumCategoryAmounts > 0) {
+      const monthsWeightedSum = state.selections.reduce((acc, debtType) => {
+        const share = categoryTotals[debtType] || 0;
+        const m = CATEGORY_MONTHS[debtType] || 72;
+        return acc + share * m;
+      }, 0);
+      weightedMonths = monthsWeightedSum / sumCategoryAmounts;
+    }
+
+    // Rata media ponderata (uso durata media ponderata invece di 72 fisso)
+    const averageMonthlyDebtBase = weightedMonths > 0 ? totalDebt / weightedMonths : totalDebt / 72;
     const weightedMonthlyDebt =
       averageMonthlyDebtBase * weightedCategoryFactor * amountWeight * (1 + mixFactor);
 
@@ -2273,7 +2407,7 @@ const Wizard = {
             <div style="font-size: 1.75rem; font-weight: 700; color: var(--brand);">€ ${monthlyIncome.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
           </div>
           <div style="padding: var(--spacing-lg); background: var(--bg-secondary); border-radius: var(--radius-lg); text-align: center;">
-            <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">Rata Mensile Ponderata (72 mesi)</div>
+            <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">Rata Totale Potenziale</div>
             <div style="font-size: 1.75rem; font-weight: 700; color: var(--accent);">€ ${weightedMonthlyDebt.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
           </div>
           <div style="padding: var(--spacing-lg); background: var(--bg-secondary); border-radius: var(--radius-lg); text-align: center;">
