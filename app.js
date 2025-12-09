@@ -2094,11 +2094,75 @@ const Wizard = {
     const totalDebt = state.formData.totalAmount || 0;
     const monthlyIncome = state.formData.redditoMensile || 0;
     
-    // Calculate average monthly debt payment (debt total / 72 months)
-    const averageMonthlyDebt = totalDebt / 72;
-    
-    // Calculate debt burden percentage (average monthly debt / monthly income * 100)
-    const debtBurdenPercent = monthlyIncome > 0 ? (averageMonthlyDebt / monthlyIncome) * 100 : 0;
+    // --- Pesi statistici per tipologia di debito ---
+    const CATEGORY_WEIGHTS = {
+      banche_finanziarie: 1.15,
+      fiscali_tributari: 1.25,
+      previdenziali: 1.10,
+      utenze_servizi: 0.95,
+      procedure_esecutive: 1.40,
+      altro: 1.00
+    };
+
+    // --- Pesi per fascia di importo complessivo ---
+    const getAmountWeight = (amount) => {
+      if (amount < 20000) return 0.90;
+      if (amount < 50000) return 1.00;
+      if (amount < 100000) return 1.10;
+      if (amount < 250000) return 1.20;
+      return 1.30;
+    };
+
+    // Calcola la distribuzione per categoria (somma importi inseriti)
+    const categoryTotals = {};
+    state.selections.forEach(debtType => {
+      const entries = state.debtCreditors[debtType] || [];
+      const sum = entries.reduce((acc, item) => acc + (Number(item.amount) || 0), 0);
+      categoryTotals[debtType] = sum;
+    });
+
+    // Se non ci sono dettagli, ripartisci equamente
+    const totalFromDetails = Object.values(categoryTotals).reduce((a, b) => a + b, 0);
+    if (totalFromDetails === 0 && totalDebt > 0 && state.selections.length > 0) {
+      const equalShare = totalDebt / state.selections.length;
+      state.selections.forEach(debtType => {
+        categoryTotals[debtType] = equalShare;
+      });
+    }
+
+    // Peso medio per categoria (pesato per importo della categoria)
+    let weightedCategoryFactor = 1;
+    const sumCategoryAmounts = Object.values(categoryTotals).reduce((a, b) => a + b, 0);
+    if (sumCategoryAmounts > 0) {
+      const weightedSum = state.selections.reduce((acc, debtType) => {
+        const share = categoryTotals[debtType] || 0;
+        const weight = CATEGORY_WEIGHTS[debtType] || 1;
+        return acc + share * weight;
+      }, 0);
+      weightedCategoryFactor = weightedSum / sumCategoryAmounts;
+    }
+
+    // Mix factor: penalizza se molta quota è fiscale/esecutiva, premia se concentrato
+    let mixFactor = 0;
+    if (sumCategoryAmounts > 0) {
+      const fiscExecShare =
+        ((categoryTotals['fiscali_tributari'] || 0) +
+          (categoryTotals['procedure_esecutive'] || 0)) / sumCategoryAmounts;
+      if (fiscExecShare >= 0.5) mixFactor += 0.10;
+    }
+    if (state.selections.length > 4) mixFactor += 0.05;
+    if (state.selections.length === 1 && !state.selections.includes('procedure_esecutive')) mixFactor -= 0.05;
+
+    // Peso per fascia di importo
+    const amountWeight = getAmountWeight(totalDebt);
+
+    // Rata media ponderata (72 mesi)
+    const averageMonthlyDebtBase = totalDebt / 72;
+    const weightedMonthlyDebt =
+      averageMonthlyDebtBase * weightedCategoryFactor * amountWeight * (1 + mixFactor);
+
+    // Indice di indebitamento (rata ponderata / reddito mensile)
+    const debtBurdenPercent = monthlyIncome > 0 ? (weightedMonthlyDebt / monthlyIncome) * 100 : 0;
     
     // Define timeline segments
     const timelineSegments = [
@@ -2209,8 +2273,8 @@ const Wizard = {
             <div style="font-size: 1.75rem; font-weight: 700; color: var(--brand);">€ ${monthlyIncome.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
           </div>
           <div style="padding: var(--spacing-lg); background: var(--bg-secondary); border-radius: var(--radius-lg); text-align: center;">
-            <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">Rata Mensile Media (72 mesi)</div>
-            <div style="font-size: 1.75rem; font-weight: 700; color: var(--accent);">€ ${averageMonthlyDebt.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">Rata Mensile Ponderata (72 mesi)</div>
+            <div style="font-size: 1.75rem; font-weight: 700; color: var(--accent);">€ ${weightedMonthlyDebt.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
           </div>
           <div style="padding: var(--spacing-lg); background: var(--bg-secondary); border-radius: var(--radius-lg); text-align: center;">
             <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">% Indebitamento</div>
@@ -2230,7 +2294,7 @@ const Wizard = {
             </h4>
             <p style="margin: 0; color: var(--text-primary); line-height: 1.6;">${riskDescription}</p>
             <p style="margin: var(--spacing-sm) 0 0 0; font-size: 0.9rem; color: var(--text-muted);">
-              Il tuo livello di indebitamento è del <strong>${debtBurdenPercent.toFixed(1)}%</strong>, calcolato dividendo la rata mensile media (€ ${averageMonthlyDebt.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}) per il tuo reddito mensile netto.
+              Il tuo livello di indebitamento è del <strong>${debtBurdenPercent.toFixed(1)}%</strong>, calcolato dividendo la rata mensile ponderata (€ ${weightedMonthlyDebt.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}) per il tuo reddito mensile netto.
             </p>
           </div>
         </div>
