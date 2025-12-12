@@ -1429,6 +1429,30 @@ const Navigation = {
       }
       Utils.scrollToTop();
     }
+  },
+  
+  /**
+   * Show thank you page
+   */
+  showThankYouPage: () => {
+    Navigation.closeMenu();
+    // Hide all pages first
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.remove('active');
+      page.hidden = true;
+    });
+    // Hide wizard steps
+    document.querySelectorAll('#page-wizard .card').forEach(card => {
+      card.hidden = true;
+    });
+    // Show thank you page
+    const thankYouPage = document.getElementById('page-thank-you');
+    if (thankYouPage) {
+      thankYouPage.hidden = false;
+      thankYouPage.classList.add('active');
+      Navigation.updateGlobalBackButton(false); // Hide back button on thank you page
+      Utils.scrollToTop();
+    }
   }
 };
 
@@ -3329,10 +3353,9 @@ const Modal = {
       return filter;
     })();
     
-    // Navigate to professionals page with correct filter
+    // Navigate to thank you page
     setTimeout(() => {
-      Navigation.showProfessionals();
-      Professionals.applyFilter(targetFilter);
+      Navigation.showThankYouPage();
     }, 2000);
   },
   
