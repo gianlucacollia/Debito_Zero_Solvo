@@ -1024,6 +1024,101 @@ const Utils = {
 
 // ==================== NAVIGATION ====================
 const Navigation = {
+  /**
+   * Route mapping: hash -> page ID
+   */
+  routes: {
+    'home': 'page-wizard',
+    'professionisti': 'page-pro',
+    'diventa-professionista': 'page-join-pro',
+    'privacy': 'privacy-policy',
+    'cookie': 'cookie-policy',
+    'admin': 'page-admin'
+  },
+  
+  /**
+   * Flag to prevent routing loops
+   */
+  _isNavigating: false,
+  
+  /**
+   * Initialize routing system
+   */
+  initRouting: () => {
+    // Listen for hash changes
+    window.addEventListener('hashchange', () => {
+      if (!Navigation._isNavigating) {
+        Navigation.handleHashRoute();
+      }
+    });
+  },
+  
+  /**
+   * Handle hash-based routing
+   */
+  handleHashRoute: () => {
+    if (Navigation._isNavigating) return; // Prevent loops
+    
+    Navigation._isNavigating = true;
+    const hash = window.location.hash.slice(1) || 'home'; // Remove # and default to 'home'
+    const route = hash.split('/')[0]; // Get base route (ignore sub-routes like /professionista/123)
+    
+    // Map route to page
+    const pageId = Navigation.routes[route];
+    if (!pageId) {
+      // Unknown route, go to home
+      Navigation.goToHome(true); // Pass true to skip hash update
+      Navigation._isNavigating = false;
+      return;
+    }
+    
+    // Navigate to the page
+    switch (route) {
+      case 'home':
+        Navigation.goToHome(true); // Pass true to skip hash update
+        break;
+      case 'professionisti':
+        Navigation.showProfessionals(true);
+        break;
+      case 'diventa-professionista':
+        Navigation.showJoinProfessionals(true);
+        break;
+      case 'privacy':
+        Navigation.showPrivacyPolicy(true);
+        break;
+      case 'cookie':
+        Navigation.showCookiePolicy(true);
+        break;
+      case 'admin':
+        // Only navigate if logged in, otherwise show login
+        if (localStorage.getItem('adminLoggedIn') === 'true') {
+          Navigation.showAdminDashboard(true);
+        } else {
+          Navigation.showAdminLogin();
+          // Update hash to home if not logged in
+          Navigation.updateHash('home', true);
+        }
+        break;
+      default:
+        Navigation.goToHome(true);
+    }
+    
+    Navigation._isNavigating = false;
+  },
+  
+  /**
+   * Update URL hash without triggering navigation
+   */
+  updateHash: (route, replace = false) => {
+    if (Navigation._isNavigating) return; // Don't update hash while navigating
+    
+    if (replace) {
+      window.history.replaceState(null, '', `#${route}`);
+    } else {
+      window.location.hash = route;
+    }
+  },
+  
   initMenu: () => {
     const toggle = DOM.navToggle;
     const menu = DOM.navMenu;
@@ -1068,7 +1163,7 @@ const Navigation = {
   /**
    * Show professionals page
    */
-  showProfessionals: () => {
+  showProfessionals: (skipHashUpdate = false) => {
     Navigation.closeMenu();
     // Hide all pages first
     document.querySelectorAll('.page').forEach(page => {
@@ -1079,13 +1174,16 @@ const Navigation = {
     DOM.pagePro.hidden = false;
     DOM.pagePro.classList.add('active');
     Navigation.updateGlobalBackButton();
+    if (!skipHashUpdate) {
+      Navigation.updateHash('professionisti');
+    }
     Utils.scrollToTop();
   },
   
   /**
    * Go to home (wizard page)
    */
-  goToHome: () => {
+  goToHome: (skipHashUpdate = false) => {
     Navigation.closeMenu();
     // Hide all pages first
     document.querySelectorAll('.page').forEach(page => {
@@ -1097,6 +1195,9 @@ const Navigation = {
     DOM.pageWizard.classList.add('active');
     Wizard.showStep(1);
     Navigation.updateGlobalBackButton();
+    if (!skipHashUpdate) {
+      Navigation.updateHash('home');
+    }
     Utils.scrollToTop();
   },
   
@@ -1203,7 +1304,7 @@ const Navigation = {
   /**
    * Show join professionals page
    */
-  showJoinProfessionals: () => {
+  showJoinProfessionals: (skipHashUpdate = false) => {
     Navigation.closeMenu();
     document.querySelectorAll('.page').forEach(page => {
       page.classList.remove('active');
@@ -1213,6 +1314,9 @@ const Navigation = {
       DOM.pageJoin.hidden = false;
       DOM.pageJoin.classList.add('active');
       Navigation.updateGlobalBackButton(true);
+      if (!skipHashUpdate) {
+        Navigation.updateHash('diventa-professionista');
+      }
       Utils.scrollToTop();
     }
   },
@@ -1264,7 +1368,7 @@ const Navigation = {
   /**
    * Show privacy policy page
    */
-  showPrivacyPolicy: () => {
+  showPrivacyPolicy: (skipHashUpdate = false) => {
     DOM.pageWizard.classList.remove('active');
     DOM.pagePro.classList.remove('active');
     const privacyPage = document.getElementById('privacy-policy');
@@ -1278,11 +1382,14 @@ const Navigation = {
       privacyPage.hidden = false;
       privacyPage.classList.add('active');
       Navigation.updateGlobalBackButton(true);
+      if (!skipHashUpdate) {
+        Navigation.updateHash('privacy');
+      }
       Utils.scrollToTop();
     }
   },
   
-  showCookiePolicy: () => {
+  showCookiePolicy: (skipHashUpdate = false) => {
     DOM.pageWizard.classList.remove('active');
     DOM.pagePro.classList.remove('active');
     const cookiePage = document.getElementById('cookie-policy');
@@ -1296,6 +1403,30 @@ const Navigation = {
       cookiePage.hidden = false;
       cookiePage.classList.add('active');
       Navigation.updateGlobalBackButton(true);
+      if (!skipHashUpdate) {
+        Navigation.updateHash('cookie');
+      }
+      Utils.scrollToTop();
+    }
+  },
+  
+  /**
+   * Show admin dashboard (internal use)
+   */
+  showAdminDashboard: (skipHashUpdate = false) => {
+    Navigation.closeMenu();
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.remove('active');
+      page.hidden = true;
+    });
+    const adminPage = document.getElementById('page-admin');
+    if (adminPage) {
+      adminPage.hidden = false;
+      adminPage.classList.add('active');
+      Navigation.updateGlobalBackButton(true);
+      if (!skipHashUpdate) {
+        Navigation.updateHash('admin');
+      }
       Utils.scrollToTop();
     }
   }
@@ -1326,7 +1457,15 @@ const CookieConsent = {
   
   getStoredPreference: () => {
     try {
-      return JSON.parse(localStorage.getItem('cookieConsent'));
+      const data = JSON.parse(localStorage.getItem('cookieConsent'));
+      if (!data) return null;
+      // Scadenza preferenze: 180 giorni
+      const maxAgeMs = 180 * 24 * 60 * 60 * 1000;
+      if (data.timestamp && Date.now() - data.timestamp > maxAgeMs) {
+        localStorage.removeItem('cookieConsent');
+        return null;
+      }
+      return data;
     } catch (e) {
       return null;
     }
@@ -4799,18 +4938,8 @@ const AdminDashboard = {
    * Show admin dashboard
    */
   show: () => {
-    document.querySelectorAll('.page').forEach(page => {
-      page.classList.remove('active');
-      page.hidden = true;
-    });
-    const adminPage = document.getElementById('page-admin');
-    if (adminPage) {
-      adminPage.hidden = false;
-      adminPage.classList.add('active');
-      Navigation.updateGlobalBackButton();
-      AdminDashboard.loadData();
-      Utils.scrollToTop();
-    }
+    Navigation.showAdminDashboard(); // Use Navigation function to update hash
+    AdminDashboard.loadData();
   },
   
   /**
@@ -5991,6 +6120,7 @@ const App = {
     Professionals.init();
     Geo.populateProvinceSelects();
     Navigation.initMenu();
+    Navigation.initRouting(); // Initialize hash-based routing
     ProfessionalApplication.init();
     ProfessionalReview.init();
     CookieConsent.init();
@@ -6002,8 +6132,16 @@ const App = {
     Professionals.updateSortHint();
     LoginHandler.init();
     
-    // Ensure the app always starts from the home wizard
-    Navigation.goToHome();
+    // Handle initial route (will respect hash if present, otherwise go to home)
+    // Use setTimeout to ensure DOM is ready
+    setTimeout(() => {
+      if (!window.location.hash) {
+        Navigation.goToHome();
+      } else {
+        // Routing will handle the hash via handleHashRoute
+        Navigation.handleHashRoute();
+      }
+    }, 0);
     
     // Avoid automatic redirects to reserved areas on refresh
     localStorage.removeItem('professionalLoggedIn');
