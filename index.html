@@ -109,7 +109,7 @@
       </div>
     </div>
     <div class="spacer"></div>
-    <button class="nav-toggle" id="navToggle" aria-label="Apri menu principale" aria-expanded="false">
+    <button class="nav-toggle" id="navToggle" aria-label="Apri menu principale" aria-expanded="false" style="display: none;">
       <span></span>
       <span></span>
       <span></span>
@@ -814,7 +814,7 @@
           <h4>Link Utili</h4>
           <ul>
             <li><a href="#home" onclick="Navigation.goToHome()">Richiedi aiuto</a></li>
-            <li><a href="#professionisti" onclick="Navigation.showProfessionals()">Professionisti</a></li>
+            <li><a href="#professionisti" onclick="Navigation.showProfessionals()" style="display: none;">Professionisti</a></li>
             <li><a href="#privacy" onclick="Navigation.showPrivacyPolicy()">Privacy Policy</a></li>
             <li><a href="#cookie" onclick="Navigation.showCookiePolicy()">Cookie Policy</a></li>
           </ul>
@@ -822,7 +822,7 @@
         <div class="footer-section">
           <h4>Contatti</h4>
           <p>Per informazioni: contattaci tramite il form</p>
-          <a href="#" id="show-professionals-list" class="professionals-link-footer" onclick="FooterProfessionals.showList(); return false;">I nostri Professionisti</a>
+          <a href="#" id="show-professionals-list" class="professionals-link-footer" onclick="FooterProfessionals.showList(); return false;" style="display: none;">I nostri Professionisti</a>
         </div>
       </div>
       <div class="footer-bottom">
