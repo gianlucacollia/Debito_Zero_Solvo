@@ -1452,6 +1452,15 @@ const Navigation = {
       thankYouPage.classList.add('active');
       Navigation.updateGlobalBackButton(false); // Hide back button on thank you page
       Utils.scrollToTop();
+      
+      // Google Ads conversion: Contatto
+      try {
+        if (typeof gtag === 'function') {
+          gtag('event', 'conversion', { send_to: 'AW-17790065809/Oxo_CO_nzdEbEJG5-6JC' });
+        }
+      } catch (e) {
+        console.warn('Impossibile inviare evento di conversione:', e);
+      }
     }
   }
 };
