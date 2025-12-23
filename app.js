@@ -1062,25 +1062,25 @@ const Navigation = {
     if (Navigation._isNavigating) return; // Prevent loops
     
     Navigation._isNavigating = true;
-    const hash = window.location.hash.slice(1) || 'home'; // Remove # and default to 'home'
+    const hash = window.location.hash.slice(1) || 'come-funziona'; // Remove # and default to 'come-funziona' (Google Ads safe landing)
     const route = hash.split('/')[0]; // Get base route (ignore sub-routes like /professionista/123)
     
     // Map route to page
     const pageId = Navigation.routes[route];
     if (!pageId) {
-      // Unknown route, go to home
-      Navigation.goToHome(true); // Pass true to skip hash update
+      // Unknown route, go to come-funziona (default landing)
+      Navigation.showComeFunziona(true); // Pass true to skip hash update
       Navigation._isNavigating = false;
       return;
     }
     
     // Navigate to the page
     switch (route) {
-      case 'home':
-        Navigation.goToHome(true); // Pass true to skip hash update
-        break;
       case 'come-funziona':
         Navigation.showComeFunziona(true);
+        break;
+      case 'home':
+        Navigation.goToHome(true); // Pass true to skip hash update
         break;
       case 'professionisti':
         Navigation.showProfessionals(true);
@@ -6276,11 +6276,11 @@ const App = {
     Professionals.updateSortHint();
     LoginHandler.init();
     
-    // Handle initial route (will respect hash if present, otherwise go to home)
+    // Handle initial route (will respect hash if present, otherwise go to come-funziona - Google Ads safe landing)
     // Use setTimeout to ensure DOM is ready
     setTimeout(() => {
       if (!window.location.hash) {
-        Navigation.goToHome();
+        Navigation.showComeFunziona(); // Default to Google Ads safe landing
       } else {
         // Routing will handle the hash via handleHashRoute
         Navigation.handleHashRoute();
