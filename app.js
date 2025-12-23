@@ -2882,11 +2882,33 @@ const Wizard = {
    * Initialize Step 1 event listeners
    */
   initStep1: () => {
-    DOM.optionButtons.forEach(btn => {
-      btn.addEventListener('click', () => Wizard.handleOptionClick(btn));
+    // Re-query buttons in case DOM wasn't ready when DOM object was created
+    const optionButtons = document.querySelectorAll('.opt');
+    if (optionButtons.length === 0) {
+      console.warn('⚠️ Nessun bottone .opt trovato. Il DOM potrebbe non essere ancora pronto.');
+      // Retry after a short delay
+      setTimeout(() => {
+        const retryButtons = document.querySelectorAll('.opt');
+        retryButtons.forEach(btn => {
+          btn.addEventListener('click', () => Wizard.handleOptionClick(btn));
+        });
+      }, 100);
+      return;
+    }
+    
+    optionButtons.forEach(btn => {
+      // Check if listener already exists by checking for a data attribute
+      if (!btn.hasAttribute('data-wizard-initialized')) {
+        btn.setAttribute('data-wizard-initialized', 'true');
+        btn.addEventListener('click', () => Wizard.handleOptionClick(btn));
+      }
     });
     
-    DOM.toStep2Btn.addEventListener('click', Wizard.goToStep2);
+    const toStep2Btn = document.getElementById('to2');
+    if (toStep2Btn && !toStep2Btn.hasAttribute('data-wizard-initialized')) {
+      toStep2Btn.setAttribute('data-wizard-initialized', 'true');
+      toStep2Btn.addEventListener('click', Wizard.goToStep2);
+    }
   },
   
   /**
@@ -3030,6 +3052,13 @@ const Wizard = {
    * Initialize wizard
    */
   init: () => {
+    // Ensure DOM elements exist before initializing
+    if (!document.getElementById('step1')) {
+      console.warn('⚠️ Step1 non trovato. Ritento tra 100ms...');
+      setTimeout(() => Wizard.init(), 100);
+      return;
+    }
+    
     Wizard.initStep1();
     Wizard.initStep2();
     Wizard.initStep3();
@@ -6186,8 +6215,16 @@ const App = {
 
 // Start app when DOM is ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', App.init);
+  document.addEventListener('DOMContentLoaded', () => {
+    // Small delay to ensure all elements are rendered
+    setTimeout(() => {
+      App.init();
+    }, 50);
+  });
 } else {
-  App.init();
+  // DOM already loaded, but wait a bit for any async elements
+  setTimeout(() => {
+    App.init();
+  }, 50);
 }
 
