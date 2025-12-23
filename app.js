@@ -19,10 +19,10 @@ const ANALYTICS_CONFIG = {
 
 // ==================== CONFIGURAZIONE SUPABASE ====================
 // 🔧 ISTRUZIONI: Segui la guida in CONFIGURAZIONE-COMPLETA.txt per configurare Supabase
-let supabase = null;
+let supabaseClient = null;
 if (window.supabase && window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url && window.SUPABASE_CONFIG.url !== 'https://xxxxx.supabase.co') {
   try {
-    supabase = window.supabase.createClient(
+    supabaseClient = window.supabase.createClient(
       window.SUPABASE_CONFIG.url,
       window.SUPABASE_CONFIG.anonKey
     );
@@ -35,10 +35,10 @@ if (window.supabase && window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url && w
 }
 
 const SupabaseService = {
-  isReady: () => Boolean(supabase),
+  isReady: () => Boolean(supabaseClient),
   
   saveClientRequest: async (request) => {
-    if (!supabase) return { error: 'Supabase non disponibile' };
+    if (!supabaseClient) return { error: 'Supabase non disponibile' };
     try {
       const payload = {
         name: request.name || '',
@@ -54,7 +54,7 @@ const SupabaseService = {
         monthly_income: request.monthlyIncome || null, // Reddito mensile netto
         submission_date: request.dateISO || new Date().toISOString()
       };
-      return await supabase.from('client_requests').insert([payload]);
+      return await supabaseClient.from('client_requests').insert([payload]);
     } catch (error) {
       console.error('Errore salvataggio Supabase (client_requests):', error);
       return { error };
@@ -62,9 +62,9 @@ const SupabaseService = {
   },
   
   fetchClientRequests: async () => {
-    if (!supabase) return { data: null, error: 'Supabase non disponibile' };
+    if (!supabaseClient) return { data: null, error: 'Supabase non disponibile' };
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('client_requests')
         .select('*')
         .order('submission_date', { ascending: false });
@@ -76,7 +76,7 @@ const SupabaseService = {
   },
   
   saveProfessionalApplication: async (application) => {
-    if (!supabase) return { error: 'Supabase non disponibile' };
+    if (!supabaseClient) return { error: 'Supabase non disponibile' };
     try {
       const payload = {
         name: application.name || '',
@@ -95,7 +95,7 @@ const SupabaseService = {
         reviewed_at: application.reviewedAt || null,
         submission_date: application.dateISO || new Date().toISOString()
       };
-      return await supabase.from('professional_applications').insert([payload]);
+      return await supabaseClient.from('professional_applications').insert([payload]);
     } catch (error) {
       console.error('Errore salvataggio Supabase (professional_applications):', error);
       return { error };
@@ -103,9 +103,9 @@ const SupabaseService = {
   },
   
   fetchProfessionalApplications: async () => {
-    if (!supabase) return { data: null, error: 'Supabase non disponibile' };
+    if (!supabaseClient) return { data: null, error: 'Supabase non disponibile' };
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('professional_applications')
         .select('*')
         .order('submission_date', { ascending: false });
@@ -117,9 +117,9 @@ const SupabaseService = {
   },
   
   updateProfessionalApplication: async (id, updates) => {
-    if (!supabase) return { error: 'Supabase non disponibile' };
+    if (!supabaseClient) return { error: 'Supabase non disponibile' };
     try {
-      return await supabase
+      return await supabaseClient
         .from('professional_applications')
         .update(updates)
         .eq('id', id);
@@ -4479,11 +4479,11 @@ const ProfessionalApplication = {
         continue;
       }
       
-      if (supabase) {
+      if (supabaseClient) {
         try {
           const safeName = file.name.replace(/\s+/g, '-').toLowerCase();
           const path = `applications/${folderId}/${safeName}`;
-          const { error } = await supabase.storage
+          const { error } = await supabaseClient.storage
             .from('professional-documents')
             .upload(path, file, { cacheControl: '3600', upsert: false });
           
@@ -4492,7 +4492,7 @@ const ProfessionalApplication = {
             continue;
           }
           
-          const { data } = supabase.storage
+          const { data } = supabaseClient.storage
             .from('professional-documents')
             .getPublicUrl(path);
           
@@ -4763,11 +4763,11 @@ const ProfessionalDashboard = {
       
       try {
         // Try to upload to Supabase first
-        if (supabase) {
+        if (supabaseClient) {
           const fileName = `professional-${Date.now()}-${file.name}`;
           const filePath = `gianluca-collia/${fileName}`;
           
-          const { data: uploadData, error: uploadError } = await supabase.storage
+          const { data: uploadData, error: uploadError } = await supabaseClient.storage
             .from('professional-documents')
             .upload(filePath, file, {
               cacheControl: '3600',
@@ -4779,7 +4779,7 @@ const ProfessionalDashboard = {
           }
           
           // Get public URL
-          const { data: urlData } = supabase.storage
+          const { data: urlData } = supabaseClient.storage
             .from('professional-documents')
             .getPublicUrl(filePath);
           
@@ -4966,8 +4966,8 @@ const ProfessionalDashboard = {
       }
       
       // If stored in Supabase, delete from storage
-      if (doc.storage === 'supabase' && doc.path && supabase) {
-        const { error } = await supabase.storage
+      if (doc.storage === 'supabase' && doc.path && supabaseClient) {
+        const { error } = await supabaseClient.storage
           .from('professional-documents')
           .remove([doc.path]);
         
