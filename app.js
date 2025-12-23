@@ -917,6 +917,7 @@ ReviewsSystem.loadReviews();
 const DOM = {
   // Pages
   pageWizard: document.getElementById('page-wizard'),
+  pageComeFunziona: document.getElementById('page-come-funziona'),
   pagePro: document.getElementById('page-pro'),
   pageJoin: document.getElementById('page-join-pro'),
   navMenu: document.getElementById('navMenu'),
@@ -1029,6 +1030,7 @@ const Navigation = {
    */
   routes: {
     'home': 'page-wizard',
+    'come-funziona': 'page-come-funziona',
     'professionisti': 'page-pro',
     'diventa-professionista': 'page-join-pro',
     'privacy': 'privacy-policy',
@@ -1076,6 +1078,9 @@ const Navigation = {
     switch (route) {
       case 'home':
         Navigation.goToHome(true); // Pass true to skip hash update
+        break;
+      case 'come-funziona':
+        Navigation.showComeFunziona(true);
         break;
       case 'professionisti':
         Navigation.showProfessionals(true);
@@ -1181,6 +1186,28 @@ const Navigation = {
   },
   
   /**
+   * Show come-funziona page (Google Ads safe landing)
+   */
+  showComeFunziona: (skipHashUpdate = false) => {
+    Navigation.closeMenu();
+    // Hide all pages first
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.remove('active');
+      page.hidden = true;
+    });
+    // Show come-funziona page
+    if (DOM.pageComeFunziona) {
+      DOM.pageComeFunziona.hidden = false;
+      DOM.pageComeFunziona.classList.add('active');
+      Navigation.updateGlobalBackButton();
+      if (!skipHashUpdate) {
+        Navigation.updateHash('come-funziona');
+      }
+      Utils.scrollToTop();
+    }
+  },
+  
+  /**
    * Go to home (wizard page)
    */
   goToHome: (skipHashUpdate = false) => {
@@ -1209,8 +1236,15 @@ const Navigation = {
     const cookiePage = document.getElementById('cookie-policy');
     const professionalPage = document.getElementById('page-professional');
     const adminPage = document.getElementById('page-admin');
+    const comeFunzionaPage = DOM.pageComeFunziona;
     const joinPage = DOM.pageJoin;
     const professionalsListPage = document.getElementById('professionals-list-page');
+    
+    // Handle come-funziona page
+    if (comeFunzionaPage && !comeFunzionaPage.hidden) {
+      Navigation.goToHome();
+      return;
+    }
     
     // Handle cookie policy
     if (cookiePage && cookiePage.classList.contains('active')) {

@@ -7,27 +7,32 @@ Questo documento elenca tutti gli URL disponibili per le estensioni del sito in 
 
 ## 📋 URL Disponibili per Estensioni
 
-### 1. Home / Wizard
+### 1. Come Funziona (Landing Google Ads Safe) ⭐ PRINCIPALE
+**URL:** `https://tatoSolvi.com/#come-funziona`  
+**Descrizione:** Landing page ottimizzata per Google Ads, completamente conforme alle policy. Linguaggio neutro e informativo.  
+**Uso consigliato:** **URL principale per campagne Google Ads**, "Scopri come funziona", "Piattaforma orientamento"
+
+### 2. Home / Wizard
 **URL:** `https://tatoSolvi.com/#home`  
 **Descrizione:** Pagina principale con il wizard per la richiesta di aiuto  
 **Uso consigliato:** Link principale, "Inizia ora", "Richiedi aiuto"
 
-### 2. Professionisti
+### 3. Professionisti
 **URL:** `https://tatoSolvi.com/#professionisti`  
 **Descrizione:** Lista completa dei professionisti disponibili  
 **Uso consigliato:** "Vedi professionisti", "Trova consulente", "Professionisti qualificati"
 
-### 3. Diventa Professionista
+### 4. Diventa Professionista
 **URL:** `https://tatoSolvi.com/#diventa-professionista`  
 **Descrizione:** Pagina per registrarsi come professionista  
 **Uso consigliato:** "Diventa professionista", "Registrati", "Unisciti a noi"
 
-### 4. Privacy Policy
+### 5. Privacy Policy
 **URL:** `https://tatoSolvi.com/#privacy`  
 **Descrizione:** Informativa sulla privacy conforme GDPR  
 **Uso consigliato:** "Privacy", "Informativa privacy", "Protezione dati"
 
-### 5. Cookie Policy
+### 6. Cookie Policy
 **URL:** `https://tatoSolvi.com/#cookie`  
 **Descrizione:** Informativa sui cookie  
 **Uso consigliato:** "Cookie", "Gestione cookie", "Preferenze cookie"
@@ -37,11 +42,12 @@ Questo documento elenca tutti gli URL disponibili per le estensioni del sito in 
 ### Estensioni Sitelink
 Puoi creare fino a 6 sitelink con questi URL:
 
-1. **"Inizia Subito"** → `#home`
-2. **"Vedi Professionisti"** → `#professionisti`
-3. **"Diventa Professionista"** → `#diventa-professionista`
-4. **"Privacy Policy"** → `#privacy`
-5. **"Cookie Policy"** → `#cookie`
+1. **"Come Funziona"** → `#come-funziona` ⭐ (URL principale per Google Ads)
+2. **"Inizia Subito"** → `#home`
+3. **"Vedi Professionisti"** → `#professionisti`
+4. **"Diventa Professionista"** → `#diventa-professionista`
+5. **"Privacy Policy"** → `#privacy`
+6. **"Cookie Policy"** → `#cookie`
 
 ### Estensioni Callout
 Testi suggeriti:
