@@ -1877,9 +1877,27 @@ const Wizard = {
    * Handle option selection in Step 1
    */
   handleOptionClick: (button) => {
+    console.log('🎯 handleOptionClick chiamato per:', button.dataset.value);
+    
+    // Se viene passato un elemento figlio, trova il bottone padre
+    if (!button.classList.contains('opt')) {
+      button = button.closest('.opt');
+      if (!button) {
+        console.error('❌ Impossibile trovare il bottone .opt');
+        return;
+      }
+    }
+    
     const value = button.dataset.value;
+    if (!value) {
+      console.error('❌ Bottone senza data-value:', button);
+      return;
+    }
+    
     const isSelected = button.classList.contains('selected');
     const detailsContainer = document.getElementById(`details-${value}`);
+    
+    console.log(`📌 Stato attuale: ${isSelected ? 'selezionato' : 'non selezionato'}`);
     
     if (isSelected) {
       button.classList.remove('selected');
@@ -1894,6 +1912,7 @@ const Wizard = {
         delete state.debtCreditors[value];
         Wizard.saveStateToStorage();
       }
+      console.log('➖ Debito deselezionato:', value);
     } else {
       button.classList.add('selected');
       button.setAttribute('aria-pressed', 'true');
@@ -1904,11 +1923,17 @@ const Wizard = {
         Wizard.renderDebtDetails(value);
         Wizard.saveStateToStorage();
       }
+      console.log('➕ Debito selezionato:', value);
     }
     
-    DOM.toStep2Btn.disabled = state.selections.length === 0;
+    const toStep2Btn = document.getElementById('to2');
+    if (toStep2Btn) {
+      toStep2Btn.disabled = state.selections.length === 0;
+    }
     Wizard.updateTotalAmount();
     Wizard.saveStateToStorage();
+    
+    console.log('✅ Stato aggiornato. Selezioni:', state.selections);
   },
   
   /**
@@ -2882,33 +2907,57 @@ const Wizard = {
    * Initialize Step 1 event listeners
    */
   initStep1: () => {
-    // Re-query buttons in case DOM wasn't ready when DOM object was created
-    const optionButtons = document.querySelectorAll('.opt');
-    if (optionButtons.length === 0) {
-      console.warn('⚠️ Nessun bottone .opt trovato. Il DOM potrebbe non essere ancora pronto.');
-      // Retry after a short delay
-      setTimeout(() => {
-        const retryButtons = document.querySelectorAll('.opt');
-        retryButtons.forEach(btn => {
-          btn.addEventListener('click', () => Wizard.handleOptionClick(btn));
-        });
-      }, 100);
-      return;
+    console.log('🔧 Inizializzazione Step 1...');
+    
+    // Use event delegation on the options container (more robust)
+    const optionsContainer = document.querySelector('.options');
+    if (optionsContainer && !optionsContainer.hasAttribute('data-wizard-initialized')) {
+      optionsContainer.setAttribute('data-wizard-initialized', 'true');
+      optionsContainer.addEventListener('click', (e) => {
+        // Find the closest .opt button
+        const optButton = e.target.closest('.opt');
+        if (optButton) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('🖱️ Click su bottone (delegation):', optButton.dataset.value);
+          Wizard.handleOptionClick(optButton);
+        }
+      }, true); // Capture phase
+      console.log('✅ Event delegation configurato sul container .options');
     }
     
-    optionButtons.forEach(btn => {
-      // Check if listener already exists by checking for a data attribute
+    // Also attach direct listeners as backup
+    const optionButtons = document.querySelectorAll('.opt');
+    console.log(`📊 Trovati ${optionButtons.length} bottoni .opt`);
+    
+    optionButtons.forEach((btn, index) => {
       if (!btn.hasAttribute('data-wizard-initialized')) {
+        console.log(`  ✓ Backup listener su bottone ${index + 1}:`, btn.dataset.value);
         btn.setAttribute('data-wizard-initialized', 'true');
-        btn.addEventListener('click', () => Wizard.handleOptionClick(btn));
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('🖱️ Click su bottone (direct):', btn.dataset.value);
+          Wizard.handleOptionClick(btn);
+        }, true);
       }
     });
     
     const toStep2Btn = document.getElementById('to2');
-    if (toStep2Btn && !toStep2Btn.hasAttribute('data-wizard-initialized')) {
-      toStep2Btn.setAttribute('data-wizard-initialized', 'true');
-      toStep2Btn.addEventListener('click', Wizard.goToStep2);
+    if (toStep2Btn) {
+      if (!toStep2Btn.hasAttribute('data-wizard-initialized')) {
+        toStep2Btn.setAttribute('data-wizard-initialized', 'true');
+        toStep2Btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          Wizard.goToStep2();
+        });
+        console.log('✓ Bottone "Avanti" inizializzato');
+      }
+    } else {
+      console.warn('⚠️ Bottone "to2" non trovato');
     }
+    
+    console.log('✅ Step 1 inizializzato correttamente');
   },
   
   /**
