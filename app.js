@@ -1208,6 +1208,23 @@ const Navigation = {
   },
   
   /**
+   * Track CTA click from Google Ads landing page
+   */
+  trackCTAClick: () => {
+    // Track click on "Accedi alla piattaforma" button
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'cta_click', {
+        'event_category': 'engagement',
+        'event_label': 'Accedi alla piattaforma',
+        'value': 1
+      });
+      console.log('📊 Evento CTA click tracciato');
+    }
+    // Navigate to home
+    Navigation.goToHome();
+  },
+  
+  /**
    * Go to home (wizard page)
    */
   goToHome: (skipHashUpdate = false) => {
