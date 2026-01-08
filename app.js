@@ -6272,9 +6272,239 @@ const FooterProfessionals = {
   }
 };
 
+// ==================== MOBILE DETECTION ====================
+const MobileDetector = {
+  /**
+   * Detect if user is on mobile device
+   */
+  isMobile: () => {
+    // Check user agent
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+    
+    // Check screen width
+    const isSmallScreen = window.innerWidth <= 768;
+    
+    // Check touch capability
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    
+    // Check if mobile user agent OR (small screen AND touch device)
+    return mobileRegex.test(userAgent) || (isSmallScreen && isTouchDevice);
+  },
+  
+  /**
+   * Show mobile version if detected
+   */
+  initMobileVersion: () => {
+    if (MobileDetector.isMobile()) {
+      console.log('📱 Dispositivo mobile rilevato - attivando versione semplificata');
+      
+      // Hide navbar on mobile for simpler experience
+      const nav = document.querySelector('.nav');
+      if (nav) {
+        nav.style.display = 'none';
+      }
+      
+      // Hide desktop wizard
+      const desktopWizard = document.getElementById('page-wizard');
+      if (desktopWizard) {
+        desktopWizard.classList.remove('active');
+        desktopWizard.hidden = true;
+      }
+      
+      // Show mobile wizard
+      const mobileWizard = document.getElementById('page-wizard-mobile');
+      if (mobileWizard) {
+        mobileWizard.hidden = false;
+        mobileWizard.classList.add('active');
+        
+        // Hide other pages
+        document.querySelectorAll('.page').forEach(page => {
+          if (page.id !== 'page-wizard-mobile') {
+            page.classList.remove('active');
+            page.hidden = true;
+          }
+        });
+      }
+      
+      return true;
+    }
+    return false;
+  }
+};
+
+// ==================== MOBILE WIZARD HANDLER ====================
+const MobileWizard = {
+  /**
+   * Initialize mobile wizard form
+   */
+  init: () => {
+    const form = document.getElementById('mobileWizardForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', MobileWizard.handleSubmit);
+    
+    // Add visual feedback for checkboxes
+    const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const label = e.target.closest('label');
+        if (e.target.checked) {
+          label.style.borderColor = 'var(--brand)';
+          label.style.background = 'rgba(31, 111, 99, 0.1)';
+        } else {
+          label.style.borderColor = 'transparent';
+          label.style.background = 'var(--bg-secondary)';
+        }
+      });
+    });
+  },
+  
+  /**
+   * Handle mobile form submission
+   */
+  handleSubmit: async (event) => {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    // Get debt types
+    const debtTypes = [];
+    form.querySelectorAll('input[name="debt-types"]:checked').forEach(cb => {
+      debtTypes.push(cb.value);
+    });
+    
+    if (debtTypes.length === 0) {
+      alert('⚠️ Seleziona almeno un tipo di debito');
+      return;
+    }
+    
+    // Get form values
+    const data = {
+      nome: formData.get('nome')?.trim() || '',
+      cognome: formData.get('cognome')?.trim() || '',
+      telefono: formData.get('telefono')?.trim() || '',
+      email: formData.get('email')?.trim() || '',
+      citta: formData.get('citta')?.trim() || '',
+      reddito: parseFloat(formData.get('reddito')) || 0,
+      debtTypes: debtTypes
+    };
+    
+    // Validate
+    if (!data.nome || data.nome.length < 2) {
+      alert('⚠️ Inserisci un nome valido');
+      return;
+    }
+    
+    if (!data.cognome || data.cognome.length < 2) {
+      alert('⚠️ Inserisci un cognome valido');
+      return;
+    }
+    
+    if (!data.telefono || data.telefono.length < 9) {
+      alert('⚠️ Inserisci un numero di telefono valido');
+      return;
+    }
+    
+    if (!data.email || !data.email.includes('@')) {
+      alert('⚠️ Inserisci un\'email valida');
+      return;
+    }
+    
+    if (!data.citta || data.citta.length < 2) {
+      alert('⚠️ Inserisci una città valida');
+      return;
+    }
+    
+    if (!data.reddito || data.reddito <= 0) {
+      alert('⚠️ Inserisci un reddito mensile valido');
+      return;
+    }
+    
+    // Show loading
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Invio in corso...';
+    
+    try {
+      // Prepare request data
+      const requestData = {
+        name: data.nome,
+        surname: data.cognome,
+        email: data.email,
+        phone: data.telefono,
+        city: data.citta,
+        province: '', // Not required in mobile version
+        cap: '', // Not required in mobile version
+        monthly_income: data.reddito,
+        debt_types: debtTypes.join(', '),
+        source: 'mobile_simplified',
+        timestamp: new Date().toISOString()
+      };
+      
+      // Save to Supabase
+      if (SupabaseService.isReady()) {
+        await SupabaseService.saveClientRequest(requestData);
+      }
+      
+      // Send email via EmailJS
+      try {
+        await emailjs.send(
+          EMAIL_CONFIG.serviceId,
+          EMAIL_CONFIG.templateId,
+          {
+            to_name: EMAIL_CONFIG.recipientEmail,
+            client_name: `${data.nome} ${data.cognome}`,
+            client_email: data.email,
+            client_phone: data.telefono,
+            client_city: data.citta,
+            client_income: `€ ${data.reddito.toFixed(2)}`,
+            debt_types: debtTypes.join(', '),
+            message: `Richiesta da versione mobile semplificata`
+          },
+          EMAIL_CONFIG.publicKey
+        );
+      } catch (emailError) {
+        console.warn('⚠️ Errore invio email:', emailError);
+      }
+      
+      // Track conversion
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'mobile_form_submit', {
+          'event_category': 'engagement',
+          'event_label': 'Mobile Simplified Form',
+          'value': 1
+        });
+      }
+      
+      // Show success and redirect to thank you page
+      Navigation.showThankYouPage();
+      
+    } catch (error) {
+      console.error('❌ Errore invio form mobile:', error);
+      alert('❌ Si è verificato un errore. Riprova più tardi o contattaci direttamente.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
+  }
+};
+
 // ==================== APP INITIALIZATION ====================
 const App = {
   init: () => {
+    // Check if mobile and show mobile version FIRST
+    const isMobile = MobileDetector.initMobileVersion();
+    
+    if (isMobile) {
+      // Initialize ONLY mobile wizard (simplified version)
+      MobileWizard.init();
+      console.log('✅ Versione mobile inizializzata');
+      return; // Exit early - don't initialize desktop features
+    }
+    
+    // Desktop version - initialize all features
     EmailService.init();
     Wizard.init();
     Modal.init();
@@ -6309,7 +6539,7 @@ const App = {
     localStorage.removeItem('adminLoggedIn');
     localStorage.removeItem('currentProfessional');
     
-    console.log('✅ Tatosolvi app initialized');
+    console.log('✅ Tatosolvi app initialized (desktop)');
   }
 };
 

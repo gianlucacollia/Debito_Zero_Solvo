@@ -132,6 +132,116 @@
   </nav>
 
   <!-- WIZARD -->
+  <!-- Mobile Version (simplified) -->
+  <section class="page" id="page-wizard-mobile" aria-labelledby="wizard-mobile-title" hidden>
+    <div class="wizard-container" style="max-width: 100%; padding: var(--spacing-md);">
+      <div class="wizard-header" style="text-align: center; margin-bottom: var(--spacing-xl);">
+        <h1 id="wizard-mobile-title" style="font-size: 1.8rem; margin-bottom: var(--spacing-sm); color: var(--text-primary);">Inizia subito</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Compila il form e ti contatteremo a breve</p>
+      </div>
+
+      <!-- Mobile Simplified Form -->
+      <section id="mobile-form" class="card" style="max-width: 100%;">
+        <form id="mobileWizardForm" novalidate>
+          <!-- Debt Types (simplified) -->
+          <div style="margin-bottom: var(--spacing-xl);">
+            <label style="display: block; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--text-primary); font-size: 1.1rem;">
+              Quali tipi di debiti hai? (seleziona tutti quelli che ti riguardano)
+            </label>
+            <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+              <label style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md); cursor: pointer; border: 2px solid transparent; transition: all 0.2s;">
+                <input type="checkbox" name="debt-types" value="mutui" style="width: 20px; height: 20px; cursor: pointer;">
+                <span>🏠 Mutui e finanziamenti immobiliari</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md); cursor: pointer; border: 2px solid transparent; transition: all 0.2s;">
+                <input type="checkbox" name="debt-types" value="prestiti" style="width: 20px; height: 20px; cursor: pointer;">
+                <span>💳 Prestiti personali e finanziamenti</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md); cursor: pointer; border: 2px solid transparent; transition: all 0.2s;">
+                <input type="checkbox" name="debt-types" value="fiscali" style="width: 20px; height: 20px; cursor: pointer;">
+                <span>📋 Debiti fiscali (Agenzia Entrate)</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md); cursor: pointer; border: 2px solid transparent; transition: all 0.2s;">
+                <input type="checkbox" name="debt-types" value="previdenziali" style="width: 20px; height: 20px; cursor: pointer;">
+                <span>📊 Debiti contributivi (INPS/INAIL)</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md); cursor: pointer; border: 2px solid transparent; transition: all 0.2s;">
+                <input type="checkbox" name="debt-types" value="utenze" style="width: 20px; height: 20px; cursor: pointer;">
+                <span>🔌 Utenze e servizi ricorrenti</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md); cursor: pointer; border: 2px solid transparent; transition: all 0.2s;">
+                <input type="checkbox" name="debt-types" value="altro" style="width: 20px; height: 20px; cursor: pointer;">
+                <span>🌐 Altri debiti</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Personal Info (all in one form) -->
+          <div style="margin-bottom: var(--spacing-xl);">
+            <h3 style="font-size: 1.1rem; margin-bottom: var(--spacing-md); color: var(--text-primary);">I tuoi dati</h3>
+            
+            <div style="display: grid; gap: var(--spacing-md); margin-bottom: var(--spacing-md);">
+              <div>
+                <label for="mobile-nome" style="display: block; font-weight: 600; margin-bottom: var(--spacing-xs); color: var(--text-primary); font-size: 0.9rem;">
+                  Nome *
+                </label>
+                <input type="text" id="mobile-nome" name="nome" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="Il tuo nome">
+              </div>
+              
+              <div>
+                <label for="mobile-cognome" style="display: block; font-weight: 600; margin-bottom: var(--spacing-xs); color: var(--text-primary); font-size: 0.9rem;">
+                  Cognome *
+                </label>
+                <input type="text" id="mobile-cognome" name="cognome" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="Il tuo cognome">
+              </div>
+              
+              <div>
+                <label for="mobile-telefono" style="display: block; font-weight: 600; margin-bottom: var(--spacing-xs); color: var(--text-primary); font-size: 0.9rem;">
+                  Cellulare *
+                </label>
+                <input type="tel" id="mobile-telefono" name="telefono" inputmode="tel" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="+39 333 1234567">
+              </div>
+              
+              <div>
+                <label for="mobile-email" style="display: block; font-weight: 600; margin-bottom: var(--spacing-xs); color: var(--text-primary); font-size: 0.9rem;">
+                  Email *
+                </label>
+                <input type="email" id="mobile-email" name="email" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="nome@esempio.it">
+              </div>
+              
+              <div>
+                <label for="mobile-citta" style="display: block; font-weight: 600; margin-bottom: var(--spacing-xs); color: var(--text-primary); font-size: 0.9rem;">
+                  Città *
+                </label>
+                <input type="text" id="mobile-citta" name="citta" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="Es. Milano">
+              </div>
+              
+              <div>
+                <label for="mobile-reddito" style="display: block; font-weight: 600; margin-bottom: var(--spacing-xs); color: var(--text-primary); font-size: 0.9rem;">
+                  Reddito mensile netto (€) *
+                </label>
+                <input type="number" id="mobile-reddito" name="reddito" min="0" step="0.01" required style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem;" placeholder="Es. 2000" inputmode="numeric">
+              </div>
+            </div>
+          </div>
+
+          <!-- Disclaimer -->
+          <div style="padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md); margin-bottom: var(--spacing-lg);">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.6;">
+              <strong>Disclaimer:</strong> I dati forniti verranno utilizzati per metterti in contatto con professionisti qualificati. L'analisi è puramente esemplificativa.
+            </p>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn" style="width: 100%; padding: var(--spacing-lg); font-size: 1.1rem; font-weight: 600;">
+            Invia richiesta
+          </button>
+        </form>
+      </section>
+    </div>
+  </section>
+
+  <!-- Desktop Version (existing) -->
   <section class="page active" id="page-wizard" aria-labelledby="wizard-title">
     <div class="container">
       <!-- Process Overview -->
