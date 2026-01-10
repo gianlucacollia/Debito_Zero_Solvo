@@ -6344,8 +6344,37 @@ const MobileWizard = {
     
     form.addEventListener('submit', MobileWizard.handleSubmit);
     
-    // Add visual feedback for checkboxes
-    const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+    // Get total amount box
+    const totalAmountBox = document.getElementById('mobile-total-amount-box');
+    const totalAmountInput = document.getElementById('mobile-total-amount');
+    
+    // Toggle total amount box based on checkbox selection
+    const toggleTotalAmountBox = () => {
+      const checkboxes = form.querySelectorAll('input[name="debt-types"]:checked');
+      const hasSelection = checkboxes.length > 0;
+      
+      if (totalAmountBox) {
+        if (hasSelection) {
+          totalAmountBox.style.display = 'block';
+          if (totalAmountInput) {
+            totalAmountInput.setAttribute('required', 'required');
+            // Focus after a short delay to allow animation
+            setTimeout(() => {
+              totalAmountInput.focus();
+            }, 100);
+          }
+        } else {
+          totalAmountBox.style.display = 'none';
+          if (totalAmountInput) {
+            totalAmountInput.value = '';
+            totalAmountInput.removeAttribute('required');
+          }
+        }
+      }
+    };
+    
+    // Add visual feedback for checkboxes and toggle total amount box
+    const checkboxes = form.querySelectorAll('input[name="debt-types"]');
     checkboxes.forEach(cb => {
       cb.addEventListener('change', (e) => {
         const label = e.target.closest('label');
@@ -6356,8 +6385,21 @@ const MobileWizard = {
           label.style.borderColor = 'transparent';
           label.style.background = 'var(--bg-secondary)';
         }
+        
+        // Toggle total amount box visibility
+        toggleTotalAmountBox();
       });
     });
+    
+    // Format total amount input on change
+    if (totalAmountInput) {
+      totalAmountInput.addEventListener('input', (e) => {
+        const value = e.target.value;
+        if (value && parseFloat(value) > 0) {
+          totalAmountInput.setAttribute('required', 'required');
+        }
+      });
+    }
   },
   
   /**
@@ -6380,6 +6422,14 @@ const MobileWizard = {
       return;
     }
     
+    // Get total amount
+    const totalAmount = parseFloat(formData.get('total-amount')) || 0;
+    
+    if (totalAmount <= 0) {
+      alert('⚠️ Inserisci un importo totale valido per i tuoi debiti');
+      return;
+    }
+    
     // Get form values
     const data = {
       nome: formData.get('nome')?.trim() || '',
@@ -6388,7 +6438,8 @@ const MobileWizard = {
       email: formData.get('email')?.trim() || '',
       citta: formData.get('citta')?.trim() || '',
       reddito: parseFloat(formData.get('reddito')) || 0,
-      debtTypes: debtTypes
+      debtTypes: debtTypes,
+      totalAmount: totalAmount
     };
     
     // Validate
@@ -6439,6 +6490,7 @@ const MobileWizard = {
         province: '', // Not required in mobile version
         cap: '', // Not required in mobile version
         monthly_income: data.reddito,
+        total_debt_amount: data.totalAmount,
         debt_types: debtTypes.join(', '),
         source: 'mobile_simplified',
         timestamp: new Date().toISOString()
@@ -6461,8 +6513,9 @@ const MobileWizard = {
             client_phone: data.telefono,
             client_city: data.citta,
             client_income: `€ ${data.reddito.toFixed(2)}`,
+            total_debt_amount: `€ ${data.totalAmount.toFixed(2)}`,
             debt_types: debtTypes.join(', '),
-            message: `Richiesta da versione mobile semplificata`
+            message: `Richiesta da versione mobile semplificata. Importo totale debiti: € ${data.totalAmount.toFixed(2)}`
           },
           EMAIL_CONFIG.publicKey
         );

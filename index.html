@@ -176,6 +176,26 @@
             </div>
           </div>
 
+          <!-- Total Amount Box (appears after selecting at least one debt type) -->
+          <div id="mobile-total-amount-box" style="display: none; margin-bottom: var(--spacing-xl); padding: var(--spacing-lg); background: linear-gradient(135deg, rgba(31, 111, 99, 0.1) 0%, rgba(31, 111, 99, 0.05) 100%); border: 2px solid var(--brand); border-radius: var(--radius-lg); animation: slideDown 0.3s ease-out;">
+            <label for="mobile-total-amount" style="display: block; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--text-primary); font-size: 1rem;">
+              💰 Importo totale stimato dei debiti (€) *
+            </label>
+            <input 
+              type="number" 
+              id="mobile-total-amount" 
+              name="total-amount" 
+              min="0" 
+              step="0.01" 
+              required 
+              inputmode="numeric"
+              style="width: 100%; padding: var(--spacing-md); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1.2rem; font-weight: 600; text-align: center; background: var(--card-bg);" 
+              placeholder="Es. 50000">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: var(--spacing-xs); margin-bottom: 0; text-align: center;">
+              Inserisci una stima dell'importo totale complessivo dei tuoi debiti
+            </p>
+          </div>
+
           <!-- Personal Info (all in one form) -->
           <div style="margin-bottom: var(--spacing-xl);">
             <h3 style="font-size: 1.1rem; margin-bottom: var(--spacing-md); color: var(--text-primary);">I tuoi dati</h3>
